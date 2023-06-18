@@ -1,0 +1,3 @@
+/Users/kito/Desktop/CODAM_git/codam/13_webserve/sample_code/sample_kqueue/cmake-build-debug/CMakeFiles/sample_kqueue.dir
+/Users/kito/Desktop/CODAM_git/codam/13_webserve/sample_code/sample_kqueue/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/kito/Desktop/CODAM_git/codam/13_webserve/sample_code/sample_kqueue/cmake-build-debug/CMakeFiles/rebuild_cache.dir
