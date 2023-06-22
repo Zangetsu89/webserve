@@ -1,6 +1,6 @@
 NAME		=	webserv
 CC			=	clang++
-CFLAGS		=	-Wall -Wextra -Werror -std=c++17 #-fsanitize=address
+CFLAGS		=	-Wall -Wextra -Werror -std=c++11 #-fsanitize=address
 RM			=	rm -f
 SRCS		:=	$(shell find src -iname "*.cpp")
 HEADERS		:=	include/WebservCli.hpp
