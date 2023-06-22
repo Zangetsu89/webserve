@@ -1,15 +1,9 @@
 NAME		=	webserv
 CC			=	clang++
-CFLAGS		=	-Wall -Wextra -Werror -std=c++98 #-fsanitize=address
+CFLAGS		=	-Wall -Wextra -Werror -std=c++11 #-fsanitize=address
 RM			=	rm -f
 SRCS		:=	$(shell find src -iname "*.cpp")
-HEADERS		:=	include/AMateria.hpp\
-				include/ICharacter.hpp\
-				include/Character.hpp\
-				include/Cure.hpp\
-				include/Ice.hpp\
-				include/MateriaSource.hpp\
-				include/IMateriaSource.hpp
+HEADERS		:=	include/
 OBJS		= $(SRCS:.cpp=.o)
 
 all:		$(NAME)
