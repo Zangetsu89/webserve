@@ -9,7 +9,7 @@
 class WebservCli {
     public:
         WebservCli(void);
-        ~WebservCli(void);
+        virtual ~WebservCli(void);
         static bool check_os(void);
         class WrongOsException : public std::exception
         {
