@@ -3,7 +3,7 @@ CC			=	clang++
 CFLAGS		=	-Wall -Wextra -Werror -std=c++11 #-fsanitize=address
 RM			=	rm -f
 SRCS		:=	$(shell find src -iname "*.cpp")
-HEADERS		:=	include/
+HEADERS		:=	include/WebservCli.hpp
 OBJS		= $(SRCS:.cpp=.o)
 
 all:		$(NAME)
