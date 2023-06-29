@@ -1,24 +1,34 @@
-NAME		=	webserv
-CC			=	clang++
-CFLAGS		=	-Wall -Wextra -Werror -std=c++11 #-fsanitize=address
-RM			=	rm -f
-SRCS		:=	$(shell find src -iname "*.cpp")
-HEADERS		:=	include/WebservCli.hpp
-OBJS		= $(SRCS:.cpp=.o)
+NAME			=	webserv
+CC				=	c++
+CFLAGS			=	-Wall -Wextra -Werror -std=c++11 #-fsanitize=address
+RM				=	rm -f
+DIR_HEADER		= 	include
+DIR_OBJ			=	obj
+#SRCS			:=	$(shell find src -iname "*.cpp")
+SRCS			:=	$(wildcard *.cpp)
+HEADERS			=	$(wildcard $(DIR_HEADER)/*.hpp)
 
-all:		$(NAME)
+OBJS			= $(addprefix $(DIR_OBJ)/, $(patsubst %.cpp, %.o , $(SRCS)))
 
-$(NAME):	$(OBJS)
-			$(CC) $(CFLAGS) $(OBJS) -o $(NAME)
+all:			$(NAME)
 
-%.o:		%.cpp $(HEADERS)
-			$(CC) $(CFLAGS) -c $< -o $@
+$(NAME): $(DIR_HEADER) $(DIR_OBJ) $(OBJS) $(HEADERS)
+	$(CC) $(CFLAGS) $(OBJS) -o $(NAME)
+
+$(DIR_OBJ)/%.o:	%.cpp $(HEADERS)
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(DIR_HEADER):
+	mkdir -p $(DIR_HEADER)
+
+$(DIR_OBJ):
+	mkdir -p $(DIR_OBJ)
 
 clean:
-			$(RM) $(OBJS)
+	$(RM) $(OBJS)
 
 fclean:		clean
-			$(RM) $(NAME)
+	$(RM) $(NAME)
 
 re:			fclean all
 
