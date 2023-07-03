@@ -11,27 +11,29 @@
 /* ************************************************************************** */
 
 #ifndef CONFIG_HPP
-#define CONFIG_HPP
+# define CONFIG_HPP
 
-#include <string>
+# include <string>
+# include <fstream>
+# include <vector>
+# include "Server.hpp"
 
-class Config_mac
+class Config
 {
-    protected:
-        std::string	server_name;
-        std::string	listen_address;
-		std::string	listen_name;
-        std::string	root_location;
-		std::string index;
+    private:
+        std::vector<Server>		_servers;
+		Server					newServer(std::string settings);
+		std::string				readConfigFile(std::string name);
 
     public:
-        Config_mac(std::string file_name);
-        ~Config_mac();
-        std::string	get_server_name();
-        std::string	get_port();
-		std::string get_port_name();
-        std::string	get_root();
-		std::string get_index();
+        Config(std::string file_name);
+        ~Config();
+		std::vector<Server>		getServers() const;
+        Server					getServerAtIndex(size_t index) const;
 };
 
 #endif
+
+//A server must have at least 3 elements: servername, root_dir and listen_socks
+//A server can have more information
+//maybe have a member method to store more information get additional info, with string as indicator
