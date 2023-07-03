@@ -13,9 +13,9 @@ DIR_KQ			=	webserve_kq
 #cpp files (add files for main. you can keep your main.cpp and Makefile in your work directory without writing in this file)
 SRCS_MAIN		:=	main.cpp
 SRCS_CLI		:=	$(DIR_SRC)/$(DIR_CLI)/WebservCli.cpp
-SRCS_KQ			:=	$(DIR_SRC)/$(DIR_KQ)/Server.cpp			\
-					$(DIR_SRC)/$(DIR_KQ)/SockListen.cpp			\
-					$(DIR_SRC)/$(DIR_KQ)/SockConnect.cpp
+SRCS_KQ			:=	$(DIR_SRC)/$(DIR_KQ)/Server.cpp					\
+					$(DIR_SRC)/$(DIR_KQ)/SocketListen.cpp			\
+					$(DIR_SRC)/$(DIR_KQ)/SocketConnect.cpp
 
 SRCS			:= $(SRCS_MAIN) $(SRCS_CLI) $(SRCS_KQ)
 

@@ -6,8 +6,8 @@
 
 #include "include/WebservCli.hpp"
 #include "include/Server.hpp"
-#include "include/SockConnect.hpp"
-#include "include/SockListen.hpp"
+#include "include/SocketConnect.hpp"
+#include "include/SocketListen.hpp"
 
 
 class	ERR_exit: public std::exception
@@ -21,52 +21,54 @@ const char*	ERR_exit::what() const _NOEXCEPT
 	return ("error in main part");
 }
 
-void	clear_kevent(struct kevent *kv)
+void	clearKevent(struct kevent *kv)
 {
 	EV_SET(kv, -1, EVFILT_READ, EV_DISABLE, 0, 0, NULL);
 }
 
-int	check_listening_sock(int sock, std::vector<Server> *list_Servers)
+int		checkSocketListen(int sock, std::vector<Server> *list_Servers)
 {
 	for (int i = 0; i < (int)list_Servers->size(); i++)
 	{
 		std::vector<Server> 	&temp = *list_Servers;
 		Server					&tempserver = temp[i];
 
-		int	listensock = tempserver.CheckIfListeningSock(sock);
-		if (listensock > 2)
-			return (listensock);
+		int	listeningsocket = tempserver.checkListeningSock(sock);
+		if (listeningsocket > 2)
+			return (listeningsocket);
 	}
 	return (-1);
 }
 
+
 // reading function : not well done yet. (the function to make response data is needed)
-void	read_sock(struct kevent *kv)
+void	readSocketData(struct kevent *kv, std::vector<Server> list_server)
 {
-	SockConnect	*sock = (SockConnect *)kv->udata;
+	SocketConnect	*cu_socket = (SocketConnect *)kv->udata;
 	char	buff[BUFF];
 	int		r = 1;
 
-	if (sock->GetSockConnect() < 3) // normally it never happens but if error occurs on client side, this socket number became 0... (under investigation) 
+	if (cu_socket->getSocketConnect() < 3) // normally it never happens but if error occurs on client side, this socket number became 0... (under investigation) 
 		return ;
 	while (r > 0)
 	{
-		r = read(sock->GetSockConnect(), buff, BUFF);
-		std::cout << "r is " << r << " after read from " << sock->GetSockConnect() << std::endl;
+		r = read(cu_socket->getSocketConnect(), buff, BUFF);
+		std::cout << "r is " << r << " after read from " << cu_socket->getSocketConnect() << std::endl;
 		if (r <= 0)
 			break;
-		sock->AddReadData(buff, r);
+		cu_socket->addReadData(buff, r);
 	}
-
+	std::cout << "data size is " << cu_socket->getSizeR() << std::endl;
+	(void)list_server;		// later, we need to find server info by host:port information
 }
 
 // writing function : not well done yet...
-void	write_sock(struct kevent *kv)
+void	writeSocketData(struct kevent *kv)
 {
-	SockConnect	*sock = (SockConnect *)kv->udata;
+	SocketConnect	*cu_socket = (SocketConnect *)kv->udata;
 
-	sock->PrintReadData();					// now, it prints the read data on the terminal (later, it must send the responsdata(_data_w) to the client )
-	write(sock->GetSockConnect(), "hello", 5); 	// dammy response
+	cu_socket->printReadData();	// now, it prints the read data on the terminal (later, it must send the responsdata(_dataW) to the client )
+	write(cu_socket->getSocketConnect(), "hello", 5); 	// dammy response
 
 }
 
@@ -100,7 +102,7 @@ int  main(int argc, char *argv[])
 	try
 	{
 		for(int i = 0; i < TOTAL_KEV; i++)
-			clear_kevent(&kev_catch[i]);
+			clearKevent(&kev_catch[i]);
 
 		kq_main = kqueue();
 		if (kq_main < 0)
@@ -111,10 +113,10 @@ int  main(int argc, char *argv[])
 
 		ports1.push_back(6868);
 		ports1.push_back(8080);
-		ports2.push_back(8888);
+		ports2.push_back(8080);
 
 		Server	newserver(ports1, "localhost", "./", kq_main); 		// dammy (later, we use parsed info)
-		Server	newserver2(ports2, "localhost", "./test2/", kq_main); // dammy (later, we use parsed info)
+		Server	newserver2(ports2, "kito.42.fr", "./test2/", kq_main); // dammy (later, we use parsed info)
 		list_Servers.push_back(newserver);
 		list_Servers.push_back(newserver2);
 		std::cout << list_Servers.size() << " server(s) set" << std::endl;
@@ -147,18 +149,18 @@ int  main(int argc, char *argv[])
 					// check if the socket is closed by client (or error happens on the socket)
 					if (kev_catch[i].ident == EV_ERROR)
 					{
-						delete((SockConnect *)kev_catch[i].udata);
+						delete((SocketConnect *)kev_catch[i].udata);
 						close(kev_catch[i].ident);
 						throw Server::ERR_Server("error on a socket");
 					}
 
 					// check if the socket is a listening socket
-					int	s_ope = check_listening_sock(kev_catch[i].ident, &list_Servers);
-					if (s_ope > 2)
+					int	if_socket_listen = checkSocketListen(kev_catch[i].ident, &list_Servers);
+					if (if_socket_listen > 2)
 					{
 						// make new connection socket, connect the new socket to udata of kevent
-						std::cout << "an event on listenning port " << kev_catch[i].ident << std::endl;
-						kev_catch[i].udata = new SockConnect((int)kev_catch[i].ident, &list_Servers[s_ope], kq_main);
+						std::cout << "This is an event on listenning socket " << if_socket_listen << " equal to event socket " << kev_catch[i].ident << std::endl;
+						kev_catch[i].udata = new SocketConnect((int)kev_catch[i].ident, kq_main);
 						if (kev_catch[i].udata == NULL)
 							throw Server::ERR_Server("error on accepting new socket");
 					}
@@ -167,8 +169,8 @@ int  main(int argc, char *argv[])
 						if (kev_catch[i].filter == EVFILT_READ) // check if the socket is to read
 						{
 							// read and store data, make response data(not added yet), change kevent filter and set this to kev_catch
-							std::cout << "EVFILT_READ on socket " << static_cast<SockConnect*>(kev_catch[i].udata)->GetSockConnect() << std::endl;
-							read_sock(&kev_catch[i]);						
+							std::cout << "EVFILT_READ on socket " << static_cast<SocketConnect*>(kev_catch[i].udata)->getSocketConnect() << std::endl;
+							readSocketData(&kev_catch[i], list_Servers);						
 							EV_SET(&kev_catch[i], kev_catch[i].ident, EVFILT_READ, EV_DELETE, 0, 0, kev_catch[i].udata);
 							EV_SET(&kev_catch[i], kev_catch[i].ident, EVFILT_WRITE, EV_ADD, 0, 0, kev_catch[i].udata);
 							if (kevent(kq_main, &kev_catch[i], 1, NULL, 0, NULL) < 0)
@@ -178,10 +180,10 @@ int  main(int argc, char *argv[])
 						else if (kev_catch[i].filter == EVFILT_WRITE) // check if the socket is to write
 						{
 							// send response data, clean and close socket
-							std::cout <<"EVFILT_WRITE on socket "  << static_cast<SockConnect*>(kev_catch[i].udata)->GetSockConnect() << std::endl;
-							write_sock(&kev_catch[i]);
+							std::cout <<"EVFILT_WRITE on socket "  << static_cast<SocketConnect*>(kev_catch[i].udata)->getSocketConnect() << std::endl;
+							writeSocketData(&kev_catch[i]);
 							std::cout << "closing " << kev_catch[i].ident << std::endl;
-							delete((SockConnect *)kev_catch[i].udata);
+							delete((SocketConnect *)kev_catch[i].udata);
 							close(kev_catch[i].ident);
 						}
 					}	
