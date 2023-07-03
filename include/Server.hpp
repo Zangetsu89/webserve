@@ -7,20 +7,18 @@
 # include <sys/event.h>
 # include <sys/time.h>
 # include <stdlib.h>
-# include <unistd.h>
-# include <netdb.h>
-# include <signal.h>
 # include "macro.hpp"
-# include "SockListen.hpp"
+# include "SocketListen.hpp"
 
-class SockListen;
+class SocketListen;
 class Server
 {
 	// private member
 	private:
-	std::string				_servername;
-	std::string				_root_dir;
-	std::vector<SockListen>	_listen_socks;
+	std::string					_serverName;
+	std::string					_rootDir;
+	std::vector<int>			_listPort;
+	std::vector<SocketListen>	_listSocketListen;
 
 	// base member function
 	protected:
@@ -33,10 +31,10 @@ class Server
 	Server(const Server &source);
 
 	// getter
-	std::string				GetServername();
-	std::string				GetRootDir();
-	std::vector<SockListen>	*GetListeningSocks();
-	int						CheckIfListeningSock(int sock);
+	std::string					getServerName();
+	std::string					getRootDir();
+	std::vector<SocketListen>	*getListeningSocket();
+	int							checkListeningSock(int sock);
 
 	// exception
 	public:

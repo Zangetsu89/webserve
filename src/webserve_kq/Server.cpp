@@ -8,19 +8,19 @@
 
 
 Server::Server(std::vector<int> ports, std::string name, std::string root_dir, int kq):
-_servername(name), _root_dir(root_dir)
+_serverName(name), _rootDir(root_dir),_listPort(ports)
 {
 	if (name == "" || root_dir == "")
 		throw ERR_Server("Server setting info is wrong");
 	
 	for (int i = 0; i < (int)ports.size(); i++)
 	{
-		SockListen	*tempsock = new SockListen(ports[i], this, kq);
-		_listen_socks.push_back(*tempsock);
+		SocketListen	*tempsock = new SocketListen(ports[i], kq);
+		_listSocketListen.push_back(*tempsock);
 		delete(tempsock);
-		std::cout << ports[i] << " port converts to socket " << _listen_socks.back().GetSockListen() << std::endl;
+		std::cout << ports[i] << " port converts to socket " << _listSocketListen.back().getSocketListen() << std::endl;
 	}
-	std::cout << _listen_socks.size() << " listening sockets are made!" << std::endl;
+	std::cout << _listSocketListen.size() << " listening sockets are made!" << std::endl;
 }
 
 Server::~Server()
@@ -30,9 +30,10 @@ Server::~Server()
 
 Server& Server::operator=(const Server &source)
 {
-	_servername = source._servername;
-	_root_dir = source._root_dir;
-	_listen_socks = source._listen_socks;
+	_serverName = source._serverName;
+	_rootDir = source._rootDir;
+	_listPort = source._listPort;
+	_listSocketListen = source._listSocketListen;
 	return (*this);
 }
 
@@ -43,26 +44,26 @@ Server::Server(const Server &source)
 
 // getter
 
-std::string		Server::GetServername()
+std::string		Server::getServerName()
 {
-	return (_servername);
+	return (_serverName);
 }
 
-std::string		Server::GetRootDir()
+std::string		Server::getRootDir()
 {
-	return (_root_dir);
+	return (_rootDir);
 }
 
-std::vector<SockListen>	*Server::GetListeningSocks()
+std::vector<SocketListen>	*Server::getListeningSocket()
 {
-	return (&_listen_socks);
+	return (&_listSocketListen);
 }
 
-int	Server::CheckIfListeningSock(int sock)
+int	Server::checkListeningSock(int sock)
 {
-	for (int i = 0; i < (int)_listen_socks.size(); i++)
+	for (int i = 0; i < (int)_listSocketListen.size(); i++)
 	{
-		if (_listen_socks[i].GetSockListen() == sock)
+		if (_listSocketListen[i].getSocketListen() == sock)
 			return (sock);
 	}
 	return (-1);
