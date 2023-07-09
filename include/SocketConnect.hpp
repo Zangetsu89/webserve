@@ -12,8 +12,10 @@
 # include <signal.h>
 # include <fcntl.h>
 # include "Server.hpp"
+# include "Request.hpp"
 
 class Server;
+class Request;
 class SocketConnect
 {
 	// private member
@@ -21,12 +23,14 @@ class SocketConnect
 	int					_numSocket;
 	struct sockaddr_in	_clientSockaddr;
 	socklen_t 			_clientSockaddrLen;
-	struct kevent		_connectKevent;
+	struct kevent		_clientKevent;
 	
 	std::vector<char>	_dataR;
-	std::vector<char>	_dataW;
+	std::string			_dataW;
 	int					_sizeR;
 	int					_sizeW;
+	Request				_clientRequest;
+	int					_error;
 
 	// base member function
 	protected:
@@ -39,15 +43,25 @@ class SocketConnect
 	SocketConnect(const SocketConnect &source);
 	
 
-	// getter and changer
-	int 			getSocketConnect();
-	struct kevent	*getKevent();
-	void			addReadData(char *buff, int size);
-	void			printReadData();
-	int				getSizeR();
-	int				getSizeW();
+	// getter
+	int 				getSocketConnect();
+	struct kevent		*getKevent();
+	int					getSizeR();
+	int					getSizeW();
 	std::vector<char>	*getDataR();
-	std::vector<char>	*getDataW();
+	char				*getDataW();
+	Request				*getClientRequest();
+	int					getError();
+
+
+	// setter and others
+	void				addReadData(char *buff, int size);
+	void				setDataW(std::string str);
+	void				setSizeR(int i);
+	void				setSizeW(int i);
+	void				printReadData();
+	int					setRequest(std::vector<char> *data_read, std::vector<Server> list_server);
+	void				setError(int err);
 
 	// exception
 	public:
