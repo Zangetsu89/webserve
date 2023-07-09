@@ -18,10 +18,10 @@ std::string getContent(std::string file_content, std::string title, size_t start
 	return (file_content.substr(pos_start, pos_end));
 }
 
-std::string getValue(std::string content, std::string title)
+std::string getValue(std::string content, std::string title, size_t start_pos)
 {
 	std::string line;
-	size_t		pos = 0;
+	size_t		pos = start_pos;
 	size_t		pos2;
 
 	while (pos < content.length())

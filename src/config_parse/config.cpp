@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        ::::::::            */
-/*   config.cpp                                         :+:    :+:            */
+/*   Config.cpp                                         :+:    :+:            */
 /*                                                     +:+                    */
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
@@ -10,90 +10,80 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../../include/config.hpp"
-#include <fstream>
+#include "../../include/Config.hpp"
 #include <iostream>
+#include <stdlib.h>
 
-static std::string getcontent(std::string file_content, std::string title)
+
+std::string Config::readConfigFile(std::string name)
 {
-	size_t	pos_start;
-	size_t	pos_end;
+	std::ifstream	file;
+	std::string		file_content;
 
-	pos_start = file_content.find(title, 0);
-	pos_start = pos_start + title.length();
-	pos_start = file_content.find("{", pos_start);
-	pos_start ++;
-	pos_end = file_content.find("}", pos_end);
-	return(file_content.substr(pos_start, pos_end));
-}
-
-static std::string get_value(std::string content, std::string title)
-{
-	std::string line;
-	size_t		pos = 0;
-	size_t		pos2;
-
-	while (pos < content.length())
-	{
-		pos2 = content.find(";", pos);
-		line = content.substr(pos, pos2 - pos);
-		if (line.find(title) < line.length())
-			break ;
-		pos = pos2 + 1;
-	}
-	pos = line.find(" ");
-	return (line.substr(pos + 1, line.length() - pos - 1));
-}
-
-Config_mac::Config_mac(std::string file_name)
-{
-    std::ifstream	file;
-	std::string	file_content;
-	std::string	server_info;
-	std::string listen;
-
-    file.open(file_name);
-    if(file.is_open() == 0)
+	file.open(file_name);
+	if(file.is_open() == 0)
 		throw(std::invalid_argument(strerror(errno)));
 	getline(file, file_content, '\0');
 	if (file_content.length() <= 1)
 		throw(std::invalid_argument("No content in config file"));
 	file.close();
-	server_info = getcontent(file_content, "server");
-	this->server_name = get_value(server_info, "server_name");
-	listen = get_value(server_info, "listen");
-	this->listen_address = strtok(strdup(listen.c_str()), " ");
-	this->listen_name = strtok(strdup(listen.c_str()), ";");
-	this->root_location = get_value(server_info, "root");
-	this->index = get_value(server_info, "index");
+	return(file_content);
 }
+
+Server	newServer(std::string settings)
+{
+	std::string 				server_name;
+	DirSettings					root;
+	std::vector<int>			ports;
+	std::vector<DirSettings>	optional;
+
+	server_name = getValue(settings, "server_name");
+	std::string 				listen = getValue(settings, "listen"));
+	std::vector<std::string>	listenSplit = charSplit(listen, ' ');
+	for (int i = 0; i < listenSplit.size(); i++)
+	{
+		std::vector<std::string> ipSplit = charSplit(listenSplit[i], ':');
+		ports.insert(ports.end(), atoi(ipSplit.back()));
+	}
+	server_name = getValue(settings, "server_name");
+	this->index = get_value(server_info, "index");
+	Server New(server_name, ports, root, optional);
+	return(New);
+}
+
+Config::Config(std::string file_name)
+{
+    std::string	server_info;
+	std::string file_content;
+	size_t		start_pos = 0;
+
+	file_content = this->readConfigFile(file_name);
+	while (file_content.find("server", start_pos) != (size_t)(-1))
+	{
+		server_info = getcontent(file_content, "server", start_pos);
+		this->servers.insert(this->newServer(server_info));
+		start_pos = start_pos + file_content.find("server", start_pos)
+	}
+//	this->server_name = get_value(server_info, "server_name");
+//	listen = get_value(server_info, "listen");
+//	this->listen_address = strtok(strdup(listen.c_str()), " ");
+//	this->listen_name = strtok(strdup(listen.c_str()), ";");
+//	this->root_location = get_value(server_info, "root");
+//	this->index = get_value(server_info, "index");
+}
+
+//there are multiple servers so a loop to read all servers till there are no more
 
 Config_mac::~Config_mac()
 {
-
 }
 
-std::string Config_mac::get_server_name()
+std::vector<Server> Config::getServers() const
 {
-	return (this->server_name);
+	return (this->servers);
 }
 
-std::string	Config_mac::get_port()
+Server	Config::get_ServerAtIndex(size_t index) const
 {
-	return (this->listen_address);
-}
-
-std::string	Config_mac::get_port_name()
-{
-	return (this->listen_name);
-}
-
-std::string	Config_mac::get_root()
-{
-	return (this->root_location);
-}
-
-std::string	Config_mac::get_index()
-{
-	return (this->index);
+	return (this->servers[index]);
 }
