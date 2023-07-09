@@ -13,5 +13,4 @@
 #define METHOD_FLAG_1 (1<<1) // 0000 0000 0000 0010  -> POST
 #define METHOD_FLAG_2 (1<<2) // 0000 0000 0000 0100  -> DELETE
 
-
 #endif //MACRO_H
