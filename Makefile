@@ -9,6 +9,7 @@ DIR_SRC			=	src
 #directory for each work
 DIR_CLI			=	webserve_cli
 DIR_KQ			=	webserve_kq
+DIR_RESPONSE	=	response
 
 #cpp files (add files for main. you can keep your main.cpp and Makefile in your work directory without writing in this file)
 SRCS_MAIN		:=	main.cpp
@@ -17,7 +18,8 @@ SRCS_KQ			:=	$(DIR_SRC)/$(DIR_KQ)/util.cpp					\
 					$(DIR_SRC)/$(DIR_KQ)/Server.cpp					\
 					$(DIR_SRC)/$(DIR_KQ)/SocketListen.cpp			\
 					$(DIR_SRC)/$(DIR_KQ)/SocketConnect.cpp			\
-					$(DIR_SRC)/$(DIR_KQ)/Request.cpp
+					$(DIR_SRC)/$(DIR_KQ)/Request.cpp				\
+					$(DIR_SRC)/$(DIR_KQ)/Response.cpp
 
 SRCS			:= $(SRCS_MAIN) $(SRCS_CLI) $(SRCS_KQ)
 
@@ -26,8 +28,9 @@ HEADERS			=	$(wildcard $(DIR_HEADER)/*.hpp)
 OBJS_MAIN		= $(addprefix $(DIR_OBJ)/, $(patsubst %.cpp, %.o , $(SRCS_MAIN)))
 OBJS_CLI		= $(patsubst $(DIR_SRC)/$(DIR_CLI)/%, $(DIR_OBJ)/% , $(patsubst %.cpp, %.o , $(SRCS_CLI)))
 OBJS_KQ			= $(patsubst $(DIR_SRC)/$(DIR_KQ)/%, $(DIR_OBJ)/% , $(patsubst %.cpp, %.o , $(SRCS_KQ)))
+OBJS_RESPONSE	= $(patsubst $(DIR_SRC)/$(DIR_RESPONSE)/%, $(DIR_OBJ)/% , $(patsubst %.cpp, %.o , $(SRCS_RESPONSE)))
 
-OBJS = $(OBJS_MAIN) $(OBJS_CLI) $(OBJS_KQ)
+OBJS = $(OBJS_MAIN) $(OBJS_CLI) $(OBJS_KQ) $(OBJS_RESPONSE)
 
 all:			$(NAME)
 
@@ -42,6 +45,9 @@ $(DIR_OBJ)/%.o:	$(DIR_SRC)/$(DIR_CLI)/%.cpp $(HEADERS)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(DIR_OBJ)/%.o:	$(DIR_SRC)/$(DIR_KQ)/%.cpp $(HEADERS)
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(DIR_OBJ)/%.o:	$(DIR_SRC)/$(DIR_RESPONSE)/%.cpp $(HEADERS)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(DIR_HEADER):

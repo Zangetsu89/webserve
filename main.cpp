@@ -52,8 +52,18 @@ void	readSocketData(struct kevent *kv, std::vector<Server> list_server)
 	if (cu_socket->getError() != 0)	
 		return ;
 
+    Server server;
+    Request request;
+    bool methodAllowed = false;
 	if(cu_socket->getClientRequest()->getRequestMethod() == "GET")
 	{
+        std::string location = Response::checkLocation(request, server);
+        if (locationFound != "Error") {
+            methodAllowed = Response::checkMethod(request, server, location);
+        } else {
+            sendErrorResponse(404, "Not Found");
+        }
+
 		// find requestLocation data and prepare return data
 	}
 	else if(cu_socket->getClientRequest()->getRequestMethod() == "POST")
