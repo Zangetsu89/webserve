@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        ::::::::            */
+/*   Server.hpp                                         :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2023/07/11 17:51:43 by lizhang       #+#    #+#                 */
+/*   Updated: 2023/07/11 18:06:06 by lizhang       ########   odam.nl         */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef SERVER_HPP
 # define SERVER_HPP
 # include <vector>
@@ -10,7 +22,7 @@
 # include <unistd.h>
 # include <netdb.h>
 # include <signal.h>
-# include "macro.hpp"
+# include "ConfigMacros.hpp"
 # include "SockListen.hpp"
 # include "DirSettings.hpp"
 # include "ConfigMacros.hpp"
@@ -21,28 +33,29 @@ class Server
 {
 	// private member
 	private:
-	std::string				_serverName;
-	std::vector<SockListen>	_listenSocks;
-	DirSettings				_rootDirSettings;
-	std::vector<DirSettings>_optDirSettings;
+	std::string					_serverName;
+	std::vector<SockListen>		_listenSocks;
+	DirSettings					_rootDirSettings;
+	std::vector<DirSettings>	_optDirSettings;
+	std::vector<SockListen>		_lisSocks;
 
 	// base member function
 	protected:
 	Server();	// do not use : Server must be created with port(s), name, root_dir, main kqueue
 
 	public:
-	Server(std::string _serverName, std::vector<int> ports, DirSettings root, \
-	std::vector<DirSettings>DirSettings optional, int kq);
+	Server(std::string server_name, std::vector<int> ports, DirSettings root, \
+	std::vector<DirSettings> optional, int kq);
 	~Server();
 	Server& operator=(const Server &source);
 	Server(const Server &source);
 
 	// getter
-	std::string					getServerName();
-	DirSettings					getRootDirSettings();
-	std::vector<DirSettings>	getOptDirSettings();
-	std::vector<SockListen>		getListeningSocks();
-	int							checkIfListeningSock(int sock);
+	std::string					getServerName() const;
+	DirSettings					getRootDirSettings() const;
+	std::vector<DirSettings>	getOptDirSettings() const;
+	std::vector<SockListen>		getListeningSocks() const;
+	int							checkIfListeningSock(int sock); // I don't know what this should do??
 
 	// setter
 	void						addListenSocks(SockListen sock);
