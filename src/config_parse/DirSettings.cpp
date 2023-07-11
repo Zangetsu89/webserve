@@ -6,12 +6,14 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/03 12:24:03 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/07/03 12:24:04 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/07/11 17:39:03 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/DirSettings.hpp"
 #include <cstdlib>
+#include <algorithm>
+#include <iostream>
 
 DirSettings::DirSettings()
 {
@@ -32,8 +34,10 @@ DirSettings::DirSettings(std::string settings)
 
 	location = getValue(settings, "root", 0);
 	if (location.length() < 1)
+	{
 		location = getValue(settings, "location", 0);
-	if (this->_location.length() < 1)
+	}
+	if (location.length() < 1)
 		throw(std::invalid_argument("Cannot get directory location."));
 	this->_location = location;
 	methods = charSplit(getValue(settings, "allowed_methods", 0), ',');
@@ -42,10 +46,9 @@ DirSettings::DirSettings(std::string settings)
 		throw(std::invalid_argument(this->_location+" allowed methods not found."));
 	for (unsigned int i = 0; i < vecSize; i++)
 	{
-		methods[i].erase(std::remove_if(methods[i].begin(), methods[i].end(), std::isspace), methods[i].end());
+		methods[i].erase(std::remove(methods[i].begin(), methods[i].end(), ' '), methods[i].end());
 	}
 	this->_methods = methods;
-	//how to get multiple error page??
 	start_pos = 0;
 	while ((start_pos = settings.find("error_page", start_pos))!= (size_t)(-1))
 	{
@@ -60,7 +63,6 @@ DirSettings::DirSettings(std::string settings)
 		this->_dirPermission = 1;
 	else
 		this->_dirPermission = 0;
-	//there can also be multiple redirects, use a for loop? and move the
 	start_pos = 0;
 	bodySize = getValue(settings, "client_body_size", 0);
 	if (bodySize.length() > 0)
