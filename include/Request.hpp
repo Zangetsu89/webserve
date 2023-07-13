@@ -1,6 +1,7 @@
 #ifndef REQUEST_HPP
 # define REQUEST_HPP
 # include <vector>
+# include <map>
 # include <iostream>
 # include <sys/socket.h>
 # include <sys/types.h>
@@ -19,11 +20,12 @@ class Request
 
 	// private member
 	private:
-	std::string		_requestMethod; // bit flag to store 3 method (GET, POST, DELETE) 
+	std::string		_requestMethod; // GET, POST, DELETE
 	std::string		_requestLocation;
+	std::string		_requestHTTPprotocol;
 	std::string		_requestHost;
 	std::string		_requestPort;
-	std::string		_requestBeforeContentLength;
+	std::map<std::string, std::string>	_requestHeaderOthers;
 	int				_contentLength;
 	std::string		_contentBody;
 	DirSettings		*_serverLocation;
@@ -39,10 +41,16 @@ class Request
 	std::string		getRequestMethod();
 	std::string		getRequestLocation();
 	std::string		getRequestHost();
+	std::string		getRequestPort();
 	int				getContentLength();
+	void			displayHeaderOthers();
+	void			displayHeaderAll();
 
+	// setter
+	void			setLabelContent(std::pair<std::string, std::string> datapair);
+	void			setHostPortLength();
 	// checker
-	void			checkMethod(std::vector<Server> list_Servers);
+	bool			checkMethod(std::vector<Server> list_Servers);
 
 };
 
