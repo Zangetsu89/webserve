@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/03 12:24:03 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/07/11 17:39:03 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/07/13 12:42:43 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,11 +39,11 @@ DirSettings::DirSettings(std::string settings)
 	}
 	if (location.length() < 1)
 		throw(std::invalid_argument("Cannot get directory location."));
-	this->_location = location;
+	this->_location = charSplit(location, '/');
 	methods = charSplit(getValue(settings, "allowed_methods", 0), ',');
 	unsigned int vecSize = methods.size();
 	if (vecSize < 1)
-		throw(std::invalid_argument(this->_location+" allowed methods not found."));
+		throw(std::invalid_argument(location+" allowed methods not found."));
 	for (unsigned int i = 0; i < vecSize; i++)
 	{
 		methods[i].erase(std::remove(methods[i].begin(), methods[i].end(), ' '), methods[i].end());
@@ -71,9 +71,14 @@ DirSettings::DirSettings(std::string settings)
 		this->_maxBodySize = std::numeric_limits<size_t>::max();
 }
 
-std::string	DirSettings::getLocation() const
+std::vector<std::string>	DirSettings::getLocation() const
 {
 	return(this->_location);
+}
+
+int	DirSettings::getDirType() const
+{
+	return(this->_type);
 }
 
 std::vector<std::string>	DirSettings::getMethods() const

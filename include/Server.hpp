@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/11 17:51:43 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/07/11 18:06:06 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/07/13 12:32:18 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,21 +23,22 @@
 # include <netdb.h>
 # include <signal.h>
 # include "ConfigMacros.hpp"
-# include "SockListen.hpp"
+# include "SocketListen.hpp"
 # include "DirSettings.hpp"
 # include "ConfigMacros.hpp"
 
 
-class SockListen;
+class SocketListen;
 class Server
 {
 	// private member
 	private:
-	std::string					_serverName;
-	std::vector<SockListen>		_listenSocks;
-	DirSettings					_rootDirSettings;
-	std::vector<DirSettings>	_optDirSettings;
-	std::vector<SockListen>		_lisSocks;
+	std::string						_serverName;
+	std::vector<SocketListen>		_listenSockets;
+	DirSettings						_rootDirSettings;
+	std::vector<DirSettings>		_optDirSettings;
+	std::vector<DirSettings>		_cgiDirSettings;
+	std::vector<SocketListen>		_lisSockets;
 
 	// base member function
 	protected:

@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/02 15:53:01 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/07/11 14:04:20 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/07/13 12:43:49 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,16 +18,26 @@
 #include <limits>
 #include "ConfigMacros.hpp"
 
+#define enum
+{
+	DEFAULT,
+	ROOT,
+	OPTIONAL,
+	CGI
+};
+
 class	DirSettings
 {
 	private:
-		std::string								_location;
+		std::vector<std::string>				_location;
+		int										_type;
 		std::vector<std::string>				_methods;
 		std::map<int, std::string>		 		_errorPage;
 		bool									_dirPermission;
 		std::map<std::string, std::string>		_dirList;
 		std::map<int, std::string>				_redirect;
-        size_t                                  _maxBodySize;
+		size_t								_maxBodySize;
+		int									setDirType();
 
 	protected:
 		DirSettings();
@@ -36,7 +46,8 @@ class	DirSettings
 		DirSettings(std::string settings);
 		~DirSettings();
 
-		std::string		                	getLocation() const;
+		std::vector<std::string>           	getLocation() const;
+		int									getDirType() const;
 		std::vector<std::string>			getMethods() const;
 		std::map<int, std::string>	      	getErrorPage() const;
 		bool								getDirPermission() const;

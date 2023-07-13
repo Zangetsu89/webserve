@@ -32,6 +32,6 @@ int main(void)
 	std::cout<<"directory list: ";
 	for(auto it = dirList.cbegin(); it!= dirList.cend(); it++)
 		std::cout<<it->first << " "<<it->second<<std::endl;
-
+	std::cout<<"max body size: "<<D1.getMaxBodySize()<<std::endl;
 	return (0);
 }
