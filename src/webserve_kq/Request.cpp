@@ -8,9 +8,9 @@
 #include "../../include/util.hpp"
 
 
-Request::Request(): _contentLength(-1), _serverLocation(NULL)
+Request::Request(): _contentLength(-1), _requestServer(NULL), _requestDirSetting(NULL)
 {
-	std::cout << "request made" << std::endl;
+	
 }
 
 Request::~Request()
@@ -24,12 +24,15 @@ Request& Request::operator=(const Request &source)
 	{
 		_requestMethod = source._requestMethod;
 		_requestLocation = source._requestLocation;
+		_requestFile = source._requestFile;
+		_requestLocation = source._requestLocation;
 		_requestHost = source._requestHost;
 		_requestPort = source._requestPort;
 		_requestHeaderOthers = source._requestHeaderOthers;
 		_contentLength = source._contentLength;
 		_contentBody = source._contentBody;
-		_serverLocation = source._serverLocation;
+		_requestServer = source._requestServer;
+		_requestDirSetting = source._requestDirSetting;
 	}
 	return (*this);
 }
@@ -77,15 +80,32 @@ void	Request::displayHeaderOthers()
 
 void	Request::displayHeaderAll()
 {
-	std::cout << "Method is " << getRequestMethod() << " Location is " << getRequestLocation() << std::endl;
-	std::cout << "Host is " << getRequestHost() << " Port is " << getRequestPort()<< std::endl;
-	std::cout << "Content length is " << getContentLength() << std::endl;
-	displayHeaderOthers();
+	std::cout << "Request method is " << getRequestMethod() << ", Location is " << getRequestLocation() << std::endl;
+	std::cout << "Request host is " << getRequestHost() << ", port is " << getRequestPort()<< std::endl;
+	std::cout << "Request content length is " << getContentLength() << std::endl;
+	// displayHeaderOthers();	// to display all of request headers
+	std::cout << std::endl;
 }
 
-void	Request::setLabelContent(std::pair<std::string, std::string> datapair)
+void	Request::setHeaderOthers(std::pair<std::string, std::string> datapair)
 {
 	_requestHeaderOthers.insert(datapair);
+}
+
+void	Request::setFile()
+{
+	if (_requestLocation.back() == '/')
+	{
+		_requestLocation.pop_back();
+		_requestFile = _requestDirSetting->getindexFile()[0];
+		return ;
+	}
+	size_t			pos_slice;
+	std::string		newstring;
+	pos_slice = _requestLocation.rfind('/');
+	newstring = _requestLocation.substr(pos_slice + 1, _requestLocation.size());
+	_requestFile = newstring;
+	_requestLocation.erase(pos_slice, _requestLocation.size());
 }
 
 void	Request::setHostPortLength()
@@ -107,15 +127,11 @@ void	Request::setHostPortLength()
 	}
 }
 
-bool	Request::checkMethod(std::vector<Server> list_Servers)
+bool	Request::checkMethod()
 {
 	try
 	{
-		Server	request_server = findServer(_requestHost, list_Servers);
-		std::string request_servername = request_server.getServerName();
-		std::cout << "This server is "  << request_servername << std::endl;
-		DirSettings request_setting = findDirSetting(*this, request_server);
-		if (!checkMethodAllowed(_requestMethod, request_setting))
+		if (!checkMethodAllowed(_requestMethod, _requestDirSetting))
 		{
 			std::cout << "This method is not allowd " << _requestMethod << std::endl;
 			return (0);

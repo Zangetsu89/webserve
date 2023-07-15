@@ -45,6 +45,20 @@ std::string		splitString(std::string *data, std::string delimita)
 	return(newstring);
 }
 
+void		deleteStringEnd(std::string *data, std::string delimita)
+{
+	size_t	pos_slice;
+
+	pos_slice = data->rfind(delimita);
+	if (pos_slice == std::string::npos)
+	{
+		std::cout << "Delimita not found " << std::endl;
+		throw std::exception();
+	}
+	data->erase(pos_slice, data->size());
+}
+
+
 std::pair<std::string, std::string>	getLabelItem(std::string *line, std::string delimita)
 {
 	std::string	label;
@@ -54,7 +68,6 @@ std::pair<std::string, std::string>	getLabelItem(std::string *line, std::string 
 	pos_slice = line->find(delimita, 0);
 	if (pos_slice == std::string::npos)
 	{
-		std::cout << "delimita is not found" << std::endl;
 		throw std::exception();
 	}
 	label = line->substr(0, pos_slice);
@@ -66,32 +79,43 @@ std::pair<std::string, std::string>	getLabelItem(std::string *line, std::string 
 	return (labeldata);
 }
 
-Server	findServer(std::string name, std::vector<Server> list_server)
+Server	*findServer(std::string name, std::vector<Server> *list_server)
 {
 	std::vector<Server>::iterator	it;
-	for (it = list_server.begin(); it != list_server.end(); it++)
+	for (it = list_server->begin(); it != list_server->end(); it++)
 	{
 		if (name == it->getServerName())
-			return (*it);
+		{
+			return &(*it);
+		}		
 	}
 	std::cout << "server(host) is not found" << std::endl;
 	throw std::exception();
 }
 
-DirSettings	findDirSetting(Request &request, Server &server) {
-	std::string location = request.getRequestLocation();
-	std::vector<DirSettings> dirSettings = server.getOptDirSettings();
-	for (std::vector<DirSettings>::iterator it = dirSettings.begin(); it != dirSettings.end(); ++it) {
-		if (it->getLocation() == location) {
-			return (*it);
-        }
-    }
-	return (server.getRootDirSettings());
+DirSettings	*findDirSetting(Request *request, Server *server) 
+{
+	std::string					requestLocation;
+	std::vector<DirSettings> 	dir_setting;
+
+	requestLocation = request->getRequestLocation();
+	if (requestLocation.back() == '/')
+		requestLocation.pop_back();
+
+	for (; requestLocation != ""; deleteStringEnd(&requestLocation, "/"))
+	{
+		for (std::vector<DirSettings>::iterator it = dir_setting.begin(); it != dir_setting.end(); it++)
+		{
+			if (requestLocation == it->getLocation())
+				return &(*it);
+		}
+	}
+	return (server->getRootDirSettings());
 }
 
-bool	checkMethodAllowed(std::string request_method, DirSettings setting)
+bool	checkMethodAllowed(std::string request_method, DirSettings *setting)
 {
-	std::vector<std::string> allowedmethod = setting.getMethods();
+	std::vector<std::string> allowedmethod = setting->getMethods();
 	for (std::vector<std::string>::iterator it = allowedmethod.begin(); it != allowedmethod.end(); it++)
 	{
 		if (request_method == *it)

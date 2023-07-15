@@ -20,15 +20,17 @@ class Request
 
 	// private member
 	private:
-	std::string		_requestMethod; // GET, POST, DELETE
-	std::string		_requestLocation;
+	std::string		_requestMethod; 			// GET, POST, DELETE
+	std::string		_requestLocation;			// the whole location string (ex: "/hello/world/filename" )
+	std::string		_requestFile;				// the element after the last "/" (ex: "filename"), if location ends with "/", the default index file comes here
 	std::string		_requestHTTPprotocol;
 	std::string		_requestHost;
 	std::string		_requestPort;
 	std::map<std::string, std::string>	_requestHeaderOthers;
 	int				_contentLength;
 	std::string		_contentBody;
-	DirSettings		*_serverLocation;
+	Server			*_requestServer;
+	DirSettings		*_requestDirSetting;
 
 	// base member function
 	public:
@@ -40,6 +42,7 @@ class Request
 	// getter
 	std::string		getRequestMethod();
 	std::string		getRequestLocation();
+	std::vector<std::string>	getRequestDir();
 	std::string		getRequestHost();
 	std::string		getRequestPort();
 	int				getContentLength();
@@ -47,10 +50,11 @@ class Request
 	void			displayHeaderAll();
 
 	// setter
-	void			setLabelContent(std::pair<std::string, std::string> datapair);
+	void			setHeaderOthers(std::pair<std::string, std::string> datapair);
+	void			setFile();
 	void			setHostPortLength();
 	// checker
-	bool			checkMethod(std::vector<Server> list_Servers);
+	bool			checkMethod();
 
 };
 
