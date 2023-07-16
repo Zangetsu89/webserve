@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/03 12:24:03 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/07/16 13:29:45 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/07/16 15:10:16 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,8 +26,31 @@ DirSettings::DirSettings()
 {
 }
 
+DirSettings::DirSettings(DirSettings &another)
+{
+	this->_location = another._location;
+	this->_type = another._type;
+	this->_methods = another._methods;
+	this->_errorPage = another._errorPage;
+	this->_dirPermission = another._dirPermission;
+	this->_redirect = another._redirect;
+	this->_maxBodySize = another._maxBodySize;
+}
+
 DirSettings::~DirSettings()
 {
+}
+
+DirSettings &DirSettings::operator=(DirSettings &another)
+{
+	this->_location = another._location;
+	this->_type = another._type;
+	this->_methods = another._methods;
+	this->_errorPage = another._errorPage;
+	this->_dirPermission = another._dirPermission;
+	this->_redirect = another._redirect;
+	this->_maxBodySize = another._maxBodySize;
+	return (*this);
 }
 
 DirSettings::DirSettings(std::string settings)
@@ -119,10 +142,10 @@ bool DirSettings::getDirPermission() const
 	return (this->_dirPermission);
 }
 
-std::map<std::string, std::string>	DirSettings::getDirList() const
-{
-	return (this->_dirList);
-}
+// std::map<std::string, std::string>	DirSettings::getDirList() const
+// {
+// 	return (this->_dirList);
+// }
 
 std::map<int, std::string>	DirSettings::getRedirect() const
 {

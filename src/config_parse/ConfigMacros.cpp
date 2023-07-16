@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/11 14:06:52 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/07/11 14:07:15 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/07/16 14:39:54 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,4 +63,34 @@ std::vector<std::string> charSplit(std::string src, char c)
 		dup.erase(0, dup.find_first_not_of(c, 0));
 	}
 	return (strArray);
+}
+
+std::string getBracketContent (std::string name, std::string text)
+{
+	size_t	start_pos = text.find(name, 0);
+	size_t	pos;
+	unsigned int	bracket_count = 1;
+
+//add one { to the count, substract one} to the count, if it returns to 0 again, the 
+//bracket is closed
+	if (start_pos == (size_t)(-1))
+		throw(std::invalid_argument("Text doesn't contain the info searched"));
+	start_pos = start_pos + name.length();
+	start_pos = text.find("{");
+	pos = start_pos + 1;
+
+	std::string sub = text.substr(pos, text.length() - pos);
+	char const *dup = sub.c_str();
+	size_t i = 0;
+	while (dup[i] && bracket_count != 0)
+	{
+		if (dup[i] == '{')
+			bracket_count++;
+		else if (dup[i] =='}')
+			bracket_count--; 
+		i++;
+	}
+	if (bracket_count != 0)
+		throw(std::invalid_argument("brackets not closed"));
+	return(text.substr(pos, i - 1));
 }

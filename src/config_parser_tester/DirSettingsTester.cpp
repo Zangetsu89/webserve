@@ -1,24 +1,8 @@
 #include "../../include/DirSettings.hpp"
 #include <iostream>
 
-int main(void)
+void	testDirSettings(DirSettings D1)
 {
-	std::string settings = "root ./root_contents/;\
-			index index.html;\
-\
-			allowed_methods GET, POST, DELETE;\
-\
-			client_body_size 1000;\
-\
-			error_page 404 /error/404/html;\
-			error_page 405 /error/405.html;\
-\
-			directory_list FALSE;\
-\
-			redirect 302 https://en.wikipedia.org/wiki/42_(number)";
-
-
-	DirSettings D1(settings);
 	std::cout<<"location: "<<D1.getLocation()<<std::endl;
 	if (D1.getDirType() == DEFAULT)
 	{
@@ -44,10 +28,30 @@ int main(void)
 	std::cout<<"error page: ";
 	for(auto it = errorPage.cbegin(); it!= errorPage.cend(); it++)
 		std::cout<<it->first << " "<<it->second<<std::endl;
-	std::map<std::string, std::string> dirList = D1.getDirList();
-	std::cout<<"directory list: ";
-	for(auto it = dirList.cbegin(); it!= dirList.cend(); it++)
-		std::cout<<it->first << " "<<it->second<<std::endl;
+	if (D1.getDirPermission() != 0)
+		std::cout<<"directory has show dirList permission."<<std::endl;
+	else
+		std::cout<<"directory has no show dirList permission"<<std::endl;
 	std::cout<<"max body size: "<<D1.getMaxBodySize()<<std::endl;
+}
+
+int main(void)
+{
+	std::string settings = "root ./root_contents/;\
+			index index.html;\
+\
+			allowed_methods GET, POST, DELETE;\
+\
+			client_body_size 1000;\
+\
+			error_page 404 /error/404/html;\
+			error_page 405 /error/405.html;\
+\
+			directory_list FALSE;\
+\
+			redirect 302 https://en.wikipedia.org/wiki/42_(number)";
+
+	DirSettings D1(settings);
+	testDirSettings(D1);
 	return (0);
 }
