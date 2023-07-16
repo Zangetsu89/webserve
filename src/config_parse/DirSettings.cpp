@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/03 12:24:03 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/07/13 12:42:43 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/07/16 13:29:45 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,13 @@
 #include <cstdlib>
 #include <algorithm>
 #include <iostream>
+
+bool	DirSettings::checkCGI(std::string location)
+{
+	if (location.find("CGI") != (size_t)(-1) || location.find("cgi") != (size_t)(-1))
+		return (1);
+	return(0);
+}
 
 DirSettings::DirSettings()
 {
@@ -33,13 +40,29 @@ DirSettings::DirSettings(std::string settings)
 	size_t						start_pos;
 
 	location = getValue(settings, "root", 0);
+	if (location.length() > 1)
+	{
+		this->_type = DEFAULT;
+	}
 	if (location.length() < 1)
 	{
 		location = getValue(settings, "location", 0);
+		if (location.length() == 1)
+		{
+			this->_type = ROOT;
+		}
+		else if (location.length() < 1)
+			throw(std::invalid_argument("Cannot get directory location."));
+		else if (this->checkCGI(location) != 0)
+		{
+			this->_type = CGI;
+		}
+		else
+		{
+			this->_type = OPTIONAL;
+		}
 	}
-	if (location.length() < 1)
-		throw(std::invalid_argument("Cannot get directory location."));
-	this->_location = charSplit(location, '/');
+	this->_location = location;
 	methods = charSplit(getValue(settings, "allowed_methods", 0), ',');
 	unsigned int vecSize = methods.size();
 	if (vecSize < 1)
@@ -71,7 +94,7 @@ DirSettings::DirSettings(std::string settings)
 		this->_maxBodySize = std::numeric_limits<size_t>::max();
 }
 
-std::vector<std::string>	DirSettings::getLocation() const
+std::string	DirSettings::getLocation() const
 {
 	return(this->_location);
 }

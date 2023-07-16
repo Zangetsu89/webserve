@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/02 15:53:01 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/07/13 12:43:49 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/07/16 13:19:40 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@
 #include <limits>
 #include "ConfigMacros.hpp"
 
-#define enum
+enum	dirType
 {
 	DEFAULT,
 	ROOT,
@@ -29,31 +29,34 @@
 class	DirSettings
 {
 	private:
-		std::vector<std::string>				_location;
+		std::string								_location;
 		int										_type;
 		std::vector<std::string>				_methods;
 		std::map<int, std::string>		 		_errorPage;
 		bool									_dirPermission;
 		std::map<std::string, std::string>		_dirList;
 		std::map<int, std::string>				_redirect;
-		size_t								_maxBodySize;
-		int									setDirType();
+		size_t									_maxBodySize;
+		bool									checkCGI(std::string location);
 
 	protected:
 		DirSettings();
 
 	public:
 		DirSettings(std::string settings);
+		DirSettings(DirSettings &another);
 		~DirSettings();
 
-		std::vector<std::string>           	getLocation() const;
-		int									getDirType() const;
-		std::vector<std::string>			getMethods() const;
-		std::map<int, std::string>	      	getErrorPage() const;
-		bool								getDirPermission() const;
-		std::map<std::string, std::string>  getDirList() const;
-		std::map<int, std::string>			getRedirect() const;
-		size_t 								getMaxBodySize() const;
+		DirSettings &operator=(DirSettings &another);
+
+		std::string   	  	      				getLocation() const;
+		int										getDirType() const;
+		std::vector<std::string>				getMethods() const;
+		std::map<int, std::string>	    	  	getErrorPage() const;
+		bool									getDirPermission() const;
+		std::map<std::string, std::string>		getDirList() const;
+		std::map<int, std::string>				getRedirect() const;
+		size_t 									getMaxBodySize() const;
 };
 
 #endif

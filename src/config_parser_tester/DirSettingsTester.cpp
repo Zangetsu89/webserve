@@ -20,6 +20,22 @@ int main(void)
 
 	DirSettings D1(settings);
 	std::cout<<"location: "<<D1.getLocation()<<std::endl;
+	if (D1.getDirType() == DEFAULT)
+	{
+		std::cout<<"directory type: default"<<std::endl;
+	}
+	if (D1.getDirType() == ROOT)
+	{
+		std::cout<<"directory type: root"<<std::endl;
+	}
+	else if (D1.getDirType() == OPTIONAL)
+	{
+		std::cout<<"directory type: optional"<<std::endl;
+	}
+	else if (D1.getDirType() == CGI)
+	{
+		std::cout<<"directory type: CGI"<<std::endl;
+	}
 	std::cout<<"methods: ";
 	for(unsigned int i = 0; i<D1.getMethods().size(); i++)
 		std::cout<<D1.getMethods()[i]<<" ";
