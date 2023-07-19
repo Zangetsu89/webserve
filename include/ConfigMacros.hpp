@@ -11,6 +11,8 @@ std::string getValue(std::string content, std::string title, size_t start_pos);
 
 std::vector<std::string> charSplit(std::string src, char c);
 
-std::string getBracketContent (std::string name, std::string text);
+std::vector<std::string> strSplit(std::string src, std::string str);
+
+std::string getBracketContent (std::string name, std::string text, size_t start_pos);
 
 #endif

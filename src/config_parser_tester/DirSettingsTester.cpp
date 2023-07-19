@@ -8,7 +8,7 @@ void	testDirSettings(DirSettings D1)
 	{
 		std::cout<<"directory type: default"<<std::endl;
 	}
-	if (D1.getDirType() == ROOT)
+	else if (D1.getDirType() == ROOT)
 	{
 		std::cout<<"directory type: root"<<std::endl;
 	}
@@ -20,8 +20,9 @@ void	testDirSettings(DirSettings D1)
 	{
 		std::cout<<"directory type: CGI"<<std::endl;
 	}
+		std::cout<<"so far so good"<<std::endl;
 	std::cout<<"methods: ";
-	for(unsigned int i = 0; i<D1.getMethods().size(); i++)
+	for(unsigned int i = 0; i < D1.getMethods().size(); i++)
 		std::cout<<D1.getMethods()[i]<<" ";
 	std::cout<<std::endl;
 	std::map<int, std::string> errorPage = D1.getErrorPage();
@@ -51,7 +52,14 @@ int main(void)
 \
 			redirect 302 https://en.wikipedia.org/wiki/42_(number)";
 
+	std::string settings2 = "location /redirect {\
+    return 302 https:://eu.siteground.com/kb/domain-redirects/;\
+	}";
 	DirSettings D1(settings);
+	//DirSettings D2(settings2);
+	std::cout<<"test1"<<std::endl;
 	testDirSettings(D1);
+	// std::cout<<"test2"<<std::endl;
+	// testDirSettings(D2);
 	return (0);
 }

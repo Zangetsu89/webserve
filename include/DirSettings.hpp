@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/02 15:53:01 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/07/16 14:49:22 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/07/19 15:20:00 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,15 +38,13 @@ class	DirSettings
 		size_t									_maxBodySize;
 		bool									checkCGI(std::string location);
 
-	protected:
-		DirSettings();
-
 	public:
+		DirSettings();
 		DirSettings(std::string settings);
-		DirSettings(DirSettings &another);
+		DirSettings(DirSettings const &another);
 		~DirSettings();
 
-		DirSettings &operator=(DirSettings &another);
+		DirSettings &operator=(DirSettings const &another);
 
 		std::string   	  	      				getLocation() const;
 		int										getDirType() const;

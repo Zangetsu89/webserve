@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/11 14:06:52 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/07/16 14:39:54 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/07/19 14:29:48 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,21 +58,39 @@ std::vector<std::string> charSplit(std::string src, char c)
 			sub = dup.substr(0, found);
 		else
 			sub = dup;
-		strArray.insert(strArray.end(), sub);
+		strArray.push_back(sub);
 		dup.erase(0, sub.length());
 		dup.erase(0, dup.find_first_not_of(c, 0));
 	}
 	return (strArray);
 }
 
-std::string getBracketContent (std::string name, std::string text)
+std::vector<std::string> strSplit(std::string src, std::string str)
 {
-	size_t	start_pos = text.find(name, 0);
+	std::vector<std::string>	strArray;
+	size_t						pos = 0;
+	size_t						pos2 = 0;
+
+	while (pos != (size_t)(-1))
+	{
+		std::string sub;
+		pos2 = src.find(str, pos + str.length());
+		if (pos2 != (size_t)(-1))
+			sub = src.substr(pos, pos2 - pos);
+		else
+			sub = src.substr(pos, src.length() - pos);
+		strArray.push_back(sub);
+		pos = pos2;
+	}
+	return(strArray);
+}
+
+std::string getBracketContent (std::string name, std::string text, size_t start_pos)
+{
+	start_pos = text.find(name, start_pos);
 	size_t	pos;
 	unsigned int	bracket_count = 1;
 
-//add one { to the count, substract one} to the count, if it returns to 0 again, the 
-//bracket is closed
 	if (start_pos == (size_t)(-1))
 		throw(std::invalid_argument("Text doesn't contain the info searched"));
 	start_pos = start_pos + name.length();

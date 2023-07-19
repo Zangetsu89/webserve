@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/11 17:51:43 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/07/13 12:32:18 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/07/19 15:27:42 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,10 +22,12 @@
 # include <unistd.h>
 # include <netdb.h>
 # include <signal.h>
+# include <string>
 # include "ConfigMacros.hpp"
-# include "SocketListen.hpp"
+//# include "SocketListen.hpp"
 # include "DirSettings.hpp"
 # include "ConfigMacros.hpp"
+# include "Port.hpp"
 
 
 class SocketListen;
@@ -34,44 +36,44 @@ class Server
 	// private member
 	private:
 	std::string						_serverName;
-	std::vector<SocketListen>		_listenSockets;
+	std::vector<Port>				_ports;
+	//std::vector<SocketListen>		_listenSockets;
+	DirSettings						_defDirSettings;
 	DirSettings						_rootDirSettings;
 	std::vector<DirSettings>		_optDirSettings;
 	std::vector<DirSettings>		_cgiDirSettings;
-	std::vector<SocketListen>		_lisSockets;
 
 	// base member function
 	protected:
 	Server();	// do not use : Server must be created with port(s), name, root_dir, main kqueue
 
 	public:
-	Server(std::string server_name, std::vector<int> ports, DirSettings root, \
-	std::vector<DirSettings> optional, int kq);
+	Server(std::string settings);
+	Server(Server const &source);
 	~Server();
-	Server& operator=(const Server &source);
-	Server(const Server &source);
+	Server	&operator=(Server const &source);
 
 	// getter
 	std::string					getServerName() const;
+	//bool						hasSockets() const;
+	DirSettings					getDefDirSettings() const;
 	DirSettings					getRootDirSettings() const;
 	std::vector<DirSettings>	getOptDirSettings() const;
-	std::vector<SockListen>		getListeningSocks() const;
-	int							checkIfListeningSock(int sock); // I don't know what this should do??
-
-	// setter
-	void						addListenSocks(SockListen sock);
+	std::vector<DirSettings>	getCGIDirSettings() const;
+	//std::vector<SocketListen>		getListeningSockets() const;
+	//int						checkIfListeningSock(int sock);
 
 	// exception
-	public:
-	class	ERR_Server : public std::exception
-	{
-		private:
-			const char	*_error_msg;
-		public:
-		ERR_Server();
-		ERR_Server(const char *error_msg);
-		const char *what() const _NOEXCEPT;	// _NOEXCEPT is needed since C++11
-	};
+	// public:
+	// class	ERR_Server : public std::exception
+	// {
+	// 	private:
+	// 		const char	*_error_msg;
+	// 	public:
+	// 	ERR_Server();
+	// 	ERR_Server(const char *error_msg);
+	// 	const char *what() const _NOEXCEPT;	// _NOEXCEPT is needed since C++11
+	// };
 };
 
 

@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/03 12:24:03 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/07/16 15:10:16 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/07/19 15:50:05 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ DirSettings::DirSettings()
 {
 }
 
-DirSettings::DirSettings(DirSettings &another)
+DirSettings::DirSettings(DirSettings const &another)
 {
 	this->_location = another._location;
 	this->_type = another._type;
@@ -41,7 +41,7 @@ DirSettings::~DirSettings()
 {
 }
 
-DirSettings &DirSettings::operator=(DirSettings &another)
+DirSettings &DirSettings::operator=(DirSettings const &another)
 {
 	this->_location = another._location;
 	this->_type = another._type;
