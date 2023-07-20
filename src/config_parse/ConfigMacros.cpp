@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/11 14:06:52 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/07/19 14:29:48 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/07/20 18:08:42 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,19 +28,24 @@ std::string getContent(std::string file_content, std::string title, size_t start
 std::string getValue(std::string content, std::string title, size_t start_pos)
 {
 	std::string line;
-	size_t		pos = start_pos;
 	size_t		pos2;
+	size_t		pos3;
 
-	while (pos < content.length())
-	{
-		pos2 = content.find(";", pos);
-		line = content.substr(pos, pos2 - pos);
-		if (line.find(title) < line.length())
-			break ;
-		pos = pos2 + 1;
-	}
-	pos = line.find(" ");
-	return (line.substr(pos + 1, line.length() - pos - 1));
+	start_pos = content.find(title, start_pos);
+	if (start_pos == (size_t)(-1))
+		return ("");
+	pos2 = content.find("\n", start_pos);
+	line = content.substr(start_pos + title.length(), pos2 - start_pos - title.length());
+	pos3 = line.find(";");
+	if (pos3 < line.length())
+		line = line.substr(0, pos3);
+	while (line.c_str()[0] == ' ')
+		line = line.substr(1, line.length());
+	while (line.c_str()[line.length() - 1] == ' ')
+		line = line.substr(0, line.length() - 1);
+	while (line.c_str()[line.length() - 1] == '{')
+		line = line.substr(0, line.length() - 1);
+	return (line);
 }
 
 std::vector<std::string> charSplit(std::string src, char c)

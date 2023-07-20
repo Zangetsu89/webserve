@@ -10,7 +10,36 @@ void getContentTester(void)
 
 void getValueTester(void)
 {
-	std::cout<<"No tester for getValue yet."<<std::endl;
+	std::string str1 = "";
+	std::string result = getValue(str1, "content", 0);
+	if (result != "")
+	{
+		std::cout<<"getValue is not correct!"<<std::endl;
+		return ;
+	}
+	str1 = "content real content inside\
+	blabla";
+	result = getValue(str1, "content", 0);
+	if (result != "real content inside\
+	blabla")
+	{
+		std::cout<<"getValue is not correct!"<<std::endl;
+		return ;
+	}
+	result = getValue(str1, "non", 0);
+	if (result != "")
+	{
+		std::cout<<"getValue is not correct!"<<std::endl;
+		return ;
+	}
+	str1 = "first line \n directory_list FALSE;";
+	result = getValue(str1, "directory_list", 0);
+	if (result != "FALSE")
+	{
+		std::cout<<"getValue is not correct!"<<std::endl;
+		return ;
+	}
+	std::cout<<"getValue function is correct."<<std::endl;
 }
 
 void charSplitTester(void)

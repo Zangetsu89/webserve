@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/11 17:51:43 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/07/19 15:27:42 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/07/19 18:33:48 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,30 +24,25 @@
 # include <signal.h>
 # include <string>
 # include "ConfigMacros.hpp"
-//# include "SocketListen.hpp"
+# include "SocketListen.hpp"
 # include "DirSettings.hpp"
 # include "ConfigMacros.hpp"
-# include "Port.hpp"
 
 
 class SocketListen;
 class Server
 {
-	// private member
 	private:
 	std::string						_serverName;
-	std::vector<Port>				_ports;
-	//std::vector<SocketListen>		_listenSockets;
-	DirSettings						_defDirSettings;
+	std::vector<int>				_ports;
+	std::string						_rootDir;
 	DirSettings						_rootDirSettings;
 	std::vector<DirSettings>		_optDirSettings;
 	std::vector<DirSettings>		_cgiDirSettings;
-
-	// base member function
-	protected:
-	Server();	// do not use : Server must be created with port(s), name, root_dir, main kqueue
+	std::vector<SocketListen>		_listSocketListen;
 
 	public:
+	Server();
 	Server(std::string settings);
 	Server(Server const &source);
 	~Server();
@@ -55,13 +50,14 @@ class Server
 
 	// getter
 	std::string					getServerName() const;
-	//bool						hasSockets() const;
-	DirSettings					getDefDirSettings() const;
+	std::vector<int>			getPorts() const;
 	DirSettings					getRootDirSettings() const;
 	std::vector<DirSettings>	getOptDirSettings() const;
 	std::vector<DirSettings>	getCGIDirSettings() const;
-	//std::vector<SocketListen>		getListeningSockets() const;
-	//int						checkIfListeningSock(int sock);
+	std::vector<SocketListen>	getSocketListen() const;					
+
+	//setter
+	void						setSocketListen(int kq);
 
 	// exception
 	// public:

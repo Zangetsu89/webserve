@@ -20,7 +20,6 @@ void	testDirSettings(DirSettings D1)
 	{
 		std::cout<<"directory type: CGI"<<std::endl;
 	}
-		std::cout<<"so far so good"<<std::endl;
 	std::cout<<"methods: ";
 	for(unsigned int i = 0; i < D1.getMethods().size(); i++)
 		std::cout<<D1.getMethods()[i]<<" ";
@@ -38,28 +37,28 @@ void	testDirSettings(DirSettings D1)
 
 int main(void)
 {
-	std::string settings = "root ./root_contents/;\
-			index index.html;\
-\
-			allowed_methods GET, POST, DELETE;\
-\
-			client_body_size 1000;\
-\
-			error_page 404 /error/404/html;\
-			error_page 405 /error/405.html;\
-\
-			directory_list FALSE;\
-\
+	std::string settings = "root ./root_contents/;\n\
+			index index.html;\n\
+\n\
+			allowed_methods GET, POST, DELETE;\n\
+\n\
+			client_body_size 1000;\n\
+\n\
+			error_page 404 /error/404/html;\n\
+			error_page 405 /error/405.html;\n\
+\n\
+			directory_list FALSE;\n\
+\n\
 			redirect 302 https://en.wikipedia.org/wiki/42_(number)";
 
-	std::string settings2 = "location /redirect {\
-    return 302 https:://eu.siteground.com/kb/domain-redirects/;\
+	std::string settings2 = "location /redirect {\n\
+    redirect 302 https:://eu.siteground.com/kb/domain-redirects/;\
 	}";
 	DirSettings D1(settings);
-	//DirSettings D2(settings2);
 	std::cout<<"test1"<<std::endl;
 	testDirSettings(D1);
-	// std::cout<<"test2"<<std::endl;
-	// testDirSettings(D2);
+	DirSettings D2(settings2);
+	std::cout<<"test2"<<std::endl;
+	testDirSettings(D2);
 	return (0);
 }

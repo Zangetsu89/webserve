@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/03 12:08:06 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/07/19 15:58:29 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/07/20 16:51:00 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,8 +49,6 @@ Server::Server(std::string settings)
 		std::cout<<"!!!!"<<std::endl;
 		DirSettings D1(set[i]);
 		
-		if (D1.getDirType() == DEFAULT)
-			this->_defDirSettings = D1;
 		else if (D1.getDirType() == ROOT)
 			this->_rootDirSettings = D1;
 		else if (D1.getDirType() == OPTIONAL)
@@ -64,11 +62,10 @@ Server::Server(Server const &source)
 {
 	this->_serverName = source._serverName;
 	this->_ports = source._ports;
-	this->_defDirSettings = source._defDirSettings;
 	this->_rootDirSettings = source._rootDirSettings;
 	this->_optDirSettings = source._optDirSettings;
 	this->_cgiDirSettings = source._cgiDirSettings;
-	//this->_listenSockets = source._listenSockets;
+	this->_listSocketListen = source._listSocketListen;
 }
 
 Server::~Server()
@@ -79,29 +76,16 @@ Server &Server::operator=(Server const &source)
 {
 	this->_serverName = source._serverName;
 	this->_ports = source._ports;
-	this->_defDirSettings = source._defDirSettings;
 	this->_rootDirSettings = source._rootDirSettings;
 	this->_optDirSettings = source._optDirSettings;
 	this->_cgiDirSettings = source._cgiDirSettings;
-	//this->_listenSockets = source._listenSockets;
+	this->_listSocketListen = source._listSocketListen;
 	return (*this);
 }
 
 std::string	Server::getServerName() const
 {
 	return(this->_serverName);
-}
-
-// bool	Server::hasSockets() const
-// {
-// 	if (this->_lisSockets.length() == 0)
-// 		return(0);
-// 	return (1);
-// }
-
-DirSettings Server::getDefDirSettings() const
-{
-	return (this->_defDirSettings);
 }
 
 DirSettings	Server::getRootDirSettings() const
@@ -119,14 +103,16 @@ std::vector<DirSettings> Server::getCGIDirSettings() const
 	return(this->_cgiDirSettings);
 }
 
-// std::vector<SocketListen>	Server::getListeningSockets() const
-// {
-// 	if (this->hasSockets() == 0)
-// 		throw(std::invalid_argument("Server has no sockets."));
-// 	return(this->_listenSockets);
-// }
+std::vector<SocketListen>	Server::getSocketListen() const
+{
+	return(this->_listSocketListen);
+}
 
-// void Server::addListenSocks(SockListen sock)
-// {
-// 	this->lisSocks.push_back(sock);
-// }
+void		Server::setSocketListen(int kq)
+{
+	for (int i = 0; i < this->_ports.size(); i++)
+	{
+		SocketListen	tempsock (_ports[i], kq);
+		_listSocketListen.push_back(tempsock);
+	}
+}

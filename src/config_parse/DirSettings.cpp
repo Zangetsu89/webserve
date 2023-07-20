@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/03 12:24:03 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/07/19 15:50:05 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/07/20 17:59:57 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,7 @@ DirSettings &DirSettings::operator=(DirSettings const &another)
 DirSettings::DirSettings(std::string settings)
 {
 	std::string					location;
-	std::vector<std::string>	methods;
+	std::string					methods;
 	std::vector<std::string>	errorPage;
 	std::string					dirPermission;
 	std::string					bodySize;
@@ -86,18 +86,16 @@ DirSettings::DirSettings(std::string settings)
 		}
 	}
 	this->_location = location;
-	methods = charSplit(getValue(settings, "allowed_methods", 0), ',');
-	unsigned int vecSize = methods.size();
-	if (vecSize < 1)
-		throw(std::invalid_argument(location+" allowed methods not found."));
-	for (unsigned int i = 0; i < vecSize; i++)
+	methods = getValue(settings, "allowed_methods", 0);
+	this->_methods = charSplit(methods, ',');
+	for (unsigned int i = 0; i < this->_methods.size(); i++)
 	{
-		methods[i].erase(std::remove(methods[i].begin(), methods[i].end(), ' '), methods[i].end());
+		this->_methods[i].erase(std::remove(this->_methods[i].begin(), this->_methods[i].end(), ' '), this->_methods[i].end());
 	}
-	this->_methods = methods;
 	start_pos = 0;
 	while ((start_pos = settings.find("error_page", start_pos))!= (size_t)(-1))
 	{
+		
 		errorPage = charSplit(getValue(settings, "error_page", start_pos), ' ');
 		if (methods.size() < 2)
 			break ;
@@ -106,9 +104,9 @@ DirSettings::DirSettings(std::string settings)
 	}
 	dirPermission = getValue(settings, "directory_list", 0);
 	if (dirPermission == "TRUE")
-		this->_dirPermission = 1;
+		this->_dirPermission = true;
 	else
-		this->_dirPermission = 0;
+		this->_dirPermission = false;
 	start_pos = 0;
 	bodySize = getValue(settings, "client_body_size", 0);
 	if (bodySize.length() > 0)
@@ -141,11 +139,6 @@ bool DirSettings::getDirPermission() const
 {
 	return (this->_dirPermission);
 }
-
-// std::map<std::string, std::string>	DirSettings::getDirList() const
-// {
-// 	return (this->_dirList);
-// }
 
 std::map<int, std::string>	DirSettings::getRedirect() const
 {
