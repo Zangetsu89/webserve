@@ -8,10 +8,6 @@ void	testDirSettings(DirSettings D1)
 	{
 		std::cout<<"directory type: default"<<std::endl;
 	}
-	else if (D1.getDirType() == ROOT)
-	{
-		std::cout<<"directory type: root"<<std::endl;
-	}
 	else if (D1.getDirType() == OPTIONAL)
 	{
 		std::cout<<"directory type: optional"<<std::endl;
@@ -20,6 +16,7 @@ void	testDirSettings(DirSettings D1)
 	{
 		std::cout<<"directory type: CGI"<<std::endl;
 	}
+	std::cout<<"index page: "<<D1.getIndexPage()<<std::endl;
 	std::cout<<"methods: ";
 	for(unsigned int i = 0; i < D1.getMethods().size(); i++)
 		std::cout<<D1.getMethods()[i]<<" ";
@@ -38,6 +35,7 @@ void	testDirSettings(DirSettings D1)
 int main(void)
 {
 	std::string settings = "root ./root_contents/;\n\
+\n\
 			index index.html;\n\
 \n\
 			allowed_methods GET, POST, DELETE;\n\

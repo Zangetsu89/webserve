@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/03 12:08:06 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/07/20 16:51:00 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/07/24 16:08:18 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,12 +23,14 @@ Server::Server(std::string settings)
 	std::vector<std::string>	port;
 	size_t						pos;
 
+
+	//first set up the default directory with the default content.
+	//then copy the rest to the other directories if another location is found.
+	this->_serverName = getValue(settings, "server_name", 0);
 	pos = settings.find("listen", 0);
 	listen = getValue(settings, "listen", pos);
 	listensplit = charSplit(listen, ' ');
 	port = charSplit(listensplit[0], ':');
-	Port P1(listensplit[1], atoi(port.back().c_str()));
-	this->_ports.push_back(P1);
 	pos = listen.length() + 6;
 	while (settings.find("listen", pos) != (size_t)(-1))
 	{
@@ -36,25 +38,33 @@ Server::Server(std::string settings)
 		listen = getValue(settings, "listen", pos);
 		listensplit = charSplit(listen, ' ');
 		port = charSplit(listensplit[0], ':');
-		Port P1(listensplit[1], atoi(port.back().c_str()));
-		this->_ports.push_back(P1);
+		this->_ports.push_back(atoi(port[port.size() - 1].c_str()));
 		std::cout<<"port number is:"<<port.back()<<std::endl;
 		pos = pos + listen.length() + 6;
 	}
 	std::vector<std::string> set = strSplit(settings, "location");
-	std::vector<DirSettings> dir_settings;
-	std::cout<<"!!!!"<<std::endl;
-	for (unsigned int i = 0; i < set.size(); i++)
+	unsigned int i;
+	for (i = 0; i < set.size(); i++)
 	{
-		std::cout<<"!!!!"<<std::endl;
 		DirSettings D1(set[i]);
-		
-		else if (D1.getDirType() == ROOT)
+		if (D1.getDirType() == DEFAULT)
+		{
 			this->_rootDirSettings = D1;
-		else if (D1.getDirType() == OPTIONAL)
-			this->_optDirSettings.push_back(D1);
-		else if (D1.getDirType() == CGI)
-			this->_cgiDirSettings.push_back(D1);
+			break ;
+		}
+	}
+	set.erase(set.begin() + i);
+	for (i = 0; i < set.size(); i++)
+	{
+		DirSettings D2(this->_rootDirSettings);
+		DirSettings D3(set[i]);
+		addDirSettingData(D2, D3);
+		if (D2.getDirType() == OPTIONAL)
+			this->_optDirSettings.push_back(D2);
+		else if (D2.getDirType() == CGI)
+			this->_cgiDirSettings.push_back(D2);
+		else if (D2.getDirType() == DEFAULT)
+			this->_rootDirSettings = D2;
 	}
 }
 
@@ -88,6 +98,11 @@ std::string	Server::getServerName() const
 	return(this->_serverName);
 }
 
+std::vector<int> Server::getPorts() const
+{
+	return (this->_ports);
+}
+
 DirSettings	Server::getRootDirSettings() const
 {
 	return(this->_rootDirSettings);
@@ -110,9 +125,10 @@ std::vector<SocketListen>	Server::getSocketListen() const
 
 void		Server::setSocketListen(int kq)
 {
-	for (int i = 0; i < this->_ports.size(); i++)
+	for (unsigned int i = 0; i < this->_ports.size(); i++)
 	{
 		SocketListen	tempsock (_ports[i], kq);
 		_listSocketListen.push_back(tempsock);
 	}
 }
+

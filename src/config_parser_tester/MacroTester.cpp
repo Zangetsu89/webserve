@@ -39,6 +39,15 @@ void getValueTester(void)
 		std::cout<<"getValue is not correct!"<<std::endl;
 		return ;
 	}
+	str1 = "root ./root_contents/;\n\
+\n\
+			index index.html;\n";
+	result = getValue(str1, "index", 0);
+	if (result != "index.html")
+	{
+		std::cout<<"getValue is not correct!"<<std::endl;
+		return ;
+	}
 	std::cout<<"getValue function is correct."<<std::endl;
 }
 

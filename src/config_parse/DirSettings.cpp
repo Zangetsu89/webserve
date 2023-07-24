@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/03 12:24:03 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/07/20 17:59:57 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/07/24 16:05:56 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,7 @@ DirSettings::DirSettings()
 DirSettings::DirSettings(DirSettings const &another)
 {
 	this->_location = another._location;
+	this->_index = another._index;
 	this->_type = another._type;
 	this->_methods = another._methods;
 	this->_errorPage = another._errorPage;
@@ -44,6 +45,7 @@ DirSettings::~DirSettings()
 DirSettings &DirSettings::operator=(DirSettings const &another)
 {
 	this->_location = another._location;
+	this->_index = another._index;
 	this->_type = another._type;
 	this->_methods = another._methods;
 	this->_errorPage = another._errorPage;
@@ -56,36 +58,42 @@ DirSettings &DirSettings::operator=(DirSettings const &another)
 DirSettings::DirSettings(std::string settings)
 {
 	std::string					location;
+	std::string					index;
 	std::string					methods;
 	std::vector<std::string>	errorPage;
 	std::string					dirPermission;
 	std::string					bodySize;
 	size_t						start_pos;
 
+	this->_index = getValue(settings, "index", 0);
 	location = getValue(settings, "root", 0);
 	if (location.length() > 1)
 	{
+		this->_location = location;
 		this->_type = DEFAULT;
 	}
 	if (location.length() < 1)
 	{
 		location = getValue(settings, "location", 0);
-		if (location.length() == 1)
+		if (location.length() == 1 && location.c_str()[0] == '/')
 		{
-			this->_type = ROOT;
+			this->_type = DEFAULT;
 		}
-		else if (location.length() < 1)
-			throw(std::invalid_argument("Cannot get directory location."));
-		else if (this->checkCGI(location) != 0)
+		else if (location.length() > 1)
 		{
-			this->_type = CGI;
-		}
-		else
-		{
-			this->_type = OPTIONAL;
+			setLocation(this->_location, location);
+			if (this->checkCGI(location) != 0)
+			{
+				this->_type = CGI;
+			}
+			else
+			{
+				this->_type = OPTIONAL;
+			}
 		}
 	}
-	this->_location = location;
+	if (this->_location.length() < 1)
+		throw(std::invalid_argument("location of directory not found"));
 	methods = getValue(settings, "allowed_methods", 0);
 	this->_methods = charSplit(methods, ',');
 	for (unsigned int i = 0; i < this->_methods.size(); i++)
@@ -120,6 +128,11 @@ std::string	DirSettings::getLocation() const
 	return(this->_location);
 }
 
+std::string	DirSettings::getIndexPage() const
+{
+	return(this->_index);
+}
+
 int	DirSettings::getDirType() const
 {
 	return(this->_type);
@@ -148,4 +161,72 @@ std::map<int, std::string>	DirSettings::getRedirect() const
 size_t	DirSettings::getMaxBodySize() const
 {
 	return (this->_maxBodySize);
+}
+
+void	DirSettings::setLocation(std::string root, std::string location)
+{
+	if ((root.c_str()[root.length() - 1] == '/' && location.c_str()[0] != '/')||\
+	(root.c_str()[root.length() - 1] != '/' && location.c_str()[0] == '/'))
+		this->_location = root + location;
+	else if (root.c_str()[root.length() - 1] == '/' && location.c_str()[0] == '/')
+		this->_location = root + location.substr(1, location.length() - 1);
+	else
+		this->_location = root + "/" + location;
+}
+
+void	DirSettings::setIndexPage(std::string indexPage)
+{
+	this->_index = indexPage;
+}
+
+void	DirSettings::setDirType(int dirType)
+{
+	this->_type = dirType;
+}
+
+void	DirSettings::setMethods(std::vector<std::string> methods)
+{
+	this->_methods = methods;
+}
+
+void	DirSettings::setErrorPage(std::map<int, std::string> errorPage)
+{
+	this->_errorPage = errorPage;
+}
+
+void	DirSettings::setDirPermission(bool permission)
+{
+	this->_dirPermission = permission;
+}
+
+
+void	DirSettings::setRedirect(std::map<int, std::string> redirect)
+{
+	this->_redirect = redirect;
+}
+
+void	DirSettings::setMaxBodySize(size_t size)
+{
+	this->_maxBodySize = size;
+}
+
+
+void	addDirSettingData(DirSettings &Target, DirSettings &toAdd)
+{
+	if (toAdd.getLocation().length() > 0)
+		Target.setLocation(Target.getLocation(), toAdd.getLocation());
+	if (toAdd.getIndexPage().length() > 0)
+		Target.setIndexPage(toAdd.getIndexPage());
+	if (toAdd.getDirType() == OPTIONAL || toAdd.getDirType() == CGI)
+		Target.setDirType(toAdd.getDirType());
+	if (toAdd.getMethods().size() > 0)
+		Target.setMethods(toAdd.getMethods());
+	if (toAdd.getErrorPage().size() > 0)
+		Target.setErrorPage(toAdd.getErrorPage());
+	if (toAdd.getDirPermission() != Target.getDirPermission())
+		Target.setDirPermission(toAdd.getDirPermission());
+	if (toAdd.getRedirect().size() > 0)
+		Target.setRedirect(toAdd.getRedirect());
+	if (toAdd.getMaxBodySize() != std::numeric_limits<size_t>::max())
+		Target.setMaxBodySize(toAdd.getMaxBodySize());
 }
