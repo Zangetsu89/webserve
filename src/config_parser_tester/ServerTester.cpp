@@ -6,42 +6,11 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/11 18:12:11 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/07/24 16:25:45 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/07/25 14:34:24 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../../include/Server.hpp"
-
-void	testDirSettings(DirSettings D1)
-{
-	std::cout<<"location: "<<D1.getLocation()<<std::endl;
-	if (D1.getDirType() == DEFAULT)
-	{
-		std::cout<<"directory type: default"<<std::endl;
-	}
-	else if (D1.getDirType() == OPTIONAL)
-	{
-		std::cout<<"directory type: optional"<<std::endl;
-	}
-	else if (D1.getDirType() == CGI)
-	{
-		std::cout<<"directory type: CGI"<<std::endl;
-	}
-	std::cout<<"index page: "<<D1.getIndexPage()<<std::endl;
-	std::cout<<"methods: ";
-	for(unsigned int i = 0; i < D1.getMethods().size(); i++)
-		std::cout<<D1.getMethods()[i]<<" ";
-	std::cout<<std::endl;
-	std::map<int, std::string> errorPage = D1.getErrorPage();
-	std::cout<<"error page: ";
-	for(auto it = errorPage.cbegin(); it!= errorPage.cend(); it++)
-		std::cout<<it->first << " "<<it->second<<std::endl;
-	if (D1.getDirPermission() != 0)
-		std::cout<<"directory has show dirList permission."<<std::endl;
-	else
-		std::cout<<"directory has no show dirList permission"<<std::endl;
-	std::cout<<"max body size: "<<D1.getMaxBodySize()<<std::endl;
-}
+#include "ServerTester.hpp"
 
 int main(void)
 {
@@ -90,14 +59,6 @@ location /cgi-bin/*.php {\n\
 }";
 
 	Server S1(settings);
-	std::cout<<"server name: "<<S1.getServerName()<<std::endl;
-	std::cout<<"server default settings: "<<std::endl;
-	testDirSettings(S1.getRootDirSettings());
-	std::cout<<"server optional directory settings: "<<std::endl;
-	std::vector<DirSettings> OPTDir = S1.getOptDirSettings();
-	testDirSettings(OPTDir[0]);
-	std::cout<<"server CGI directory settings: "<<std::endl;
-	std::vector<DirSettings> CGIDir = S1.getCGIDirSettings();
-	testDirSettings(CGIDir[0]);
+	testServer(S1);
 	return (0);
 }
