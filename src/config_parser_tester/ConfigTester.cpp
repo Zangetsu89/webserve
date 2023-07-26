@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/06/29 12:39:16 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/07/25 14:52:42 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/07/26 13:27:08 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,6 @@
 #include "../../include/Config.hpp"
 #include "ServerTester.hpp"
 
-//config file tester
 int main(int ac, char **av)
 {
 	if (ac != 2)

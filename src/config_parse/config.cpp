@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/06/26 16:49:22 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/07/25 14:53:15 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/07/26 13:26:48 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,17 +29,17 @@ std::string Config::_readConfigFile(std::string name)
 
 Config::Config(std::string file_name)
 {
-    std::string	server_info;
-	std::string file_content;
-	size_t		start_pos = 0;
+    std::vector<std::string>	server_info;
+	std::string					file_content;
 
 	file_content = this->_readConfigFile(file_name);
-	server_info = getContent(file_content, "server", start_pos);
-	Server		newServer(server_info);
-	this->_servers.push_back(newServer);
+	server_info = getAllOf(file_content, "server");
+	for (unsigned int i = 0; i < server_info.size(); i++)
+	{
+		Server S1(server_info[i]);
+		this->_servers.push_back(S1);
+	}
 }
-
-//there are multiple servers so a loop to read all servers till there are no more
 
 Config::~Config()
 {

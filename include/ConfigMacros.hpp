@@ -5,7 +5,7 @@
 # include <string>
 # include <vector>
 
-std::string getContent(std::string file_content, std::string title, size_t start_pos);
+std::vector<std::string> getAllOf(std::string src, std::string title);
 
 std::string getValue(std::string content, std::string title, size_t start_pos);
 

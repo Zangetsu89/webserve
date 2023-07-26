@@ -2,10 +2,119 @@
 #include "../../include/ConfigMacros.hpp"
 #include <iostream>
 
-
-void getContentTester(void)
+void getAllOfTester(void)
 {
-	std::cout<<"No tester for getContent yet."<<std::endl;
+	std::string str1 = "server {\n\
+\n\
+listen [::]:8080 default_server;\n\
+\n\
+server_name www.example.com;\n\
+\n\
+root ./root_contents/;\n\
+\n\
+index index.html;\n\
+\n\
+allowed_methods GET, POST, DELETE;\n\
+\n\
+client_body_size 1000;\n\
+\n\
+error_page 404 /error/404/html;\n\
+error_page 405 /error/405.html;\n\
+\n\
+directory_list FALSE;\n\
+\n\
+redirect 302 https://en.wikipedia.org/wiki/42_(number);\n\
+\n\
+location / {\n\
+	allowed_methods GET;\n\
+	directory_list FALSE;\n\
+}\n\
+\n\
+location /redirect {\n\
+	return 302 https:://eu.siteground.com/kb/domain-redirects/;\n\
+}\n\
+\n\
+location /cgi-bin/*.py {\n\
+	allowed_methods GET,POST;\n\
+	index index.py;\n\
+	cgi.py /opt/homebrew/bin/python3;\n\
+}\n\
+\n\
+\n\
+location /cgi-bin/*.php {\n\
+	allowed_methods GET, POST, DELETE;\n\
+	index index.php\n\
+	cgi .py /opt/homebrew/bin/php;\n\
+}\n\
+}\n\
+\n\
+server {\n\
+    listen 80;\n\
+    server_name localhost;\n\
+    root /www/server80/;\n\
+    index index.html;\n\
+    return 302 https://en.wikipedia.org/wiki/42_(number);\n\
+}\n\
+";
+
+	std::vector<std::string> strArray =  getAllOf(str1, "server");
+	if (strArray[0]!= "\n\
+\n\
+listen [::]:8080 default_server;\n\
+\n\
+server_name www.example.com;\n\
+\n\
+root ./root_contents/;\n\
+\n\
+index index.html;\n\
+\n\
+allowed_methods GET, POST, DELETE;\n\
+\n\
+client_body_size 1000;\n\
+\n\
+error_page 404 /error/404/html;\n\
+error_page 405 /error/405.html;\n\
+\n\
+directory_list FALSE;\n\
+\n\
+redirect 302 https://en.wikipedia.org/wiki/42_(number);\n\
+\n\
+location / {\n\
+	allowed_methods GET;\n\
+	directory_list FALSE;\n\
+}\n\
+\n\
+location /redirect {\n\
+	return 302 https:://eu.siteground.com/kb/domain-redirects/;\n\
+}\n\
+\n\
+location /cgi-bin/*.py {\n\
+	allowed_methods GET,POST;\n\
+	index index.py;\n\
+	cgi.py /opt/homebrew/bin/python3;\n\
+}\n\
+\n\
+\n\
+location /cgi-bin/*.php {\n\
+	allowed_methods GET, POST, DELETE;\n\
+	index index.php\n\
+	cgi .py /opt/homebrew/bin/php;\n\
+}\n")
+	{
+		std::cout<<"test1 fails, getAllOf is not correct!"<<std::endl;
+		return ;
+	}
+	if (strArray[1]!= "\n\
+    listen 80;\n\
+    server_name localhost;\n\
+    root /www/server80/;\n\
+    index index.html;\n\
+    return 302 https://en.wikipedia.org/wiki/42_(number);\n")
+	{
+		std::cout<<"test2 fails, getAllOf is not correct!"<<std::endl;
+		return ;
+	}
+	std::cout<<"getAllOf function is correct."<<std::endl;
 }
 
 void getValueTester(void)
@@ -93,7 +202,7 @@ void	getBracketContentTest(void)
 
 int main(void)
 {
-	getContentTester();
+	getAllOfTester();
 	getValueTester();
 	charSplitTester();
 	strSplitTester();

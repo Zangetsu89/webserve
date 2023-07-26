@@ -6,24 +6,29 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/11 14:06:52 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/07/20 18:08:42 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/07/26 13:17:12 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/ConfigMacros.hpp"
+#include <iostream>
 
-std::string getContent(std::string file_content, std::string title, size_t start_pos)
+std::vector<std::string> getAllOf(std::string src, std::string title)
 {
-	size_t	pos_start;
-	size_t	pos_end = start_pos;
-
-	pos_start = file_content.find(title, start_pos);
-	pos_start = pos_start + title.length();
-	pos_start = file_content.find("{", pos_start);
-	pos_start ++;
-	pos_end = file_content.find("}", pos_end);
-	return (file_content.substr(pos_start, pos_end));
+	size_t start_pos = 0;
+	std::vector<std::string> list;
+	while (src.find(title, start_pos)!= (size_t)(-1))
+	{
+		start_pos = src.find(title, start_pos);
+		std::string item;
+		item = getBracketContent(title, src, start_pos);
+		if (item.length() > 0)
+			list.push_back(item);
+		start_pos = start_pos + item.length();
+	}
+	return (list);
 }
+
 
 std::string getValue(std::string content, std::string title, size_t start_pos)
 {
@@ -99,7 +104,7 @@ std::string getBracketContent (std::string name, std::string text, size_t start_
 	if (start_pos == (size_t)(-1))
 		throw(std::invalid_argument("Text doesn't contain the info searched"));
 	start_pos = start_pos + name.length();
-	start_pos = text.find("{");
+	start_pos = text.find("{", start_pos);
 	pos = start_pos + 1;
 
 	std::string sub = text.substr(pos, text.length() - pos);

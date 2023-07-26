@@ -6,7 +6,7 @@
 #    By: lizhang <lizhang@student.codam.nl>           +#+                      #
 #                                                    +#+                       #
 #    Created: 2023/07/11 12:30:37 by lizhang       #+#    #+#                  #
-#    Updated: 2023/07/24 16:20:32 by lizhang       ########   odam.nl          #
+#    Updated: 2023/07/25 14:38:47 by lizhang       ########   odam.nl          #
 #                                                                              #
 # **************************************************************************** #
 
@@ -21,7 +21,7 @@ DIRINCLUDE	= -Iinclude/DirSettins.hpp -Iinclude/ConfigMacros.hpp
 MACINCLUDE	= -Iinclude/ConfigMacros.hpp 
 SERINCLUDE	= -Iinclude/Server.hpp -Iinclude/Port.hpp -Iinclude/ConfigMacros.hpp \
 			-Iinclude/DirSettings.hpp -Iinclude/SocketListen.hpp
-CONINCLUDE	= -Iinclude/Confib.chpp -Iinclude/ConfigMacros.hpp
+CONINCLUDE	= -Iinclude/Config.hpp -Iinclude/ConfigMacros.hpp
 
 DIRSRC		= src/config_parse/DirSettings.cpp \
 			src/config_parse/ConfigMacros.cpp \
@@ -34,8 +34,10 @@ SERSRC		= src/config_parse/Server.cpp src/config_parse/ConfigMacros.cpp \
 			src/config_parse/DirSettings.cpp src/config_parse/SocketListen.cpp\
 			src/config_parser_tester/ServerTester.cpp 
 
-CONSRC		= src/config_parse/Config.cpp src/config_parse/ConfigMacros.cpp \
-			src/config_parser_tester/Config_tester.cpp
+CONSRC		= src/config_parse/Server.cpp src/config_parse/ConfigMacros.cpp \
+			src/config_parse/DirSettings.cpp src/config_parse/SocketListen.cpp\
+			src/config_parse/Config.cpp\
+			src/config_parser_tester/ConfigTester.cpp 
 
 DIROBJ		= $(DIRSRC:.cpp=.o)
 MACOBJ		= $(MACSRC:.cpp=.o)
