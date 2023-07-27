@@ -1,5 +1,5 @@
-#ifndef SOCKLISTEN_HPP
-# define SOCKLISTEN_HPP
+#ifndef SOCKETLISTEN_HPP
+# define SOCKETLISTEN_HPP
 # include <vector>
 # include <iostream>
 # include <sys/socket.h>
@@ -18,7 +18,6 @@ class SocketListen
 {
 	// private member
 	private:
-	int					_numPort;
 	int					_numSocket;
 	struct sockaddr_in	_listenSockaddr;
 	socklen_t 			_listenSockaddrLen;
@@ -39,8 +38,6 @@ class SocketListen
 	// getter and changer
 	int 			getSocketListen();
 	struct kevent	*getKevent();
-	void			addReadData(char *buff, int size);
-	void			printReadData();
 
 	// exception
 	public:

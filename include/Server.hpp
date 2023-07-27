@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/11 17:51:43 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/07/27 11:32:19 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/07/27 15:15:37 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,8 +27,8 @@
 # include "SocketListen.hpp"
 # include "DirSettings.hpp"
 
-
 class SocketListen;
+class DirSettings;
 class Server
 {
 	private:
