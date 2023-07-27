@@ -4,23 +4,14 @@
 //
 
 #include "../../include/Server.hpp"
-#include "../../include/macro.hpp"
 
-
-Server::Server(std::vector<int> ports, std::string name, std::string root_dir, int kq):
-_serverName(name), _rootDir(root_dir),_listPort(ports)
+Server::Server(std::string server_name, std::string rootDir, std::vector<int> ports)
 {
-	if (name == "" || root_dir == "")
-		throw ERR_Server("Server setting info is wrong");
-	
-	for (int i = 0; i < (int)ports.size(); i++)
-	{
-		SocketListen	*tempsock = new SocketListen(ports[i], kq);
-		_listSocketListen.push_back(*tempsock);
-		delete(tempsock);
-		std::cout << ports[i] << " port converts to socket " << _listSocketListen.back().getSocketListen() << std::endl;
-	}
-	std::cout << _listSocketListen.size() << " listening sockets are made!" << std::endl;
+	this->_serverName = server_name; 
+	this->_rootDir = rootDir; 
+	// this->_rootDirSettings = root; 
+	// this->_optDirSettings = optional; 
+	this->_listPort = ports;
 }
 
 Server::~Server()
@@ -30,10 +21,15 @@ Server::~Server()
 
 Server& Server::operator=(const Server &source)
 {
-	_serverName = source._serverName;
-	_rootDir = source._rootDir;
-	_listPort = source._listPort;
-	_listSocketListen = source._listSocketListen;
+	if (this != &source)
+	{
+		_serverName = source._serverName;
+		_rootDir = source._rootDir;
+		_rootDirSettings = source._rootDirSettings;
+		_optDirSettings = source._optDirSettings;
+		_listPort = source._listPort;
+		_listSocketListen = source._listSocketListen;
+	}
 	return (*this);
 }
 
@@ -49,6 +45,16 @@ std::string		Server::getServerName()
 	return (_serverName);
 }
 
+DirSettings	*Server::getRootDirSettings() 
+{
+	return(&_rootDirSettings);
+}
+
+std::vector<DirSettings> *Server::getOptDirSettings()
+{
+	return(&_optDirSettings);
+}
+
 std::string		Server::getRootDir()
 {
 	return (_rootDir);
@@ -59,7 +65,7 @@ std::vector<SocketListen>	*Server::getListeningSocket()
 	return (&_listSocketListen);
 }
 
-int	Server::checkListeningSock(int sock)
+int	Server::checkListeningSocket(int sock)
 {
 	for (int i = 0; i < (int)_listSocketListen.size(); i++)
 	{
@@ -67,6 +73,24 @@ int	Server::checkListeningSock(int sock)
 			return (sock);
 	}
 	return (-1);
+}
+
+void	Server::setSocketListen(int kq)
+{
+	for (int i = 0; i < (int)_listPort.size(); i++)
+	{
+		SocketListen tempsock(_listPort[i], kq);
+		_listSocketListen.push_back(tempsock);
+		// SocketListen	*tempsock = new SocketListen(_listPort[i], kq);
+		// _listSocketListen.push_back(*tempsock);
+		// delete (tempsock);
+	}
+}
+
+void	Server::setDirSettings(DirSettings rootDir, std::vector<DirSettings> optDir)
+{
+	_rootDirSettings = rootDir;
+	_optDirSettings = optDir;
 }
 
 // exception
