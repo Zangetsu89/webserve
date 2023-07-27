@@ -10,52 +10,65 @@
 # include <stdlib.h>
 # include "macro.hpp"
 # include "Server.hpp"
+# include "RequestHeader.hpp"
 
 class Server;
 class SocketConnect;
 class DirSettings;
+class RequestHeader;
 class Request
 {
 	friend 			SocketConnect;
 
 	// private member
 	private:
-	std::string		_requestMethod; 			// GET, POST, DELETE
-	std::string		_requestLocation;			// the whole location string (ex: "/hello/world/filename" )
-	std::string		_requestFile;				// the element after the last "/" (ex: "filename"), if location ends with "/", the default index file comes here
-	std::string		_requestHTTPprotocol;
-	std::string		_requestHost;
-	std::string		_requestPort;
-	std::map<std::string, std::string>	_requestHeaderOthers;
-	int				_contentLength;
-	std::string		_contentBody;
-	Server			*_requestServer;
-	DirSettings		*_requestDirSetting;
+	std::vector<char>	_dataR;
+	int					_sizeR;
 
-	// base member function
+	RequestHeader	_requestHeader;
+	std::string		_requestFilePath;
+	int				_requestBodyLength;
+	std::string		_requestBody;
+
+	SocketConnect			*_requestSocket;
+	std::vector<Server>		*_servers;
+	Server					*_requestServer;
+	DirSettings				*_requestDirSetting;
+
 	public:
 	Request();
 	~Request();
-	Request& operator=(const Request &source);
+	Request &operator=(const Request &source);
 	Request(const Request &source);
 
-	// getter
-	std::string		getRequestMethod();
-	std::string		getRequestLocation();
-	std::vector<std::string>	getRequestDir();
-	std::string		getRequestHost();
-	std::string		getRequestPort();
-	int				getContentLength();
-	void			displayHeaderOthers();
-	void			displayHeaderAll();
+	std::string		getRequestFilePath();
+	RequestHeader	*getRequestHeader();
+	void			printDataR();
+	void			printSizeR();
 
-	// setter
-	void			setHeaderOthers(std::pair<std::string, std::string> datapair);
-	void			setFile();
-	void			setHostPortLength();
-	// checker
-	bool			checkMethod();
+	int 			setRequest(std::vector<Server> *list_server, SocketConnect *socket);
+	int 			readRequest();
+	int 			setRequestHeader();
+	int 			setRequestBodyLength();
+	int 			setRequestBody();
+	int 			findServer();
+	int 			findDirSetting();
+	int 			checkMethod();
+	int 			checkProtocol();
+	int 			findResponseFile();
 
+	// exception
+	class ERR_Request : public std::exception
+	{
+		private:
+		const char *_error_msg;
+
+		public:
+		int _error_num;
+		ERR_Request();
+		ERR_Request(const char *error_msg, int err);
+		const char *what() const _NOEXCEPT; // _NOEXCEPT is needed since C++11
+	};
 };
 
 

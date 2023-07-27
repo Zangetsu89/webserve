@@ -3,10 +3,6 @@
 //
 
 #include "../../include/util.hpp"
-#include "../../include/Server.hpp"
-#include "../../include/Request.hpp"
-#include "../../include/DirSettings.hpp"
-#include "../../include/ConfigMacros.hpp"
 
 
 // change data from vector<char> to std::string
@@ -77,40 +73,6 @@ std::pair<std::string, std::string>	getLabelItem(std::string *line, std::string 
 	content = removeWhitespace(content);
 	std::pair<std::string, std::string>	labeldata(label, content);
 	return (labeldata);
-}
-
-Server	*findServer(std::string name, std::vector<Server> *list_server)
-{
-	std::vector<Server>::iterator	it;
-	for (it = list_server->begin(); it != list_server->end(); it++)
-	{
-		if (name == it->getServerName())
-		{
-			return &(*it);
-		}		
-	}
-	std::cout << "server(host) is not found" << std::endl;
-	throw std::exception();
-}
-
-DirSettings	*findDirSetting(Request *request, Server *server) 
-{
-	std::string					requestLocation;
-	std::vector<DirSettings> 	dir_setting;
-
-	requestLocation = request->getRequestLocation();
-	if (requestLocation.back() == '/')
-		requestLocation.pop_back();
-
-	for (; requestLocation != ""; deleteStringEnd(&requestLocation, "/"))
-	{
-		for (std::vector<DirSettings>::iterator it = dir_setting.begin(); it != dir_setting.end(); it++)
-		{
-			if (requestLocation == it->getLocation())
-				return &(*it);
-		}
-	}
-	return (server->getRootDirSettings());
 }
 
 bool	checkMethodAllowed(std::string request_method, DirSettings *setting)
