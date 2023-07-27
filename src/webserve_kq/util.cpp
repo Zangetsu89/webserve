@@ -37,6 +37,7 @@ std::string		splitString(std::string *data, std::string delimita)
 	
 	newstring = data->substr(0, pos_slice);
 	newstring = removeWhitespace(newstring);
+
 	data->erase(0, pos_slice + delimita.size());
 	return(newstring);
 }

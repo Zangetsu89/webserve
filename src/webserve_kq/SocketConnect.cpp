@@ -97,4 +97,3 @@ const char	*SocketConnect::ERR_SocketConnect::what() const _NOEXCEPT
 {
 	return (_error_msg);
 }
-
