@@ -9,6 +9,7 @@
 #include "include/DirSettings.hpp"
 #include "include/KqueueLoop.hpp"
 #include "include/Config.hpp"
+#include "include/WebservCli.hpp"
 
 int  main(int argc, char *argv[]) 
 {

@@ -12,6 +12,7 @@
 #include <signal.h>
 #include <fcntl.h>
 #include "Server.hpp"
+#include "macro.hpp"
 
 class Server;
 class KqueueLoop

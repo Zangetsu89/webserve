@@ -5,7 +5,7 @@
 
 #include "../../include/RequestHeader.hpp"
 #include "../../include/Request.hpp"
-#include "../../include/SocketConnect.hpp"
+//#include "../../include/SocketConnect.hpp"
 #include "../../include/util.hpp"
 #include <sys/stat.h>
 
@@ -173,7 +173,7 @@ int	Request::findServer()
 int	Request::findDirSetting()
 {
 	std::string					requestLocation;
-	std::vector<DirSettings> 	*list_dirsetting = _requestServer->getOptDirSettings();
+	std::vector<DirSettings> 	list_dirsetting = _requestServer->getOptDirSettings();
 
 	requestLocation = _requestHeader.getRequestLocation();
 	if (requestLocation.back() == '/')
@@ -181,7 +181,7 @@ int	Request::findDirSetting()
 	
 	for (; requestLocation != ""; deleteStringEnd(&requestLocation, "/"))
 	{
-		for (std::vector<DirSettings>::iterator it = list_dirsetting->begin(); it != list_dirsetting->end(); it++)
+		for (std::vector<DirSettings>::iterator it = list_dirsetting.begin(); it != list_dirsetting.end(); it++)
 		{
 			if (requestLocation == it->getLocation())
 			{
@@ -190,7 +190,7 @@ int	Request::findDirSetting()
 			}
 		}
 	}
-	_requestDirSetting = _requestServer->getRootDirSettings();
+	_requestDirSetting = new DirSettings(_requestServer->getRootDirSettings());
 	// std::cout << "requestDir is gotten " << _requestServer->getRootDirSettings()->getLocation() << std::endl;
 	return (0);
 }
@@ -220,7 +220,7 @@ int Request::findResponseFile()
 	if (filepath.back() == '/')
 	{
 		filepath.pop_back();
-		_requestFilePath = _requestServer->getRootDir() + _requestDirSetting->getindexFile()[0];
+		_requestFilePath = _requestServer->getRootDir() + _requestDirSetting->getIndexPage();
 		return (0);
 	}
 	_requestFilePath = _requestServer->getRootDir() + filepath;

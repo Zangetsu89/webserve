@@ -103,6 +103,11 @@ std::vector<int> Server::getPorts() const
 	return (this->_ports);
 }
 
+std::string Server::getRootDir() const
+{
+    return(this->_rootDir);
+}
+
 DirSettings	Server::getRootDirSettings() const
 {
 	return(this->_rootDirSettings);

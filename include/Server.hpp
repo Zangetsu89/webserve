@@ -50,6 +50,7 @@ class Server
 	// getter
 	std::string					getServerName() const;
 	std::vector<int>			getPorts() const;
+    std::string                 getRootDir() const;
 	DirSettings					getRootDirSettings() const;
 	std::vector<DirSettings>	getOptDirSettings() const;
 	std::vector<DirSettings>	getCGIDirSettings() const;

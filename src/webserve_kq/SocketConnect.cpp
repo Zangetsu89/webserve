@@ -56,7 +56,7 @@ int	SocketConnect::getSocketConnect()
 
 Request		*SocketConnect::getClientRequest()
 {
-	return (&_clientRequest);
+	return (_clientRequest);
 }
 
 int	SocketConnect::getErrorNum()
@@ -69,7 +69,7 @@ int	SocketConnect::getErrorNum()
 
 int SocketConnect::setRequest(std::vector<Server> *list_server)
 {
-	_errorNum = _clientRequest.setRequest(list_server, this);
+	_errorNum = _clientRequest->setRequest(list_server, this);
 	if (_errorNum != 0)
 		return (_errorNum);
 	return (0);

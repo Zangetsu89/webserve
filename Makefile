@@ -15,7 +15,6 @@ DIR_PARSE		=	config_parse
 SRCS_MAIN		:=	main.cpp
 SRCS_CLI		:=	$(DIR_SRC)/$(DIR_CLI)/WebservCli.cpp
 SRCS_KQ			:=	$(DIR_SRC)/$(DIR_KQ)/util.cpp					\
-					$(DIR_SRC)/$(DIR_KQ)/Server.cpp					\
 					$(DIR_SRC)/$(DIR_KQ)/SocketListen.cpp			\
 					$(DIR_SRC)/$(DIR_KQ)/SocketConnect.cpp			\
 					$(DIR_SRC)/$(DIR_KQ)/KqueueLoop.cpp				\
@@ -23,8 +22,9 @@ SRCS_KQ			:=	$(DIR_SRC)/$(DIR_KQ)/util.cpp					\
 					$(DIR_SRC)/$(DIR_KQ)/RequestHeader.cpp
 
 SRCS_PARSE		:=	$(DIR_SRC)/$(DIR_PARSE)/DirSettings.cpp			\
-					$(DIR_SRC)/$(DIR_PARSE)/ConfigMacros.cpp
-					# $(DIR_SRC)/$(DIR_PARSE)/Config.cpp
+					$(DIR_SRC)/$(DIR_PARSE)/ConfigMacros.cpp		\
+					$(DIR_SRC)/$(DIR_PARSE)/Config.cpp				\
+					$(DIR_SRC)/$(DIR_PARSE)/Server.cpp
 
 
 SRCS			:= $(SRCS_MAIN) $(SRCS_CLI) $(SRCS_KQ) $(SRCS_PARSE)

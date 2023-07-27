@@ -16,7 +16,7 @@ KqueueLoop::KqueueLoop(std::vector<Server> *servers, int kq): _kq_main(kq), _n_e
 	{
 		std::vector<Server> &temp = *_servers;
 		Server &tempserver = temp[i];
-		std::vector<SocketListen> &tempsocketlist = *(tempserver.getListeningSocket());
+		std::vector<SocketListen> tempsocketlist = tempserver.getSocketListen();
 
 		for (int i = 0; i < (int)tempsocketlist.size(); i++)
 		{
