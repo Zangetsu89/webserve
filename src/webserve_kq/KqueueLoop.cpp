@@ -4,6 +4,7 @@
 
 #include "../../include/KqueueLoop.hpp"
 #include "../../include/SocketConnect.hpp"
+#include <exception>
 
 KqueueLoop::KqueueLoop(std::vector<Server> *servers, int kq): _kq_main(kq), _n_ev(0), _servers(servers)
 {
@@ -84,7 +85,7 @@ int KqueueLoop::startLoop()
 					std::cout << "[Event on listenning socket] " << if_socket_listen << std::endl;
 					_kev_catch[i].udata = new SocketConnect((int)_kev_catch[i].ident, _kq_main, _servers);
 					if (_kev_catch[i].udata == NULL)
-						throw Server::ERR_Server("error on accepting new socket");
+						throw std::invalid_argument("error on accepting new socket");
 				}
 				else // the socket is a connection socket
 				{
