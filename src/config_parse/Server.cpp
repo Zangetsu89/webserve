@@ -31,6 +31,7 @@ Server::Server(std::string settings)
 	listen = getValue(settings, "listen", pos);
 	listensplit = charSplit(listen, ' ');
 	port = charSplit(listensplit[0], ':');
+    this->_ports.push_back(atoi(port[port.size() - 1].c_str()));
 	pos = listen.length() + 6;
 	while (settings.find("listen", pos) != (size_t)(-1))
 	{
@@ -39,7 +40,6 @@ Server::Server(std::string settings)
 		listensplit = charSplit(listen, ' ');
 		port = charSplit(listensplit[0], ':');
 		this->_ports.push_back(atoi(port[port.size() - 1].c_str()));
-		std::cout<<"port number is:"<<port.back()<<std::endl;
 		pos = pos + listen.length() + 6;
 	}
 	std::vector<std::string> set = strSplit(settings, "location");
@@ -101,6 +101,11 @@ std::string	Server::getServerName() const
 std::vector<int> Server::getPorts() const
 {
 	return (this->_ports);
+}
+
+std::string Server::getRootDir() const
+{
+    return(this->_rootDir);
 }
 
 DirSettings	Server::getRootDirSettings() const

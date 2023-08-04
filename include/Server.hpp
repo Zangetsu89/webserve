@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/11 17:51:43 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/07/24 14:26:16 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/07/27 15:15:37 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,8 +27,8 @@
 # include "SocketListen.hpp"
 # include "DirSettings.hpp"
 
-
 class SocketListen;
+class DirSettings;
 class Server
 {
 	private:
@@ -50,6 +50,7 @@ class Server
 	// getter
 	std::string					getServerName() const;
 	std::vector<int>			getPorts() const;
+    std::string                 getRootDir() const;
 	DirSettings					getRootDirSettings() const;
 	std::vector<DirSettings>	getOptDirSettings() const;
 	std::vector<DirSettings>	getCGIDirSettings() const;
@@ -58,17 +59,17 @@ class Server
 	//setter
 	void						setSocketListen(int kq);
 
-	// exception
-	// public:
-	// class	ERR_Server : public std::exception
-	// {
-	// 	private:
-	// 		const char	*_error_msg;
-	// 	public:
-	// 	ERR_Server();
-	// 	ERR_Server(const char *error_msg);
-	// 	const char *what() const _NOEXCEPT;	// _NOEXCEPT is needed since C++11
-	// };
+	//exception
+	public:
+	class	ERR_Server : public std::exception
+	{
+		private:
+			const char	*_error_msg;
+		public:
+		ERR_Server();
+		ERR_Server(const char *error_msg);
+		const char *what() const _NOEXCEPT;	// _NOEXCEPT is needed since C++11
+	};
 };
 
 
