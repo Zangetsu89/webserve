@@ -7,6 +7,7 @@
 #include "../../include/Request.hpp"
 //#include "../../include/SocketConnect.hpp"
 #include "../../include/util.hpp"
+#include "../../include/Server.hpp"
 #include <sys/stat.h>
 
 Request::Request()
