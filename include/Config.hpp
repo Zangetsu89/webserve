@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        ::::::::            */
-/*   config.hpp                                         :+:    :+:            */
+/*   Config.hpp                                         :+:    :+:            */
 /*                                                     +:+                    */
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/06/26 16:49:27 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/06/26 16:49:27 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/07/25 14:37:58 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,25 +15,20 @@
 
 # include <string>
 # include <fstream>
-# include <vector>
 # include "Server.hpp"
+# include "DirSettings.hpp"
+# include "ConfigMacros.hpp"
 
 class Config
 {
-    private:
-        std::vector<Server>		_servers;
-		Server					newServer(std::string settings);
-		std::string				readConfigFile(std::string name);
+	private:
+		std::vector<Server>		_servers;
+		std::string				_readConfigFile(std::string name);
 
-    public:
-        Config(std::string file_name);
-        ~Config();
-		std::vector<Server>		getServers() const;
-        Server					getServerAtIndex(size_t index) const;
+	public:
+		Config(std::string file_name);
+		~Config();
+		std::vector<Server>		    getServers() const;
 };
 
 #endif
-
-//A server must have at least 3 elements: servername, root_dir and listen_socks
-//A server can have more information
-//maybe have a member method to store more information get additional info, with string as indicator
