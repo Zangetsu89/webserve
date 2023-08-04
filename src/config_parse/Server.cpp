@@ -43,6 +43,8 @@ Server::Server(std::string settings)
 		pos = pos + listen.length() + 6;
 	}
 	std::vector<std::string> set = strSplit(settings, "location");
+	this->_rootDir = getValue(settings, "root", 0);
+	std::cout<<"Root directory: "<<this->_rootDir<<std::endl;
 	unsigned int i;
 	for (i = 0; i < set.size(); i++)
 	{
@@ -72,6 +74,7 @@ Server::Server(Server const &source)
 {
 	this->_serverName = source._serverName;
 	this->_ports = source._ports;
+	this->_rootDir = source._rootDir;
 	this->_rootDirSettings = source._rootDirSettings;
 	this->_optDirSettings = source._optDirSettings;
 	this->_cgiDirSettings = source._cgiDirSettings;
@@ -86,6 +89,7 @@ Server &Server::operator=(Server const &source)
 {
 	this->_serverName = source._serverName;
 	this->_ports = source._ports;
+	this->_rootDir = source._rootDir;
 	this->_rootDirSettings = source._rootDirSettings;
 	this->_optDirSettings = source._optDirSettings;
 	this->_cgiDirSettings = source._cgiDirSettings;
@@ -105,12 +109,12 @@ std::vector<int> Server::getPorts() const
 
 std::string Server::getRootDir() const
 {
-    return(this->_rootDir);
+    return (this->_rootDir);
 }
 
 DirSettings	Server::getRootDirSettings() const
 {
-	return(this->_rootDirSettings);
+	return (this->_rootDirSettings);
 }
 
 std::vector<DirSettings> Server::getOptDirSettings() const

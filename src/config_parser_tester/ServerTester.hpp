@@ -23,8 +23,9 @@ void testServer(Server S1)
 	std::cout<<"----------------------------------"<<std::endl;
     std::vector<int> ports = S1.getPorts();
     std::cout<<"Listening ports:"<<std::endl;
-    for (unsigned int i = 0; i < ports.size(); i++);
+    for (unsigned int i = 0; i < ports.size(); i++)
         std::cout<<ports[i]<<std::endl;
+	std::cout<<"Root directory: " <<S1.getRootDir()<<std::endl;
 	std::cout<<"server default settings: "<<std::endl;
 	testDirSettings(S1.getRootDirSettings());
 	std::cout<<"server optional directory settings: "<<std::endl;
