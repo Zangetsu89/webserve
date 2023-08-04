@@ -44,6 +44,7 @@ int  main(int argc, char *argv[])
         std::string file_path(argv[1]);
         Config      config(file_path);
         list_Servers = config.getServers();
+        std::cout<<"Listening port: "<<list_Servers[0].getPorts()[0]<<std::endl;
 		KqueueLoop	mainloop(&list_Servers, kq);
 		mainloop.startLoop();
 	}
