@@ -94,8 +94,6 @@ int KqueueLoop::startLoop()
 				}
 				else // the socket is a connection socket
 				{
-					std::cout << "[!!!] " << std::endl;
-
 					SocketConnect	*currentsocket = static_cast<SocketConnect *>(_kev_catch[i].udata);
 					if (_kev_catch[i].filter == EVFILT_READ) // check if the socket is to read
 					{
