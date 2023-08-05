@@ -17,11 +17,14 @@ KqueueLoop::KqueueLoop(std::vector<Server> *servers, int kq): _kq_main(kq), _n_e
 	{
 		std::vector<Server> &temp = *_servers;
 		Server &tempserver = temp[i];
+		std::cout << "!! server getSocketListen() size is " << temp[i].getSocketListen().size() << std::endl;
+
 		std::vector<SocketListen> tempsocketlist = tempserver.getSocketListen();
+		std::cout << "getSocketListen() size is " << tempsocketlist.size() << std::endl;
 
 		for (int i = 0; i < (int)tempsocketlist.size(); i++)
 		{
-			_listListeningSocketInt.push_back(tempsocketlist[i].getSocketListen());
+			_listListeningSocketInt.push_back(tempsocketlist[i].getNumSocket());
 		}
 	}
 }
@@ -78,6 +81,8 @@ int KqueueLoop::startLoop()
 					close(_kev_catch[i].ident);
 					continue;
 				}
+				std::cout << "_kev_catch[i].ident is " << _kev_catch[i].ident << std::endl;
+
 				int if_socket_listen = checkListeningSocket(_kev_catch[i].ident);
 				if (if_socket_listen > 2)
 				{
@@ -89,6 +94,8 @@ int KqueueLoop::startLoop()
 				}
 				else // the socket is a connection socket
 				{
+					std::cout << "[!!!] " << std::endl;
+
 					SocketConnect	*currentsocket = static_cast<SocketConnect *>(_kev_catch[i].udata);
 					if (_kev_catch[i].filter == EVFILT_READ) // check if the socket is to read
 					{

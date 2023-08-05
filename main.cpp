@@ -41,11 +41,19 @@ int  main(int argc, char *argv[])
 	// set server information
 	try
 	{
-        std::string file_path(argv[1]);
-        Config      config(file_path);
-        list_Servers = config.getServers();
-        std::cout<<"Listening port: "<<list_Servers[0].getPorts()[0]<<std::endl;
-		KqueueLoop	mainloop(&list_Servers, kq);
+		std::string file_path(argv[1]);
+		Config      config(file_path);
+		list_Servers = *config.getServers();
+		std::cout<<"Listening port: "<<list_Servers[0].getPorts()[0]<<std::endl;
+		std::cout<<"Listening port: "<<list_Servers[1].getPorts()[0]<<std::endl;
+
+		// with this function, listening sockets are set in the list servers in config class
+		config.setKqServers(kq);
+
+		// std::cout<<"Listening socket: "<<list_Servers[1].getSocketListen()[0].getSocketListen()<<std::endl;
+		// KqueueLoop	mainloop(&list_Servers, kq);
+
+		KqueueLoop	mainloop(config.getServers(), kq);	// we must use the list of servers in the Config class
 		mainloop.startLoop();
 	}
 	catch(std::exception &e) // in this moment, any error calls exit. 

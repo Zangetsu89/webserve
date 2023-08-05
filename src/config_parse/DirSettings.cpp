@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/03 12:24:03 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/07/27 15:14:42 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/08/04 23:57:53 by keika         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -229,4 +229,22 @@ void	addDirSettingData(DirSettings &Target, DirSettings &toAdd)
 		Target.setRedirect(toAdd.getRedirect());
 	if (toAdd.getMaxBodySize() != std::numeric_limits<size_t>::max())
 		Target.setMaxBodySize(toAdd.getMaxBodySize());
+}
+
+void	DirSettings::printAllDirSettings()
+{
+	std::cout << "location is " << _location << std::endl;
+	std::cout << "type is " << _type << std::endl;
+	for (size_t i = 0; i < _methods.size(); i++)
+		std::cout << "type is " << _methods[i] << std::endl;
+	std::cout << "index is " << _index << std::endl;
+		
+	for (auto it = _errorPage.begin(); it != _errorPage.end(); it++)
+		std::cout << "errorpage is " << it->first << " " << it->second << std::endl;
+	std::cout << "dir permission is " << _dirPermission << std::endl;
+	std::cout << "redirect setting is " << _redirect.size() << std::endl;
+	for (auto it = _redirect.begin(); it != _redirect.end(); it++)
+		std::cout << "redirect is " << it->first << " " << it->second << std::endl;
+	std::cout << "max body is " << _maxBodySize << std::endl;
+
 }
