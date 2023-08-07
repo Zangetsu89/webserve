@@ -5,14 +5,14 @@
 
 #include "../../include/RequestHeader.hpp"
 #include "../../include/Request.hpp"
-//#include "../../include/SocketConnect.hpp"
+#include "../../include/SocketConnect.hpp"
 #include "../../include/util.hpp"
 #include "../../include/Server.hpp"
 #include <sys/stat.h>
 
 Request::Request()
 {
-	
+
 }
 
 Request::~Request()
@@ -70,6 +70,7 @@ int Request::setRequest(std::vector<Server> *list_server, SocketConnect *socket)
 {
 	_servers = list_server;
 	_requestSocket = socket;
+	
 	try
 	{
 		readRequest();
@@ -160,6 +161,7 @@ int Request::setRequestBody()
 int	Request::findServer()
 {
 	std::vector<Server>::iterator	it;
+	std::cout << "_requestHeader.getRequestHost() is " << _requestHeader.getRequestHost() << std::endl;
 	for (it = _servers->begin(); it != _servers->end(); it++)
 	{
 		if (_requestHeader.getRequestHost() == it->getServerName())
@@ -217,15 +219,18 @@ int Request::checkProtocol()
 int Request::findResponseFile()
 {
 	std::string filepath = _requestHeader.getRequestLocation();
-	// std::cout << "filepath is " << filepath << std::endl;
+	std::cout << "filepath is " << filepath << std::endl;
 	if (filepath.back() == '/')
 	{
 		filepath.pop_back();
 		_requestFilePath = _requestServer->getRootDir() + _requestDirSetting->getIndexPage();
+		std::cout << "!! _requestFilePath is " << _requestFilePath << std::endl;
 		return (0);
 	}
+	if (filepath.front() == '/')
+		filepath.erase(0, 1);
 	_requestFilePath = _requestServer->getRootDir() + filepath;
-	// std::cout << "_requestFilePath is " << _requestFilePath << std::endl;
+	std::cout << "!! _requestFilePath is " << _requestFilePath << std::endl;
 	struct stat	status;
 	if (stat(_requestFilePath.c_str(), &status) != 0)
 		throw ERR_Request("file not found", 404);

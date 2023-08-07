@@ -3,6 +3,7 @@
 # include <vector>
 # include <map>
 # include <iostream>
+# include <string>
 # include <sys/socket.h>
 # include <sys/types.h>
 # include <sys/event.h>
@@ -14,7 +15,6 @@
 class Server;
 class SocketConnect;
 class DirSettings;
-class Request;
 class RequestHeader
 {
 	private:

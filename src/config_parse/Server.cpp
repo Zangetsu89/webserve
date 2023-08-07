@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/03 12:08:06 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/07/24 16:08:18 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/08/05 13:18:59 by keika         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,15 +129,18 @@ std::vector<DirSettings> Server::getCGIDirSettings() const
 
 std::vector<SocketListen>	Server::getSocketListen() const
 {
+	// std::cout << "!!getSocketListen() size is " << _listSocketListen.size() << std::endl;
 	return(this->_listSocketListen);
 }
 
 void		Server::setSocketListen(int kq)
 {
+	// std::cout << "port size is " << this->_ports.size() << std::endl;
 	for (unsigned int i = 0; i < this->_ports.size(); i++)
 	{
 		SocketListen	tempsock (_ports[i], kq);
 		_listSocketListen.push_back(tempsock);
 	}
+
 }
 

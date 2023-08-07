@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/06/26 16:49:22 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/07/26 13:26:48 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/08/07 13:35:33 by keika         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,13 +39,52 @@ Config::Config(std::string file_name)
 		Server S1(server_info[i]);
 		this->_servers.push_back(S1);
 	}
+		for (size_t i = 0; i < _servers.size(); i++)
+	{
+		std::cout << std::endl;
+		std::cout << i << ": server name is " << _servers[i].getServerName() << std::endl;
+		std::cout << "rootdir is " << _servers[i].getRootDir() << std::endl;
+		for (size_t j = 0; j < _servers[i].getPorts().size(); j++)
+		{
+			std::cout << "port: " << _servers[i].getPorts()[j] << std::endl;
+		}
+		_servers[i].getRootDirSettings().printAllDirSettings();
+		for (size_t j = 0; j < _servers[i].getOptDirSettings().size(); j++)
+		{
+			std::cout << "[optdir " << j << "]\n";
+			_servers[i].getOptDirSettings()[j].printAllDirSettings();
+		}
+		std::cout << std::endl;
+	}
 }
 
 Config::~Config()
 {
 }
 
-std::vector<Server> Config::getServers() const
+std::vector<Server> *Config::getServers()
 {
-	return (this->_servers);
+	return (&this->_servers);
+}
+
+void	Config::setKqServers(int kq)
+{
+	for (size_t i = 0; i < _servers.size(); i++)
+	{
+		_servers[i].setSocketListen(kq);
+	}
+}
+
+
+void	Config::printAll()
+{
+	// std::cout << "_servers.size() is " << _servers.size() << std::endl;
+	for (size_t i = 0; i < _servers.size(); i++)
+	{
+		std::cout << "server name is " << _servers[i].getServerName() << std::endl;
+		std::cout << "rootdir is " << _servers[i].getRootDir() << std::endl;
+		_servers[i].getRootDirSettings().printAllDirSettings();
+		// not yet done... add all element
+	}
+	
 }

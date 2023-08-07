@@ -4,7 +4,6 @@
 
 #include "../../include/KqueueLoop.hpp"
 #include "../../include/SocketConnect.hpp"
-#include <exception>
 
 KqueueLoop::KqueueLoop(std::vector<Server> *servers, int kq): _kq_main(kq), _n_ev(0), _servers(servers)
 {
@@ -21,7 +20,7 @@ KqueueLoop::KqueueLoop(std::vector<Server> *servers, int kq): _kq_main(kq), _n_e
 
 		for (int i = 0; i < (int)tempsocketlist.size(); i++)
 		{
-			_listListeningSocketInt.push_back(tempsocketlist[i].getSocketListen());
+			_listListeningSocketInt.push_back(tempsocketlist[i].getNumSocket());
 		}
 	}
 }
@@ -78,11 +77,13 @@ int KqueueLoop::startLoop()
 					close(_kev_catch[i].ident);
 					continue;
 				}
+				std::cout << "_kev_catch[i].ident is " << _kev_catch[i].ident << std::endl;
+
 				int if_socket_listen = checkListeningSocket(_kev_catch[i].ident);
 				if (if_socket_listen > 2)
 				{
 					// make new connection socket, connect the new socket to udata of kevent
-					std::cout << "[Event on listenning socket] " << if_socket_listen << std::endl;
+					std::cout << std::endl << "[Event on listenning socket] " << if_socket_listen << std::endl;
 					_kev_catch[i].udata = new SocketConnect((int)_kev_catch[i].ident, _kq_main, _servers);
 					if (_kev_catch[i].udata == NULL)
 						throw std::invalid_argument("error on accepting new socket");
@@ -93,7 +94,7 @@ int KqueueLoop::startLoop()
 					if (_kev_catch[i].filter == EVFILT_READ) // check if the socket is to read
 					{
 						// read and store data, make response data(not added yet), change kevent filter and set this to kev_catch
-						std::cout << "[Event on connection socket(EVFILT_READ)] " << _kev_catch[i].ident << std::endl;
+						std::cout << std::endl << "[READ Event on connection socket(EVFILT_READ)] " << _kev_catch[i].ident << std::endl;
 						currentsocket->setRequest(_servers);
 						EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_READ, EV_DELETE, 0, 0, _kev_catch[i].udata);
 						EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_WRITE, EV_ADD, 0, 0, _kev_catch[i].udata);
@@ -101,11 +102,12 @@ int KqueueLoop::startLoop()
 					}
 					else if (_kev_catch[i].filter == EVFILT_WRITE) // check if the socket is to write
 					{
-						std::cout << "Event on connection socket(EVFILT_WRITE) " << currentsocket->getSocketConnect() << std::endl;
+						std::cout << std::endl << "[WRITE Event on connection socket(EVFILT_WRITE)] " << currentsocket->getSocketConnect() << std::endl;
 						if (currentsocket->getErrorNum() != 0)
 						{
 							// if _error is set, send error file
-							std::cout << "send error! " << currentsocket->getErrorNum() << std::endl;
+							std::cout << "Error in getting Request data! " << currentsocket->getErrorNum() << std::endl;
+							currentsocket->sendResponse();
 						}
 						else 
 						{

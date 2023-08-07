@@ -126,6 +126,7 @@ int	RequestHeader::setHeaderOthers(std::vector<char> *dataR)
 	}
 	catch(const std::exception& e)
 	{
+		std::cout << "no line" << std::endl;
 		return (400); // if no line in the data, return bad request
 	}
 	// store other elements of the request to _requestHeaderOthers, and get content body
@@ -148,13 +149,23 @@ int	RequestHeader::setHeaderOthers(std::vector<char> *dataR)
 int	RequestHeader::setHostPort()
 {
 	std::map<std::string, std::string>::iterator it;
+	size_t	it_str;
 
 	it = _requestHeaderOthers.find("Host");
 	if (it == _requestHeaderOthers.end())
 		return (400);
 	std::string	hostport = it->second;
-	_requestHost = splitString(&hostport, ":");
-	_requestPort = removeWhitespace(hostport);
+	it_str = hostport.find(":");
+	if (it_str == std::string::npos)
+	{
+		_requestHost = hostport;
+		_requestPort = 80;
+	}	
+	else
+	{
+		_requestHost = splitString(&hostport, ":");
+		_requestPort = removeWhitespace(hostport);
+	}
 	return (0);
 }
 

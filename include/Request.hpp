@@ -11,11 +11,8 @@
 # include "macro.hpp"
 # include "Server.hpp"
 # include "RequestHeader.hpp"
-# include "SocketConnect.hpp"
 
 class Server;
-//class SocketConnect;
-class DirSettings;
 class RequestHeader;
 class Request
 {

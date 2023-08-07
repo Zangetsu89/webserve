@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/02 15:53:01 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/07/27 15:19:43 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/08/05 00:00:02 by keika         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,6 +63,7 @@ class	DirSettings
 		void									setDirPermission(bool permission);
 		void									setRedirect(std::map<int, std::string> redirect);
 		void									setMaxBodySize(size_t size);
+		void									printAllDirSettings();
 };
 
 void	addDirSettingData(DirSettings &Target, DirSettings &toAdd);

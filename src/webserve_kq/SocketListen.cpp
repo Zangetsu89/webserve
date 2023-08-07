@@ -52,7 +52,7 @@ SocketListen::SocketListen(const SocketListen &source)
 }
 
 // getter
-int	SocketListen::getSocketListen()
+int	SocketListen::getNumSocket()
 {
 	return (_numSocket);
 }

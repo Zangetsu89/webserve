@@ -15,7 +15,7 @@
 # include "Request.hpp"
 
 class Server;
-//class Request;
+class Request;
 class SocketConnect
 {
 
@@ -25,7 +25,7 @@ class SocketConnect
 	socklen_t 			_clientSockaddrLen;
 	struct kevent		_clientKevent;
 	std::vector<Server>	*_servers;
-    Request             *_clientRequest;
+    Request             _clientRequest;
 	// Response			_clientResponse;
 	int					_errorNum;
 	// Error				_errorInfo;

@@ -36,7 +36,7 @@ class SocketListen
 	
 
 	// getter and changer
-	int 			getSocketListen();
+	int 			getNumSocket();
 	struct kevent	*getKevent();
 
 	// exception
