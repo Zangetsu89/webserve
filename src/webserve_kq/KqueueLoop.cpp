@@ -106,7 +106,8 @@ int KqueueLoop::startLoop()
 						if (currentsocket->getErrorNum() != 0)
 						{
 							// if _error is set, send error file
-							std::cout << "send error! " << currentsocket->getErrorNum() << std::endl;
+							std::cout << "Error in getting Request data! " << currentsocket->getErrorNum() << std::endl;
+							currentsocket->sendResponse();
 						}
 						else 
 						{

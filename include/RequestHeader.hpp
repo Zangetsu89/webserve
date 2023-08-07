@@ -3,6 +3,7 @@
 # include <vector>
 # include <map>
 # include <iostream>
+# include <string>
 # include <sys/socket.h>
 # include <sys/types.h>
 # include <sys/event.h>

@@ -218,7 +218,7 @@ int Request::checkProtocol()
 int Request::findResponseFile()
 {
 	std::string filepath = _requestHeader.getRequestLocation();
-	// std::cout << "filepath is " << filepath << std::endl;
+	std::cout << "filepath is " << filepath << std::endl;
 	if (filepath.back() == '/')
 	{
 		filepath.pop_back();
@@ -226,7 +226,7 @@ int Request::findResponseFile()
 		return (0);
 	}
 	_requestFilePath = _requestServer->getRootDir() + filepath;
-	// std::cout << "_requestFilePath is " << _requestFilePath << std::endl;
+	std::cout << "!! _requestFilePath is " << _requestFilePath << std::endl;
 	struct stat	status;
 	if (stat(_requestFilePath.c_str(), &status) != 0)
 		throw ERR_Request("file not found", 404);
