@@ -14,7 +14,6 @@
 class Server;
 class SocketConnect;
 class DirSettings;
-class Request;
 class RequestHeader
 {
 	private:

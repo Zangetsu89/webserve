@@ -5,14 +5,14 @@
 
 #include "../../include/RequestHeader.hpp"
 #include "../../include/Request.hpp"
-//#include "../../include/SocketConnect.hpp"
+#include "../../include/SocketConnect.hpp"
 #include "../../include/util.hpp"
 #include "../../include/Server.hpp"
 #include <sys/stat.h>
 
 Request::Request()
 {
-	
+
 }
 
 Request::~Request()
@@ -70,6 +70,7 @@ int Request::setRequest(std::vector<Server> *list_server, SocketConnect *socket)
 {
 	_servers = list_server;
 	_requestSocket = socket;
+	
 	try
 	{
 		readRequest();

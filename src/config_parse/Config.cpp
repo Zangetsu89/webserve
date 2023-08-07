@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/06/26 16:49:22 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/08/05 13:33:39 by keika         ########   odam.nl         */
+/*   Updated: 2023/08/07 10:23:50 by keika         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,11 +42,11 @@ Config::Config(std::string file_name)
 		for (size_t i = 0; i < _servers.size(); i++)
 	{
 		std::cout << std::endl;
-		std::cout << i << " server name is " << _servers[i].getServerName() << std::endl;
+		std::cout << i << ": server name is " << _servers[i].getServerName() << std::endl;
 		std::cout << "rootdir is " << _servers[i].getRootDir() << std::endl;
 		for (size_t j = 0; j < _servers[i].getPorts().size(); j++)
 		{
-			std::cout << "[port: " << _servers[i].getPorts()[j] << " " ;
+			std::cout << "port: " << _servers[i].getPorts()[j] << std::endl;
 		}
 		_servers[i].getRootDirSettings().printAllDirSettings();
 		for (size_t j = 0; j < _servers[i].getOptDirSettings().size(); j++)
