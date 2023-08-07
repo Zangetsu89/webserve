@@ -74,12 +74,19 @@ int Request::setRequest(std::vector<Server> *list_server, SocketConnect *socket)
 	try
 	{
 		readRequest();
+		std::cout << "1" << '\n';
 		setRequestHeader();
+		std::cout << "2" << '\n';
 		setRequestBodyLength();
+		std::cout << "3" << '\n';
 		setRequestBody();
+		std::cout << "4" << '\n';
 		findServer();
+		std::cout << "5" << '\n';
 		findDirSetting();
+		std::cout << "6" << '\n';
 		checkProtocol();
+		std::cout << "7" << '\n';
 		findResponseFile();
 	}
 	catch (ERR_Request& e)
@@ -161,6 +168,7 @@ int Request::setRequestBody()
 int	Request::findServer()
 {
 	std::vector<Server>::iterator	it;
+	std::cout << "_requestHeader.getRequestHost() is " << _requestHeader.getRequestHost() << std::endl;
 	for (it = _servers->begin(); it != _servers->end(); it++)
 	{
 		if (_requestHeader.getRequestHost() == it->getServerName())

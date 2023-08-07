@@ -157,7 +157,10 @@ int	RequestHeader::setHostPort()
 	std::string	hostport = it->second;
 	it_str = hostport.find(":");
 	if (it_str == std::string::npos)
+	{
+		_requestHost = hostport;
 		_requestPort = 80;
+	}	
 	else
 	{
 		_requestHost = splitString(&hostport, ":");
