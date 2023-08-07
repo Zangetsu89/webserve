@@ -4,6 +4,7 @@
 
 #include "../../include/KqueueLoop.hpp"
 #include "../../include/SocketConnect.hpp"
+#include "../../include/Response.hpp"
 
 KqueueLoop::KqueueLoop(std::vector<Server> *servers, int kq): _kq_main(kq), _n_ev(0), _servers(servers)
 {
@@ -102,18 +103,20 @@ int KqueueLoop::startLoop()
 					}
 					else if (_kev_catch[i].filter == EVFILT_WRITE) // check if the socket is to write
 					{
+//                        Response *Response = new class Response();
 						std::cout << std::endl << "[WRITE Event on connection socket(EVFILT_WRITE)] " << currentsocket->getSocketConnect() << std::endl;
 						if (currentsocket->getErrorNum() != 0)
 						{
 							// if _error is set, send error file
 							std::cout << "Error in getting Request data! " << currentsocket->getErrorNum() << std::endl;
-							currentsocket->sendResponse();
+//                            Response->sendErrorResponse(currentsocket);
+                            currentsocket->sendResponse();
 						}
-						else 
+						else if (currentsocket->isCGI())
 						{
 							// send response data, clean and close socket
 							std::cout << "send response! " << std::endl;
-							currentsocket->sendResponse();
+//                            Response->sendCGIResponse(currentsocket);
 						}
 						delete (currentsocket);
 						close(_kev_catch[i].ident);

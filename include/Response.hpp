@@ -3,18 +3,20 @@
 
 #include <string>
 #include <vector>
+#include <filesystem>
 #include "Request.hpp"
+#include "SocketConnect.hpp"
 
 class Response {
 
     private:
-        Request _request;
-        std::string _response;
-        int _statusCode;
-        std::string _statusMessage;
-        std::string _contentType;
-        int _contentLength;
-        std::string _body;
+        Request         _request;
+        std::string     _response;
+        int             _statusCode;
+        std::string     _statusMessage;
+        std::string     _contentType;
+        int             _contentLength;
+        std::string     _body;
 
     public:
         Response();
@@ -31,12 +33,14 @@ class Response {
         void setContentLength(int content_length);
         void setBody(std::string body);
 
-        void createResponse();
-        void displayResponse();
-        void sendResponse(int fd);
-        void checkMethod(Request &request, Server &server, std::string location);
-        bool execFileExists(std::string location, std::string execPath);
-        std::string checkLocation(Request &request, Server &server);
+//        void createResponse();
+//        void displayResponse();
+//        void sendResponse(int fd);
+//        void checkMethod(Request &request, Server &server, std::string location);
+//        bool execFileExists(std::string location, std::string execPath);
+//        std::string checkLocation(Request &request, Server &server);
+//        std::string generateDirectoryListing(std::string location);
+        void sendErrorResponse(SocketConnect *socketConnect);
 
 };
 

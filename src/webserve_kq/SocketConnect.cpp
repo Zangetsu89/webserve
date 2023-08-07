@@ -48,6 +48,11 @@ SocketConnect::SocketConnect(const SocketConnect &source)
 	*this = source;
 }
 
+int SocketConnect::getNumSocket()
+{
+    return (_numSocket);
+}
+
 // getter
 
 int	SocketConnect::getSocketConnect()
@@ -97,4 +102,13 @@ SocketConnect::ERR_SocketConnect::ERR_SocketConnect(const char *error_msg):_erro
 const char	*SocketConnect::ERR_SocketConnect::what() const _NOEXCEPT
 {
 	return (_error_msg);
+}
+
+bool SocketConnect::isCGI() const {
+    // Check if the request location matches the CGI location
+    // You might need to modify this logic based on your URL parsing logic
+    if (_clientRequest._requestFilePath.find("/cgi-bin/") == 0) {
+        return true;
+    }
+    return false;
 }

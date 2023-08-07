@@ -43,11 +43,13 @@ class SocketConnect
 	Request				*getClientRequest();
 	// Response			*getClientResponse();
 	int					getErrorNum();
+    int                 getNumSocket();
 	// Error				*getErrorInfo();
 
 
 	// setter and others
-	int setRequest(std::vector<Server> *list_server);
+	int                 setRequest(std::vector<Server> *list_server);
+    bool                isCGI() const;
 	void				setError(int err);
 	int					sendResponse();
 

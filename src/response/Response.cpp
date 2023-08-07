@@ -48,93 +48,129 @@ void Response::setBody(std::string body) {
     this->_body = body;
 }
 
-void Response::createResponse() {
-    std::string response = "HTTP/1.1 " + std::to_string(this->_statusCode) + " " + this->_statusMessage + "\r\n";
-    response += "Content-Type: " + this->_contentType + "\r\n";
-    response += "Content-Length: " + std::to_string(this->_contentLength) + "\r\n";
+//void Response::createResponse() {
+//    std::string response = "HTTP/1.1 " + std::to_string(this->_statusCode) + " " + this->_statusMessage + "\r\n";
+//    response += "Content-Type: " + this->_contentType + "\r\n";
+//    response += "Content-Length: " + std::to_string(this->_contentLength) + "\r\n";
+//    response += "\r\n";
+//    response += this->_body;
+//    this->_response = response;
+//}
+//
+//void Response::displayResponse() {
+//    std::cout << this->_response << std::endl;
+//}
+//
+//void Response::checkMethod(Request &request, Server &server, std::string location) {
+//    std::string method = request.getRequestMethod();
+//    std::vector<DirSettings> dirSettings = server.getDirSettings();
+//    for (std::vector<DirSettings>::iterator it = dirSettings.begin(); it != dirSettings.end(); ++it) {
+//        if (it->getLocation() == location) {
+//            for (std::vector<std::string>::iterator it2 = it->_requestDirSetting.getMethods().begin(); it2 != it->getMethods().end(); ++it2) {
+//                if (*it2 == method) {
+//                    sendResponse(method, location, request, it->getExecPath());
+//                    return;
+//                }
+//            }
+//        }
+//    }
+//    std::cout << "Method not allowed" << std::endl;
+//}
+//
+//void Response::sendResponse(std::string method, std::string location, Request &request, std::string execPath) {
+//    // ... (previous logic)
+//
+//    if (method == "GET") {
+//        if (execFileExists(location, execPath) && isFile) {
+//            this->_statusCode = 200;
+//            this->_statusMessage = "OK";
+//            this->_contentType = "text/html";
+//            this->_body = request._requestBody;
+//            this->_contentLength = this->_body.length();
+//        } else if (locationExists(location, execPath) && isDirectory) {
+//            this->_statusCode = 200;
+//            this->_statusMessage = "OK";
+//            this->_contentType = "text/html";
+//            this->_body = generateDirectoryListing(location);
+//            this->_contentLength = this->_body.length();
+//        } else {
+//            this->_statusCode = 404;
+//            this->_statusMessage = "Not Found";
+//            this->_contentType = "text/html";
+//            this->_contentLength = this->_body.length();)
+//        }
+//    } else if (method == "POST") {
+//        if (execFileExists(location, execPath) && isFile && isCGI()) {
+//            // Run CGI script and generate response content
+//            std::string cgiOutput = runCGIScript(request, execPath);
+//            this->_statusCode = 200;
+//            this->_statusMessage = "OK";
+//            this->_contentType = "text/html";
+//            this->_contentLength = cgiOutput.length();
+//            this->_body = cgiOutput;
+//        } else {
+//            // handle method == delete
+//
+//
+//        }
+//    }
+//
+//    // Send the response
+//    int ret = send(fd, this->_response.c_str(), this->_response.length(), 0);
+//    if (ret == -1) {
+//        std::cout << "Error: send" << std::endl;
+//    }
+//}
+//
+//std::string Response::runCGIScript(Request &request, std::string execPath) {
+//    // ... (implement the logic to execute CGI script and capture its output)
+//    // You can use popen or other methods to run the CGI script and capture its output
+//    // Return the output as a string
+//    std::cout << "CGI script output: " << std::endl;
+//}
+//
+//std::string Response::checkLocation(Request &request, Server &server) {
+//    std::string location = request.getRequestLocation();
+//    std::vector<DirSettings> dirSettings = server.getDirSettings();
+//    for (std::vector<DirSettings>::iterator it = dirSettings.begin(); it != dirSettings.end(); ++it) {
+//        if (it->getLocation() == location) {
+//            return location;
+//        }
+//    }
+//    return "Error";
+//}
+//
+//bool Response::execFileExists(const std::string &location, std::string execPath) {
+//    std::ifstream file;
+//    try {
+//        file.open(execPath);
+//    } catch (std::exception &e) {
+//        std::cout << "Error: " << e.what() << std::endl;
+//        return false;
+//    }
+//    std::string line;
+//    while (std::getline(file, line)) {
+//            this->_body += line;
+//        }
+//    }
+//    return true;
+//}
+//
+//std::string Response::generateDirectoryListing(const std::string &location) {
+//    std::string listing = "<html><body><ul>";
+//
+//    for (const auto &entry : std::filesystem::directory_iterator(location)) {
+//        listing += "<li><a href=\"" + entry.path().filename().string() + "\">" + entry.path().filename().string() + "</a></li>";
+//    }
+//
+//    listing += "</ul></body></html>";
+//    return listing;
+//}
+
+void Response::sendErrorResponse(SocketConnect *socketConnect) {
+    std::string response = "HTTP/1.1 404 Not Found\r\n";
+    response += "Content-Type: text/html\r\n";
+    response += "Content-Length: 0\r\n";
     response += "\r\n";
-    response += this->_body;
-    this->_response = response;
-}
-
-void Response::displayResponse() {
-    std::cout << this->_response << std::endl;
-}
-
-void Response::checkMethod(Request &request, Server &server, std::string location) {
-    std::string method = request.getRequestMethod();
-    std::vector<DirSettings> dirSettings = server.getDirSettings();
-    for (std::vector<DirSettings>::iterator it = dirSettings.begin(); it != dirSettings.end(); ++it) {
-        if (it->getLocation() == location) {
-            for (std::vector<std::string>::iterator it2 = it->getMethods().begin(); it2 != it->getMethods().end(); ++it2) {
-                if (*it2 == method) {
-                    sendResponse(method, location, request, it->getExecPath());
-                    return;
-                }
-            }
-        }
-    }
-    std::cout << "Method not allowed" << std::endl;
-}
-
-void Response::sendResponse(std::string method, std::string location, Request &request, std::string execPath) {
-    Std::string requestLocation = request.getRequestLocation();
-    bool isFile = false;
-    bool isDirectory = false;
-    if (requestLocation.ends_with("/")) {
-        is isDirectory = true;
-    } else if (requestLocation.contains(".") && !requestLocation.ends_with("/")) {
-        isFile = true;
-    } else {
-        isFile = true;
-    }
-    if (method == "GET") {
-        if (execFileExists(location, execPath) && isFile) {
-            this->_statusCode = 200;
-            this->_statusMessage = "OK";
-            this->_contentType = "text/html";
-            this->_contentLength = this->_body.length();
-        } else if (locationExists(location, execPath) && isDirectory) {
-            this->_statusCode = 200;
-            this->_statusMessage = "OK";
-            this->_contentType = "text/html";
-            this->_contentLength = this->_body.length();
-        } else {
-            this->_statusCode = 404;
-            this->_statusMessage = "Not Found";
-            this->_contentType = "text/html";
-            this->_contentLength = this->_body.length();
-        }
-    }
-    int ret = send(fd, this->_response.c_str(), this->_response.length(), 0);
-    if (ret == -1) {
-        std::cout << "Error: send" << std::endl;
-    }
-}
-
-std::string Response::checkLocation(Request &request, Server &server) {
-    std::string location = request.getRequestLocation();
-    std::vector<DirSettings> dirSettings = server.getDirSettings();
-    for (std::vector<DirSettings>::iterator it = dirSettings.begin(); it != dirSettings.end(); ++it) {
-        if (it->getLocation() == location) {
-            return location;
-        }
-    }
-    return "Error";
-}
-
-bool Response::execFileExists(const std::string &location, std::string execPath) {
-    std::ifstream file;
-    try {
-        file.open(execPath);
-    } catch (std::exception &e) {
-        std::cout << "Error: " << e.what() << std::endl;
-        return false;
-    }
-    std::string line;
-    while (std::getline(file, line)) {
-            this->_body += line;
-        }
-    }
-    return true;
+    write(socketConnect->getNumSocket(), response.c_str(), response.length());
 }
