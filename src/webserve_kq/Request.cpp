@@ -74,19 +74,12 @@ int Request::setRequest(std::vector<Server> *list_server, SocketConnect *socket)
 	try
 	{
 		readRequest();
-		std::cout << "1" << '\n';
 		setRequestHeader();
-		std::cout << "2" << '\n';
 		setRequestBodyLength();
-		std::cout << "3" << '\n';
 		setRequestBody();
-		std::cout << "4" << '\n';
 		findServer();
-		std::cout << "5" << '\n';
 		findDirSetting();
-		std::cout << "6" << '\n';
 		checkProtocol();
-		std::cout << "7" << '\n';
 		findResponseFile();
 	}
 	catch (ERR_Request& e)
@@ -231,8 +224,11 @@ int Request::findResponseFile()
 	{
 		filepath.pop_back();
 		_requestFilePath = _requestServer->getRootDir() + _requestDirSetting->getIndexPage();
+		std::cout << "!! _requestFilePath is " << _requestFilePath << std::endl;
 		return (0);
 	}
+	if (filepath.front() == '/')
+		filepath.erase(0, 1);
 	_requestFilePath = _requestServer->getRootDir() + filepath;
 	std::cout << "!! _requestFilePath is " << _requestFilePath << std::endl;
 	struct stat	status;
