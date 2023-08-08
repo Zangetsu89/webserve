@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/03 12:08:06 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/07/24 16:08:18 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/08/08 13:31:00 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,25 +26,24 @@ Server::Server(std::string settings)
 
 	//first set up the default directory with the default content.
 	//then copy the rest to the other directories if another location is found.
-	this->_serverName = getValue(settings, "server_name", 0);
-	pos = settings.find("listen", 0);
-	listen = getValue(settings, "listen", pos);
+	this->_serverName = getValue(settings, "server_name ", 0);
+	pos = settings.find("listen ", 0);
+	listen = getValue(settings, "listen ", pos);
 	listensplit = charSplit(listen, ' ');
 	port = charSplit(listensplit[0], ':');
     this->_ports.push_back(atoi(port[port.size() - 1].c_str()));
-	pos = listen.length() + 6;
-	while (settings.find("listen", pos) != (size_t)(-1))
+	pos = listen.length() + 7;
+	while (settings.find("listen ", pos) != (size_t)(-1))
 	{
-		pos = settings.find("listen", pos);
-		listen = getValue(settings, "listen", pos);
+		pos = settings.find("listen ", pos);
+		listen = getValue(settings, "listen ", pos);
 		listensplit = charSplit(listen, ' ');
 		port = charSplit(listensplit[0], ':');
 		this->_ports.push_back(atoi(port[port.size() - 1].c_str()));
 		pos = pos + listen.length() + 6;
 	}
-	std::vector<std::string> set = strSplit(settings, "location");
-	this->_rootDir = getValue(settings, "root", 0);
-	std::cout<<"Root directory: "<<this->_rootDir<<std::endl;
+	std::vector<std::string> set = strSplit(settings, "location ");
+	this->_rootDir = getValue(settings, "root ", 0);
 	unsigned int i;
 	for (i = 0; i < set.size(); i++)
 	{

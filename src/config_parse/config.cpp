@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        ::::::::            */
-/*   Config.cpp                                         :+:    :+:            */
+/*   config.cpp                                         :+:    :+:            */
 /*                                                     +:+                    */
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/06/26 16:49:22 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/07/26 13:26:48 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/08/08 13:31:34 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ Config::Config(std::string file_name)
 	std::string					file_content;
 
 	file_content = this->_readConfigFile(file_name);
-	server_info = getAllOf(file_content, "server");
+	server_info = getAllOf(file_content, "server ");
 	for (unsigned int i = 0; i < server_info.size(); i++)
 	{
 		Server S1(server_info[i]);

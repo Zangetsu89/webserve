@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/03 12:24:03 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/07/27 15:14:42 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/08/08 13:34:48 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,30 +93,30 @@ DirSettings::DirSettings(std::string settings)
 		}
 	}
 	if (this->_location.length() < 1)
-		throw(std::invalid_argument("location of directory not found"));
-	methods = getValue(settings, "allowed_methods", 0);
+		throw(std::invalid_argument("location of directory not found."));
+	methods = getValue(settings, "allowed_methods ", 0);
 	this->_methods = charSplit(methods, ',');
 	for (unsigned int i = 0; i < this->_methods.size(); i++)
 	{
 		this->_methods[i].erase(std::remove(this->_methods[i].begin(), this->_methods[i].end(), ' '), this->_methods[i].end());
 	}
 	start_pos = 0;
-	while ((start_pos = settings.find("error_page", start_pos))!= (size_t)(-1))
+	while ((start_pos = settings.find("error_page ", start_pos))!= (size_t)(-1))
 	{
 		
-		errorPage = charSplit(getValue(settings, "error_page", start_pos), ' ');
+		errorPage = charSplit(getValue(settings, "error_page ", start_pos), ' ');
 		if (methods.size() < 2)
 			break ;
 		this->_errorPage.insert(this->_errorPage.end(), std::pair<int, std::string>(atoi(errorPage[0].c_str()), errorPage[1]));
-		start_pos = start_pos + 10;
+		start_pos = start_pos + 11;
 	}
-	dirPermission = getValue(settings, "directory_list", 0);
+	dirPermission = getValue(settings, "directory_list ", 0);
 	if (dirPermission == "TRUE")
 		this->_dirPermission = true;
 	else
 		this->_dirPermission = false;
 	start_pos = 0;
-	bodySize = getValue(settings, "client_body_size", 0);
+	bodySize = getValue(settings, "client_body_size ", 0);
 	if (bodySize.length() > 0)
 		this->_maxBodySize = atoi(bodySize.c_str());
 	else
