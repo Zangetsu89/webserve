@@ -33,7 +33,7 @@ Config::Config(std::string file_name)
 	std::string					file_content;
 
 	file_content = this->_readConfigFile(file_name);
-	server_info = getAllOf(file_content, "server");
+	server_info = getAllOf(file_content, "server ");
 	for (unsigned int i = 0; i < server_info.size(); i++)
 	{
 		Server S1(server_info[i]);
