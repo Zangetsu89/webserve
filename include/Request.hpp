@@ -27,6 +27,7 @@ class Request
 	std::string		_requestFilePath;
 	int				_requestBodyLength;
 	std::string		_requestBody;
+	bool			_requestShowList;
 
 	SocketConnect			*_requestSocket;
 	std::vector<Server>		*_servers;
@@ -43,6 +44,7 @@ class Request
 	RequestHeader	*getRequestHeader();
 	void			printDataR();
 	void			printSizeR();
+	bool			getRequestShowList();
 
 	int 			setRequest(std::vector<Server> *list_server, SocketConnect *socket);
 	int 			readRequest();
