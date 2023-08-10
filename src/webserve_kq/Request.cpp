@@ -73,14 +73,56 @@ int Request::setRequest(std::vector<Server> *list_server, SocketConnect *socket)
 	
 	try
 	{
-		readRequest();
-		setRequestHeader();
-		setRequestBodyLength();
-		setRequestBody();
-		findServer();
-		findDirSetting();
-		checkProtocol();
-		findResponseFile();
+        try {
+		    readRequest();
+
+        } catch (ERR_Request& e) {
+            std::cout << "TESTING IN READ REQUEST" << '\n';
+            exit(1);
+        }
+        try {
+		    setRequestHeader();
+        } catch (ERR_Request& e) {
+            std::cout << "TESTING IN SET REQUEST HEADER" << '\n';
+            exit(1);
+        }
+        try {
+		    setRequestBodyLength();
+        } catch (ERR_Request& e) {
+            std::cout << "TESTING IN SET REQUEST BODY LENGTH" << '\n';
+            exit(1);
+        }
+        try {
+		    setRequestBody();
+        } catch (ERR_Request& e) {
+            std::cout << "TESTING IN SET REQUEST BODY" << '\n';
+            exit(1);
+        }
+        findServer();
+//        try {
+//		    findServer();
+//        } catch (ERR_Request& e) {
+//            std::cout << e.what() << '\n';
+//            exit(1);
+//        }
+        try {
+		    findDirSetting();
+        } catch (ERR_Request& e) {
+            std::cout << "TESTING IN FIND DIRSETTING" << '\n';
+            exit(1);
+        }
+        try {
+		    checkProtocol();
+        } catch (ERR_Request& e) {
+            std::cout << "TESTING IN CHECK PROTOCOL" << '\n';
+            exit(1);
+        }
+        try {
+		    findResponseFile();
+        } catch (ERR_Request& e) {
+            std::cout << "TESTING IN FIND RESPONSE FILE" << '\n';
+            exit(1);
+        }
 	}
 	catch (ERR_Request& e)
 	{
@@ -164,8 +206,14 @@ int	Request::findServer()
 	std::cout << "_requestHeader.getRequestHost() is " << _requestHeader.getRequestHost() << std::endl;
 	for (it = _servers->begin(); it != _servers->end(); it++)
 	{
+//        std::cout << it << std::endl;
+        std::cout << it->getServerName() << std::endl;
+//        std::cout << _requestHeader << std::endl;
+        std::cout << _requestHeader.getRequestHost() << std::endl;
+
 		if (_requestHeader.getRequestHost() == it->getServerName())
 		{
+            std::cout << &(*it) << std::endl;
 			_requestServer = &(*it);
 			return (0);
 		}		

@@ -92,6 +92,7 @@ int KqueueLoop::startLoop()
 				else // the socket is a connection socket
 				{
 					SocketConnect	*currentsocket = static_cast<SocketConnect *>(_kev_catch[i].udata);
+                    std::cout << currentsocket->getNumSocket() << std::endl;
 					if (_kev_catch[i].filter == EVFILT_READ) // check if the socket is to read
 					{
 						// read and store data, make response data(not added yet), change kevent filter and set this to kev_catch
@@ -101,26 +102,26 @@ int KqueueLoop::startLoop()
 						EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_WRITE, EV_ADD, 0, 0, _kev_catch[i].udata);
 						kevent(_kq_main, &_kev_catch[i], 1, NULL, 0, NULL);
 					}
-					else if (_kev_catch[i].filter == EVFILT_WRITE) // check if the socket is to write
-					{
-//                        Response *Response = new class Response();
-						std::cout << std::endl << "[WRITE Event on connection socket(EVFILT_WRITE)] " << currentsocket->getSocketConnect() << std::endl;
-						if (currentsocket->getErrorNum() != 0)
-						{
-							// if _error is set, send error file
-							std::cout << "Error in getting Request data! " << currentsocket->getErrorNum() << std::endl;
-//                            Response->sendErrorResponse(currentsocket);
+                    else if (_kev_catch[i].filter == EVFILT_WRITE) // check if the socket is to write
+                    {
+                        Response *response = new Response(*(currentsocket->getClientRequest()));
+                        std::cout << std::endl << "[WRITE Event on connection socket(EVFILT_WRITE)] " << currentsocket->getSocketConnect() << std::endl;
+                        if (currentsocket->getErrorNum() != 0)
+                        {
+                            // if _error is set, send error file
+                            std::cout << "Error in getting Request data! " << currentsocket->getErrorNum() << std::endl;
+                            response->sendErrorResponse(currentsocket);
+                        }
+                        else
+                        {
+                            // send response data, clean and close socket
+                            std::cout << "send response! " << std::endl;
                             currentsocket->sendResponse();
-						}
-						else if (currentsocket->isCGI())
-						{
-							// send response data, clean and close socket
-							std::cout << "send response! " << std::endl;
-//                            Response->sendCGIResponse(currentsocket);
-						}
-						delete (currentsocket);
-						close(_kev_catch[i].ident);
-					}
+//                            currentsocket->sendResponse();
+                        }
+                        delete (currentsocket);
+                        close(_kev_catch[i].ident);
+                    }
 				}
 			}
 			catch (std::exception &e) // we must leave the error without using exit (otherwise the server stops for one error on a stream)

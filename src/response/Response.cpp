@@ -168,9 +168,33 @@ void Response::setBody(std::string body) {
 //}
 
 void Response::sendErrorResponse(SocketConnect *socketConnect) {
-    std::string response = "HTTP/1.1 404 Not Found\r\n";
-    response += "Content-Type: text/html\r\n";
-    response += "Content-Length: 0\r\n";
-    response += "\r\n";
+    std::string response = "";
+    if (socketConnect->getErrorNum() == 400) {
+        response = "HTTP/1.1 400 Bad Request\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n"
+                   "<!DOCTYPE html><html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">"
+                   "<title>Error 400</title><link href=\"css.css\" rel=\"stylesheet\"></head><body>"
+                   "<h1>Error 400</h1><p>Your request was not understood or is missing required parameters.</p></body></html>";
+
+    }
+    else if (socketConnect->getErrorNum() == 403) {
+        response = "HTTP/1.1 403 Forbidden\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n"
+                   "<!DOCTYPE html><html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">"
+                   "<title>Error 403</title><link href=\"css.css\" rel=\"stylesheet\"></head><body>"
+                   "<h1>Error 403</h1><p>You do not have permission to access this resource.</p></body></html>";
+
+    }
+    else if (socketConnect->getErrorNum() == 404) {
+        response = "HTTP/1.1 404 Not Found\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n"
+                   "<!DOCTYPE html><html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">"
+                   "<title>Error 404</title><link href=\"css.css\" rel=\"stylesheet\"></head><body>"
+                   "<h1>Error 404</h1><p>The requested page could not be found.</p></body></html>";
+    }
+
+//    std::string response = "HTTP/1.1 404 Not Found\r\n";
+//    response += "Content-Type: text/html\r\n";
+//    response += "Content-Length: 0\r\n";
+//    response += "\r\n";
+//    response += _body;
+    std::cout << "SOCKETTTTTTT" << socketConnect->getNumSocket() << std::endl;
     write(socketConnect->getNumSocket(), response.c_str(), response.length());
 }

@@ -90,8 +90,13 @@ void	SocketConnect::setError(int err)
 int SocketConnect::sendResponse()
 {
 	// dammy response, simular with 403 error
+//    const char *dammydata = "HTTP/1.1 404 Not Found\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n"
+//                            "<!DOCTYPE html><html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">"
+//                            "<title>Error 404</title><link href=\"css.css\" rel=\"stylesheet\"></head><body>"
+//                            "<h1>Error 404</h1><p>The requested page could not be found.</p></body></html>";
 	const char *dammydata = "HTTP/1.1 403 Forbidden\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n<!DOCTYPE html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"><title>Error 403</title><link href=\"css.css\" rel=\"stylesheet\"></head><body>Error 403</body></html>";
 	write(_numSocket, dammydata, strlen(dammydata)); // dammy response
+    std::cout << "TESTTTTTT" << _numSocket << std::endl;
 	return (0);
 }
 
