@@ -98,13 +98,13 @@ int Request::setRequest(std::vector<Server> *list_server, SocketConnect *socket)
             std::cout << "TESTING IN SET REQUEST BODY" << '\n';
             exit(1);
         }
-        findServer();
-//        try {
-//		    findServer();
-//        } catch (ERR_Request& e) {
-//            std::cout << e.what() << '\n';
-//            exit(1);
-//        }
+//        findServer();
+        try {
+		    findServer();
+        } catch (ERR_Request& e) {
+            std::cout << e.what() << '\n';
+            exit(1);
+        }
         try {
 		    findDirSetting();
         } catch (ERR_Request& e) {
@@ -214,6 +214,7 @@ int	Request::findServer()
 		if (_requestHeader.getRequestHost() == it->getServerName())
 		{
             std::cout << &(*it) << std::endl;
+            std::cout << "TESTIINGGG\n" << std::endl;
 			_requestServer = &(*it);
 			return (0);
 		}		
@@ -271,6 +272,9 @@ int Request::findResponseFile()
 	if (filepath.back() == '/')
 	{
 		filepath.pop_back();
+        std::cout << "HEREEEE" << std::endl;
+        std::cout << "TESTING" << _requestServer->getRootDir() << std::endl;
+        std::cout << "TESTING 2" << _requestDirSetting->getIndexPage() << std::endl;
 		_requestFilePath = _requestServer->getRootDir() + _requestDirSetting->getIndexPage();
 		std::cout << "!! _requestFilePath is " << _requestFilePath << std::endl;
 		return (0);
