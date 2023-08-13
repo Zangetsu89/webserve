@@ -28,10 +28,9 @@ class Config
 	public:
 		Config(std::string file_name);
 		~Config();
-		// std::vector<Server>		    getServers();
-        std::vector<Server>         *getServers();
-		void						setKqServers(int kq);
-		void						printAll();
+		std::vector<Server>		*getServers();
+		void					setKqServers(int kq);
+		void					printAll();
 };
 
 #endif

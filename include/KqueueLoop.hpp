@@ -18,9 +18,9 @@ class Server;
 class KqueueLoop
 {
 	private:
-	int				_kq_main;
-	struct kevent	_kev_catch[TOTAL_KEV];
-	int				_n_ev;
+	int					_kq_main;
+	struct kevent		_kev_catch[TOTAL_KEV];
+	int					_n_ev;
 	std::vector<int>	_listListeningSocketInt;
 	std::vector<Server>	*_servers;
 

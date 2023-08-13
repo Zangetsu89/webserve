@@ -50,7 +50,7 @@ class Server
 	// getter
 	std::string					getServerName() const;
 	std::vector<int>			getPorts() const;
-    std::string                 getRootDir() const;
+    std::string					getRootDir() const;
 	DirSettings					*getRootDirSettings();
 	std::vector<DirSettings>	*getOptDirSettings();
 	std::vector<DirSettings>	*getCGIDirSettings();
@@ -64,7 +64,7 @@ class Server
 	class	ERR_Server : public std::exception
 	{
 		private:
-			const char	*_error_msg;
+		const char	*_error_msg;
 		public:
 		ERR_Server();
 		ERR_Server(const char *error_msg);

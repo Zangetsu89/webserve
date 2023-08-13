@@ -46,11 +46,11 @@ class	DirSettings
 
 		DirSettings &operator=(DirSettings const &another);
 
-		std::string   	  	      				getLocation() const;
+		std::string								getLocation() const;
 		std::string								getIndexPage() const;
 		int										getDirType() const;
 		std::vector<std::string>				getMethods() const;
-		std::map<int, std::string>	    	  	getErrorPage() const;
+		std::map<int, std::string>				getErrorPage() const;
 		bool									getDirPermission() const;
 		std::map<int, std::string>				getRedirect() const;
 		size_t 									getMaxBodySize() const;
