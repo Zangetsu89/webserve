@@ -165,7 +165,11 @@ size_t	DirSettings::getMaxBodySize() const
 
 void	DirSettings::setLocation(std::string root, std::string location)
 {
-	if ((root.c_str()[root.length() - 1] == '/' && location.c_str()[0] != '/')||\
+	if (root.size() == 0 && location.c_str()[0] != '/')
+		this->_location = "/" + location;
+	else if (root.size() == 0 && location.c_str()[0] == '/')
+		this->_location = location;
+	else if ((root.c_str()[root.length() - 1] == '/' && location.c_str()[0] != '/')||\
 	(root.c_str()[root.length() - 1] != '/' && location.c_str()[0] == '/'))
 		this->_location = root + location;
 	else if (root.c_str()[root.length() - 1] == '/' && location.c_str()[0] == '/')

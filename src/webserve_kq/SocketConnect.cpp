@@ -85,7 +85,6 @@ void	SocketConnect::setError(int err)
 int SocketConnect::sendResponse()
 {
 	// dammy response, simular with 403 error
-	std::vector<DirSettings> dirSettings = _servers->getDirSettings();
 	const char *dammydata = "HTTP/1.1 403 Forbidden\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n<!DOCTYPE html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"><title>Error 403</title><link href=\"css.css\" rel=\"stylesheet\"></head><body>Error 403</body></html>";
 	write(_numSocket, dammydata, strlen(dammydata)); // dammy response
 	return (0);

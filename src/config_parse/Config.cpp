@@ -48,11 +48,14 @@ Config::Config(std::string file_name)
 		{
 			std::cout << "port: " << _servers[i].getPorts()[j] << std::endl;
 		}
-		_servers[i].getRootDirSettings().printAllDirSettings();
-		for (size_t j = 0; j < _servers[i].getOptDirSettings().size(); j++)
+		_servers[i].getRootDirSettings()->printAllDirSettings();
+		for (size_t j = 0; j < _servers[i].getOptDirSettings()->size(); j++)
 		{
 			std::cout << "[optdir " << j << "]\n";
-			_servers[i].getOptDirSettings()[j].printAllDirSettings();
+			std::vector<DirSettings>::iterator itr = _servers[i].getOptDirSettings()->begin();
+			// itr += j; 
+			advance(itr, j);
+			itr->printAllDirSettings();
 		}
 		std::cout << std::endl;
 	}
@@ -83,7 +86,7 @@ void	Config::printAll()
 	{
 		std::cout << "server name is " << _servers[i].getServerName() << std::endl;
 		std::cout << "rootdir is " << _servers[i].getRootDir() << std::endl;
-		_servers[i].getRootDirSettings().printAllDirSettings();
+		_servers[i].getRootDirSettings()->printAllDirSettings();
 		// not yet done... add all element
 	}
 	

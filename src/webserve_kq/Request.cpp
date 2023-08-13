@@ -129,7 +129,7 @@ int	Request::setRequestHeader()
 {
 	int res = _requestHeader.setMethodLocationProtocol(&_dataR);
 	if (res != 0)
-		throw ERR_Request("The first line of request is wront", res);
+		throw ERR_Request("The first line of request is wrong", res);
 	res = _requestHeader.setHeaderOthers(&_dataR);
 	if (res != 0)
 		throw ERR_Request("Header information is wrong", res);
@@ -181,7 +181,7 @@ int	Request::findServer()
 int	Request::findDirSetting()
 {
 	std::string					requestLocation;
-	std::vector<DirSettings> 	list_dirsetting = _requestServer->getOptDirSettings();
+	std::vector<DirSettings> 	*list_dirsetting = _requestServer->getOptDirSettings();
 
 	requestLocation = _requestHeader.getRequestLocation();
 	if (requestLocation.back() == '/')
@@ -189,7 +189,7 @@ int	Request::findDirSetting()
 	
 	for (; requestLocation != ""; deleteStringEnd(&requestLocation, "/"))
 	{
-		for (std::vector<DirSettings>::iterator it = list_dirsetting.begin(); it != list_dirsetting.end(); it++)
+		for (std::vector<DirSettings>::iterator it = list_dirsetting->begin(); it != list_dirsetting->end(); it++)
 		{
 			if (requestLocation == it->getLocation())
 			{
@@ -198,7 +198,7 @@ int	Request::findDirSetting()
 			}
 		}
 	}
-	_requestDirSetting = new DirSettings(_requestServer->getRootDirSettings());
+	_requestDirSetting = _requestServer->getRootDirSettings();
 	// std::cout << "requestDir is gotten " << _requestServer->getRootDirSettings()->getLocation() << std::endl;
 	return (0);
 }
@@ -272,3 +272,4 @@ const char *Request::ERR_Request::what() const _NOEXCEPT
 {
 	return (_error_msg);
 }
+

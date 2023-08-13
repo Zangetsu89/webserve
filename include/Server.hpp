@@ -51,10 +51,10 @@ class Server
 	std::string					getServerName() const;
 	std::vector<int>			getPorts() const;
     std::string                 getRootDir() const;
-	DirSettings					getRootDirSettings() const;
-	std::vector<DirSettings>	getOptDirSettings() const;
-	std::vector<DirSettings>	getCGIDirSettings() const;
-	std::vector<SocketListen>	getSocketListen() const;					
+	DirSettings					*getRootDirSettings();
+	std::vector<DirSettings>	*getOptDirSettings();
+	std::vector<DirSettings>	*getCGIDirSettings();
+	std::vector<SocketListen>	*getSocketListen();
 
 	//setter
 	void						setSocketListen(int kq);

@@ -112,25 +112,25 @@ std::string Server::getRootDir() const
     return (this->_rootDir);
 }
 
-DirSettings	Server::getRootDirSettings() const
+DirSettings	*Server::getRootDirSettings()
 {
-	return (this->_rootDirSettings);
+	return (&_rootDirSettings);
 }
 
-std::vector<DirSettings> Server::getOptDirSettings() const
+std::vector<DirSettings> *Server::getOptDirSettings()
 {
-	return(this->_optDirSettings);
+	return(&_optDirSettings);
 }
 
-std::vector<DirSettings> Server::getCGIDirSettings() const
+std::vector<DirSettings> *Server::getCGIDirSettings()
 {
-	return(this->_cgiDirSettings);
+	return(&_cgiDirSettings);
 }
 
-std::vector<SocketListen>	Server::getSocketListen() const
+std::vector<SocketListen>	*Server::getSocketListen()
 {
 	// std::cout << "!!getSocketListen() size is " << _listSocketListen.size() << std::endl;
-	return(this->_listSocketListen);
+	return(&_listSocketListen);
 }
 
 void		Server::setSocketListen(int kq)
