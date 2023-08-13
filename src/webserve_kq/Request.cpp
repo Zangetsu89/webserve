@@ -7,10 +7,9 @@
 #include "../../include/Request.hpp"
 #include "../../include/SocketConnect.hpp"
 #include "../../include/util.hpp"
-#include "../../include/Server.hpp"
 #include <sys/stat.h>
 
-Request::Request()
+Request::Request():_requestBodyLength(0),_requestShowList(0)
 {
 
 }
@@ -28,6 +27,7 @@ Request& Request::operator=(const Request &source)
 		_requestFilePath = source._requestFilePath;
 		_requestBodyLength = source._requestBodyLength;
 		_requestBody = source._requestBody;
+		_requestShowList = source._requestShowList;
 		_requestSocket = source._requestSocket;
 		_servers = source._servers;
 		_requestServer = source._requestServer;
@@ -64,6 +64,11 @@ void Request::printDataR()
 void Request::printSizeR()
 {
 	std::cout << "data size is " << _sizeR << std::endl;
+}
+
+bool	Request::getRequestShowList()
+{
+	return (_requestShowList);
 }
 
 int Request::setRequest(std::vector<Server> *list_server, SocketConnect *socket)
@@ -218,6 +223,7 @@ int Request::checkProtocol()
 
 int Request::findResponseFile()
 {
+	struct stat	status;
 	std::string filepath = _requestHeader.getRequestLocation();
 	std::cout << "filepath is " << filepath << std::endl;
 	if (filepath.back() == '/')
@@ -225,15 +231,33 @@ int Request::findResponseFile()
 		filepath.pop_back();
 		_requestFilePath = _requestServer->getRootDir() + _requestDirSetting->getIndexPage();
 		std::cout << "!! _requestFilePath is " << _requestFilePath << std::endl;
+		if (stat(_requestFilePath.c_str(), &status) != 0)
+		{
+			if (!_requestDirSetting->getDirPermission())
+				throw ERR_Request("file not found and showing list not allowed", 404);
+			_requestShowList = 1;
+		}
 		return (0);
 	}
 	if (filepath.front() == '/')
 		filepath.erase(0, 1);
 	_requestFilePath = _requestServer->getRootDir() + filepath;
 	std::cout << "!! _requestFilePath is " << _requestFilePath << std::endl;
-	struct stat	status;
+	std::cout << "!! _requestShowList is " << _requestShowList << std::endl;
 	if (stat(_requestFilePath.c_str(), &status) != 0)
 		throw ERR_Request("file not found", 404);
+	if ((status.st_mode & S_IFMT) == S_IFREG)
+	{
+		std::cout << "This is a file: _requestFilePath(index) is " << _requestFilePath << std::endl;
+		return (0);
+	}
+		
+	if ((status.st_mode & S_IFMT) == S_IFDIR)
+	{
+		_requestFilePath = _requestFilePath + "/" + _requestDirSetting->getIndexPage();
+		std::cout << "This is directory: _requestFilePath is " << _requestFilePath << std::endl;
+		return (0);
+	}
 	return (0);
 }
 
