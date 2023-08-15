@@ -135,10 +135,10 @@ std::vector<SocketListen>	*Server::getSocketListen()
 
 void		Server::setSocketListen(int kq)
 {
-	// std::cout << "port size is " << this->_ports.size() << std::endl;
 	for (unsigned int i = 0; i < this->_ports.size(); i++)
 	{
 		SocketListen	tempsock (_ports[i], kq);
+		std::cout << "setting listening port is " << _ports[i] << std::endl;
 		_listSocketListen.push_back(tempsock);
 	}
 

@@ -64,6 +64,7 @@ DirSettings::DirSettings(std::string settings)
 	std::string					dirPermission;
 	std::string					bodySize;
 	size_t						start_pos;
+	std::vector<std::string>	redirect;
 
 	this->_index = getValue(settings, "index", 0);
 	location = getValue(settings, "root", 0);
@@ -105,7 +106,7 @@ DirSettings::DirSettings(std::string settings)
 	{
 		
 		errorPage = charSplit(getValue(settings, "error_page ", start_pos), ' ');
-		if (methods.size() < 2)
+		if (errorPage.size() < 2)
 			break ;
 		this->_errorPage.insert(this->_errorPage.end(), std::pair<int, std::string>(atoi(errorPage[0].c_str()), errorPage[1]));
 		start_pos = start_pos + 11;
@@ -121,6 +122,17 @@ DirSettings::DirSettings(std::string settings)
 		this->_maxBodySize = atoi(bodySize.c_str());
 	else
 		this->_maxBodySize = std::numeric_limits<size_t>::max();
+
+	start_pos = 0;
+	while ((start_pos = settings.find("return ", start_pos))!= (size_t)(-1))
+	{
+		
+		redirect = charSplit(getValue(settings, "return ", start_pos), ' ');
+		if (redirect.size() < 2)
+			break ;
+		this->_redirect.insert(this->_redirect.end(), std::pair<int, std::string>(atoi(redirect[0].c_str()), redirect[1]));
+		start_pos = start_pos + 7;
+	}
 }
 
 std::string	DirSettings::getLocation() const

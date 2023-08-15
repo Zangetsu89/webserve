@@ -84,6 +84,7 @@ int Request::setRequest(std::vector<Server> *list_server, SocketConnect *socket)
 		setRequestBody();
 		findServer();
 		findDirSetting();
+		checkRedirect();
 		checkProtocol();
 		findResponseFile();
 	}
@@ -163,13 +164,25 @@ int Request::setRequestBody()
 	return (0);
 }
 
+bool	Request::checkPort(std::vector<Server>::iterator it, int port)
+{
+	std::vector<int>	ports = it->getPorts();
+	std::vector<int>::iterator it_port;
+	for (it_port = ports.begin(); it_port != ports.end(); it_port++)
+	{
+		if (port == *it_port)
+			return (1);
+	}
+	return (0);
+}
+
 int	Request::findServer()
 {
 	std::vector<Server>::iterator	it;
 	std::cout << "_requestHeader.getRequestHost() is " << _requestHeader.getRequestHost() << std::endl;
 	for (it = _servers->begin(); it != _servers->end(); it++)
 	{
-		if (_requestHeader.getRequestHost() == it->getServerName())
+		if (_requestHeader.getRequestHost() == it->getServerName() && checkPort(it, stoi(_requestHeader.getRequestPort())))
 		{
 			_requestServer = &(*it);
 			return (0);
@@ -199,7 +212,18 @@ int	Request::findDirSetting()
 		}
 	}
 	_requestDirSetting = _requestServer->getRootDirSettings();
-	// std::cout << "requestDir is gotten " << _requestServer->getRootDirSettings()->getLocation() << std::endl;
+	std::cout << "!!! requestDir is gotten " << _requestServer->getRootDirSettings()->getLocation() << std::endl;
+	return (0);
+}
+
+int	Request::checkRedirect()
+{
+	if (_requestServer->getRootDirSettings()->getRedirect().size() != 0)
+	{
+		std::cout << "!!!! redirect is set " << _requestServer->getRootDirSettings()->getRedirect().begin()->first << " " << _requestServer->getRootDirSettings()->getRedirect().begin()->second << std::endl;
+		_requestSocket->setRedirect(_requestServer->getRootDirSettings()->getRedirect().begin()->second);
+		throw ERR_Request("Redirect is set", _requestServer->getRootDirSettings()->getRedirect().begin()->first);
+	}
 	return (0);
 }
 

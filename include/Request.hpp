@@ -51,8 +51,10 @@ class Request
 	int 			setRequestHeader();
 	int 			setRequestBodyLength();
 	int 			setRequestBody();
+	bool			checkPort(std::vector<Server>::iterator it, int port);
 	int 			findServer();
 	int 			findDirSetting();
+	int 			checkRedirect();
 	int 			checkMethod();
 	int 			checkProtocol();
 	int 			findResponseFile();

@@ -51,7 +51,7 @@ Config::Config(std::string file_name)
 		_servers[i].getRootDirSettings()->printAllDirSettings();
 		for (size_t j = 0; j < _servers[i].getOptDirSettings()->size(); j++)
 		{
-			std::cout << "[optdir " << j << "]\n";
+			std::cout << std::endl << "[optdir " << j << "]\n";
 			std::vector<DirSettings>::iterator itr = _servers[i].getOptDirSettings()->begin();
 			// itr += j; 
 			advance(itr, j);
