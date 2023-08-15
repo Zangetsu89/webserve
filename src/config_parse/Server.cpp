@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/03 12:08:06 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/08/08 13:31:00 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/08/05 13:18:59 by keika         ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,7 @@ Server::Server(std::string settings)
 	}
 	std::vector<std::string> set = strSplit(settings, "location ");
 	this->_rootDir = getValue(settings, "root ", 0);
+	std::cout<<"Root directory: "<<this->_rootDir<<std::endl;
 	unsigned int i;
 	for (i = 0; i < set.size(); i++)
 	{
@@ -111,32 +112,35 @@ std::string Server::getRootDir() const
     return (this->_rootDir);
 }
 
-DirSettings	Server::getRootDirSettings() const
+DirSettings	*Server::getRootDirSettings()
 {
-	return (this->_rootDirSettings);
+	return (&_rootDirSettings);
 }
 
-std::vector<DirSettings> Server::getOptDirSettings() const
+std::vector<DirSettings> *Server::getOptDirSettings()
 {
-	return(this->_optDirSettings);
+	return(&_optDirSettings);
 }
 
-std::vector<DirSettings> Server::getCGIDirSettings() const
+std::vector<DirSettings> *Server::getCGIDirSettings()
 {
-	return(this->_cgiDirSettings);
+	return(&_cgiDirSettings);
 }
 
-std::vector<SocketListen>	Server::getSocketListen() const
+std::vector<SocketListen>	*Server::getSocketListen()
 {
-	return(this->_listSocketListen);
+	// std::cout << "!!getSocketListen() size is " << _listSocketListen.size() << std::endl;
+	return(&_listSocketListen);
 }
 
 void		Server::setSocketListen(int kq)
 {
+	// std::cout << "port size is " << this->_ports.size() << std::endl;
 	for (unsigned int i = 0; i < this->_ports.size(); i++)
 	{
 		SocketListen	tempsock (_ports[i], kq);
 		_listSocketListen.push_back(tempsock);
 	}
+
 }
 
