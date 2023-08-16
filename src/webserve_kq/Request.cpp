@@ -254,20 +254,20 @@ int Request::findResponseFile()
 	{
 		filepath.pop_back();
 		_requestFilePath = _requestServer->getRootDir() + _requestDirSetting->getIndexPage();
-		std::cout << "!! _requestFilePath is " << _requestFilePath << std::endl;
+		std::cout << "!!! _requestFilePath is " << _requestFilePath << std::endl;
 		if (stat(_requestFilePath.c_str(), &status) != 0)
 		{
 			if (!_requestDirSetting->getDirPermission())
-				throw ERR_Request("file not found and showing list not allowed", 404);
+				throw ERR_Request("file not found and showing list not allowed", 403);
 			_requestShowList = 1;
 		}
+		std::cout << "!!! _requestShowList is " << _requestShowList << std::endl;
 		return (0);
 	}
 	if (filepath.front() == '/')
 		filepath.erase(0, 1);
 	_requestFilePath = _requestServer->getRootDir() + filepath;
 	std::cout << "!! _requestFilePath is " << _requestFilePath << std::endl;
-	std::cout << "!! _requestShowList is " << _requestShowList << std::endl;
 	if (stat(_requestFilePath.c_str(), &status) != 0)
 		throw ERR_Request("file not found", 404);
 	if ((status.st_mode & S_IFMT) == S_IFREG)
@@ -279,9 +279,16 @@ int Request::findResponseFile()
 	if ((status.st_mode & S_IFMT) == S_IFDIR)
 	{
 		_requestFilePath = _requestFilePath + "/" + _requestDirSetting->getIndexPage();
-		std::cout << "This is directory: _requestFilePath is " << _requestFilePath << std::endl;
+		std::cout << "This is a directory: _requestFilePath is " << _requestFilePath << std::endl;
+		if (stat(_requestFilePath.c_str(), &status) != 0)
+		{
+			if (!_requestDirSetting->getDirPermission())
+				throw ERR_Request("file not found and showing list not allowed", 403);
+			_requestShowList = 1;
+		}
 		return (0);
 	}
+	std::cout << "!! _requestShowList is " << _requestShowList << std::endl;
 	return (0);
 }
 
