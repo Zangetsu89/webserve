@@ -117,12 +117,13 @@ int Request::setRequest(std::vector<Server> *list_server, SocketConnect *socket)
             std::cout << "TESTING IN CHECK PROTOCOL" << '\n';
             exit(1);
         }
-        try {
-		    findResponseFile();
-        } catch (ERR_Request& e) {
-            std::cout << "TESTING IN FIND RESPONSE FILE" << '\n';
-            exit(1);
-        }
+        findResponseFile();
+//        try {
+//		    findResponseFile();
+//        } catch (ERR_Request& e) {
+//            std::cout << "TESTING IN FIND RESPONSE FILE" << '\n';
+//            exit(1);
+//        }
 	}
 	catch (ERR_Request& e)
 	{

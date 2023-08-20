@@ -98,7 +98,7 @@ int KqueueLoop::startLoop()
 						// read and store data, make response data(not added yet), change kevent filter and set this to kev_catch
 						std::cout << std::endl << "[READ Event on connection socket(EVFILT_READ)] " << _kev_catch[i].ident << std::endl;
 						currentsocket->setRequest(_servers);
-						EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_READ, EV_DELETE, 0, 0, _kev_catch[i].udata);
+//						EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_READ, EV_DELETE, 0, 0, _kev_catch[i].udata);
 						EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_WRITE, EV_ADD, 0, 0, _kev_catch[i].udata);
 						kevent(_kq_main, &_kev_catch[i], 1, NULL, 0, NULL);
 					}
