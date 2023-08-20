@@ -58,6 +58,7 @@ class Server
 
 	//setter
 	void						setSocketListen(int kq);
+    bool                        isNumeric(std::string str);
 
 	//exception
 	public:

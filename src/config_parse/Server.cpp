@@ -26,12 +26,24 @@ Server::Server(std::string settings)
 
 	//first set up the default directory with the default content.
 	//then copy the rest to the other directories if another location is found.
-	this->_serverName = getValue(settings, "server_name ", 0);
-	pos = settings.find("listen ", 0);
-	listen = getValue(settings, "listen ", pos);
-	listensplit = charSplit(listen, ' ');
-	port = charSplit(listensplit[0], ':');
-    this->_ports.push_back(atoi(port[port.size() - 1].c_str()));
+	try {
+        this->_serverName = getValue(settings, "server_name ", 0);
+    } catch (std::exception &e) {
+        throw std::invalid_argument("No server_name in config file");
+    }
+    try {
+        pos = settings.find("listen ", 0);
+        listen = getValue(settings, "listen ", pos);
+        if (listen.empty())
+            throw std::invalid_argument("No listen in config file");
+        listensplit = charSplit(listen, ' ');
+        port = charSplit(listensplit[0], ':');
+        if (!isNumeric(port[port.size() - 1]))
+            throw std::invalid_argument("Port is not numeric");
+        this->_ports.push_back(atoi(port[port.size() - 1].c_str()));
+    } catch (std::exception &e) {
+        throw std::invalid_argument(e.what());
+    }
 	pos = listen.length() + 7;
 	while (settings.find("listen ", pos) != (size_t)(-1))
 	{
@@ -39,6 +51,8 @@ Server::Server(std::string settings)
 		listen = getValue(settings, "listen ", pos);
 		listensplit = charSplit(listen, ' ');
 		port = charSplit(listensplit[0], ':');
+        if (!isNumeric(port[port.size() - 1]))
+            throw std::invalid_argument("Port is not numeric");
 		this->_ports.push_back(atoi(port[port.size() - 1].c_str()));
 		pos = pos + listen.length() + 6;
 	}
@@ -143,4 +157,15 @@ void		Server::setSocketListen(int kq)
 	}
 
 }
+
+bool Server::isNumeric(std::string str)
+{
+    for (size_t i = 0; i < str.length(); i++)
+    {
+        if (!isdigit(str[i]))
+            return (false);
+    }
+    return (true);
+}
+
 
