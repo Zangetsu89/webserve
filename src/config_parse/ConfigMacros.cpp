@@ -11,8 +11,6 @@
 /* ************************************************************************** */
 
 #include "../../include/ConfigMacros.hpp"
-#include <iostream>
-#include <vector>
 
 std::vector<std::string> getAllOf(std::string src, std::string title)
 {
