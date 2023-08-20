@@ -2,6 +2,8 @@
 # define SOCKETCONNECT_HPP
 # include <vector>
 # include <iostream>
+# include <fstream>
+# include <sstream>
 # include <sys/socket.h>
 # include <sys/types.h>
 # include <sys/event.h>
@@ -45,13 +47,14 @@ class SocketConnect
 	// Response			*getClientResponse();
 	int					getErrorNum();
     int                 getNumSocket();
+    std::string         getRedirectURL();
 	// Error				*getErrorInfo();
 
 
 	// setter and others
 	int                 setRequest(std::vector<Server> *list_server);
     bool                isCGI() const;
-	void				setError(int err);
+	void				setError();
 	void				setRedirect(std::string url);
 	int					sendResponse();
 

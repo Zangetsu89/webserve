@@ -92,20 +92,21 @@ int KqueueLoop::startLoop()
 				else // the socket is a connection socket
 				{
 					SocketConnect	*currentsocket = static_cast<SocketConnect *>(_kev_catch[i].udata);
-                    std::cout << currentsocket->getNumSocket() << std::endl;
 					if (_kev_catch[i].filter == EVFILT_READ) // check if the socket is to read
 					{
 						// read and store data, make response data(not added yet), change kevent filter and set this to kev_catch
 						std::cout << std::endl << "[READ Event on connection socket(EVFILT_READ)] " << _kev_catch[i].ident << std::endl;
 						currentsocket->setRequest(_servers);
-//						EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_READ, EV_DELETE, 0, 0, _kev_catch[i].udata);
+						EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_READ, EV_DELETE, 0, 0, _kev_catch[i].udata);
 						EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_WRITE, EV_ADD, 0, 0, _kev_catch[i].udata);
 						kevent(_kq_main, &_kev_catch[i], 1, NULL, 0, NULL);
 					}
                     else if (_kev_catch[i].filter == EVFILT_WRITE) // check if the socket is to write
                     {
                         Response *response = new Response(*(currentsocket->getClientRequest()));
+                        currentsocket->setError();
                         std::cout << std::endl << "[WRITE Event on connection socket(EVFILT_WRITE)] " << currentsocket->getSocketConnect() << std::endl;
+                        std::cout << currentsocket->getErrorNum() << std::endl;
                         if (currentsocket->getErrorNum() != 0)
                         {
                             // if _error is set, send error file

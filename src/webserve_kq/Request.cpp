@@ -9,7 +9,7 @@
 #include "../../include/util.hpp"
 
 
-Request::Request():_requestBodyLength(0),_requestShowList(0) {
+Request::Request():_requestBodyLength(0),_requestShowList(0), _errorNum(0) {
 }
 
 Request::~Request() {
@@ -28,6 +28,7 @@ Request& Request::operator=(const Request &source)
 		_servers = source._servers;
 		_requestServer = source._requestServer;
 		_requestDirSetting = source._requestDirSetting;
+        _errorNum = source._errorNum;
 	}
 	return (*this);
 }
@@ -47,6 +48,16 @@ std::string	Request::getRequestFilePath()
 RequestHeader	*Request::getRequestHeader()
 {
 	return (&_requestHeader);
+}
+
+int Request::getRequestErrorNum()
+{
+    return (_errorNum);
+}
+
+void Request::setErrorNum(int num)
+{
+    _errorNum = num;
 }
 
 void Request::printDataR()
@@ -104,11 +115,11 @@ int Request::setRequest(std::vector<Server> *list_server, SocketConnect *socket)
         } catch (const std::exception& e) {
             std::cerr << e.what() << std::endl;
         }
-        try {
-		    checkRedirect();
-        } catch (const std::exception& e) {
-            std::cerr << e.what() << std::endl;
-        }
+//        try {
+//		    checkRedirect();
+//        } catch (const std::exception& e) {
+//            std::cerr << e.what() << std::endl;
+//        }
         try {
 		    checkProtocol();
         } catch (const std::exception& e) {
@@ -161,11 +172,15 @@ int Request::readRequest()
 int	Request::setRequestHeader()
 {
 	int res = _requestHeader.setMethodLocationProtocol(&_dataR);
-	if (res != 0)
+	if (res != 0) {
+        setErrorNum(res);
 		throw ERR_Request("The first line of request is wrong", res);
+    }
 	res = _requestHeader.setHeaderOthers(&_dataR);
-	if (res != 0)
+	if (res != 0) {
+        setErrorNum(res);
 		throw ERR_Request("Header information is wrong", res);
+    }
 	return (_requestHeader.setHostPort());
 }
 
@@ -222,6 +237,7 @@ int	Request::findServer()
 			return (0);
 		}		
 	}
+    setErrorNum(400);
 	throw ERR_Request("server(host) is not found", 400);
 }
 
@@ -256,6 +272,7 @@ int	Request::checkRedirect()
 	{
 		std::cout << "!!!! redirect is set " << _requestServer->getRootDirSettings()->getRedirect().begin()->first << " " << _requestServer->getRootDirSettings()->getRedirect().begin()->second << std::endl;
 		_requestSocket->setRedirect(_requestServer->getRootDirSettings()->getRedirect().begin()->second);
+        setErrorNum(_requestServer->getRootDirSettings()->getRedirect().begin()->first);
 		throw ERR_Request("Redirect is set", _requestServer->getRootDirSettings()->getRedirect().begin()->first);
 	}
 	return (0);
@@ -269,13 +286,16 @@ int Request::checkMethod()
 		if (_requestHeader.getRequestMethod() == *it)
 			return (0);
 	}
+    setErrorNum(405);
 	throw ERR_Request("Method not allowed", 405);
 }
 
 int Request::checkProtocol()
 {
-	if (_requestHeader.getHTTPProtocol() != "HTTP/1.1")
+	if (_requestHeader.getHTTPProtocol() != "HTTP/1.1") {
+        setErrorNum(400);
 		throw ERR_Request("Protocol not allowed", 400);
+    }
 	return (0);
 }
 
@@ -287,15 +307,15 @@ int Request::findResponseFile()
 	if (filepath.back() == '/')
 	{
 		filepath.pop_back();
-        std::cout << "HEREEEE" << std::endl;
-        std::cout << "TESTING" << _requestServer->getRootDir() << std::endl;
-        std::cout << "TESTING 2" << _requestDirSetting->getIndexPage() << std::endl;
 		_requestFilePath = _requestServer->getRootDir() + _requestDirSetting->getIndexPage();
 		std::cout << "!!! _requestFilePath is " << _requestFilePath << std::endl;
 		if (stat(_requestFilePath.c_str(), &status) != 0)
 		{
-			if (!_requestDirSetting->getDirPermission())
+            std::cout << "stat failed" << std::endl;
+			if (!_requestDirSetting->getDirPermission()) {
+                setErrorNum(403);
 				throw ERR_Request("file not found and showing list not allowed", 403);
+            }
 			_requestShowList = 1;
 		}
 		std::cout << "!!! _requestShowList is " << _requestShowList << std::endl;
@@ -305,8 +325,10 @@ int Request::findResponseFile()
 		filepath.erase(0, 1);
 	_requestFilePath = _requestServer->getRootDir() + filepath;
 	std::cout << "!! _requestFilePath is " << _requestFilePath << std::endl;
-	if (stat(_requestFilePath.c_str(), &status) != 0)
+	if (stat(_requestFilePath.c_str(), &status) != 0) {
+        setErrorNum(404);
 		throw ERR_Request("file not found", 404);
+    }
 	if ((status.st_mode & S_IFMT) == S_IFREG)
 	{
 		std::cout << "This is a file: _requestFilePath(index) is " << _requestFilePath << std::endl;
@@ -319,12 +341,15 @@ int Request::findResponseFile()
 		std::cout << "This is a directory: _requestFilePath is " << _requestFilePath << std::endl;
 		if (stat(_requestFilePath.c_str(), &status) != 0)
 		{
-			if (!_requestDirSetting->getDirPermission())
+			if (!_requestDirSetting->getDirPermission()) {
+                setErrorNum(403);
 				throw ERR_Request("file not found and showing list not allowed", 403);
+            }
 			_requestShowList = 1;
 		}
 		return (0);
 	}
+    std::cout << "END OF findResponseFile" << std::endl;
 	std::cout << "!! _requestShowList is " << _requestShowList << std::endl;
 	return (0);
 }
@@ -333,7 +358,6 @@ int Request::findResponseFile()
 Request::ERR_Request::ERR_Request() : _error_msg("Request setting failed"), _error_num(0) {}
 Request::ERR_Request::ERR_Request(const char *error_msg, int err) : _error_msg(error_msg), _error_num(err)
 {
-	
 }
 
 const char *Request::ERR_Request::what() const _NOEXCEPT
