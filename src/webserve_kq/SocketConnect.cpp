@@ -104,7 +104,6 @@ int SocketConnect::sendResponse()
 {
     try {
         // read from _clientRequest._requestFilePath
-
         std::ifstream file(_clientRequest._requestFilePath.c_str());
         std::stringstream buffer;
         buffer << file.rdbuf();

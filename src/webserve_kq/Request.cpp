@@ -309,15 +309,17 @@ int Request::findResponseFile()
 		filepath.pop_back();
 		_requestFilePath = _requestServer->getRootDir() + _requestDirSetting->getIndexPage();
 		std::cout << "!!! _requestFilePath is " << _requestFilePath << std::endl;
-		if (stat(_requestFilePath.c_str(), &status) != 0)
-		{
+        if (stat(_requestFilePath.c_str(), &status) != 0) {
             std::cout << "stat failed" << std::endl;
-			if (!_requestDirSetting->getDirPermission()) {
-                setErrorNum(403);
-				throw ERR_Request("file not found and showing list not allowed", 403);
-            }
-			_requestShowList = 1;
-		}
+            setErrorNum(400); // Bad Request
+        } else if (!_requestDirSetting->getDirPermission() && stat(_requestFilePath.c_str(), &status) != 0) {
+            // Check if directory listing is not allowed
+            setErrorNum(403); // Forbidden
+            throw ERR_Request("file not found and showing list not allowed", 403);
+            _requestShowList = 1;
+		} else {
+            _requestShowList = 1;
+        }
 		std::cout << "!!! _requestShowList is " << _requestShowList << std::endl;
 		return (0);
 	}

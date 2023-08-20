@@ -10,7 +10,7 @@
 class Response {
 
     private:
-        Request         _request;
+        Request         *_request;
         std::string     _response;
         int             _statusCode;
         std::string     _statusMessage;
@@ -20,19 +20,17 @@ class Response {
 
     public:
         Response();
-        Response(Request &request);
+        Response(Request *request);
         Response(Response const &src);
         virtual ~Response();
 
         Response &operator=(Response const &rhs);
 
-        void setRequest(Request &request);
-        void setStatusCode(int status_code);
-        void setStatusMessage(std::string status_message);
-        void setContentType(std::string content_type);
-        void setContentLength(int content_length);
-        void setBody(std::string body);
+        Request *getRequest();
 
+        void filterResponses(SocketConnect *socketConnect);
+        void readResponseFile(std::string filePath);
+        void sendResponse(SocketConnect *socketConnect);
 //        void createResponse();
 //        void displayResponse();
 //        void sendResponse(int fd);

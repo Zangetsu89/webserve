@@ -2,7 +2,7 @@
 
 Response::Response() {}
 
-Response::Response(Request &request) {
+Response::Response(Request *request) {
     this->_request = request;
 }
 
@@ -24,28 +24,34 @@ Response &Response::operator=(Response const &rhs) {
     return *this;
 }
 
-void Response::setRequest(Request &request) {
-    this->_request = request;
+Request *Response::getRequest() {
+    return this->_request;
 }
 
-void Response::setStatusCode(int status_code) {
-    this->_statusCode = status_code;
+void Response::filterResponses(SocketConnect *socketConnect) {
+    // if content-type is text/html, read the response file and store it in _body
+    std::string filePath = this->_request->getRequestFilePath();
+    readResponseFile(filePath);
+    sendResponse(socketConnect);
 }
 
-void Response::setStatusMessage(std::string status_message) {
-    this->_statusMessage = status_message;
+void Response::readResponseFile(std::string filePath) {
+    std::ifstream file;
+    try {
+        file.open(filePath);
+        std::string line;
+        while (std::getline(file, line)) {
+            this->_body += line;
+        }
+    } catch (std::exception &e) {
+        std::cout << "Error: " << e.what() << std::endl;
+        return;
+    }
 }
 
-void Response::setContentType(std::string content_type) {
-    this->_contentType = content_type;
-}
-
-void Response::setContentLength(int content_length) {
-    this->_contentLength = content_length;
-}
-
-void Response::setBody(std::string body) {
-    this->_body = body;
+void Response::sendResponse(SocketConnect *socketConnect) {
+    std::string response = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n" + this->_body;
+    write(socketConnect->getNumSocket(), response.c_str(), response.length());
 }
 
 //void Response::createResponse() {

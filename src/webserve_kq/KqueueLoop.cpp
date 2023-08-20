@@ -103,7 +103,7 @@ int KqueueLoop::startLoop()
 					}
                     else if (_kev_catch[i].filter == EVFILT_WRITE) // check if the socket is to write
                     {
-                        Response *response = new Response(*(currentsocket->getClientRequest()));
+                        Response response(currentsocket->getClientRequest());
                         currentsocket->setError();
                         std::cout << std::endl << "[WRITE Event on connection socket(EVFILT_WRITE)] " << currentsocket->getSocketConnect() << std::endl;
                         std::cout << currentsocket->getErrorNum() << std::endl;
@@ -111,13 +111,14 @@ int KqueueLoop::startLoop()
                         {
                             // if _error is set, send error file
                             std::cout << "Error in getting Request data! " << currentsocket->getErrorNum() << std::endl;
-                            response->sendErrorResponse(currentsocket);
+                            response.sendErrorResponse(currentsocket);
                         }
                         else
                         {
                             // send response data, clean and close socket
                             std::cout << "send response! " << std::endl;
-                            currentsocket->sendResponse();
+                            response.filterResponses(currentsocket);
+//                            currentsocket->sendResponse();
 //                            currentsocket->sendResponse();
                         }
                         delete (currentsocket);
