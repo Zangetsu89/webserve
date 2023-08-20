@@ -7,17 +7,12 @@
 #include "../../include/Request.hpp"
 #include "../../include/SocketConnect.hpp"
 #include "../../include/util.hpp"
-#include "../../include/Server.hpp"
-#include <sys/stat.h>
 
-Request::Request()
-{
 
+Request::Request():_requestBodyLength(0),_requestShowList(0) {
 }
 
-Request::~Request()
-{
-
+Request::~Request() {
 }
 
 Request& Request::operator=(const Request &source)
@@ -28,6 +23,7 @@ Request& Request::operator=(const Request &source)
 		_requestFilePath = source._requestFilePath;
 		_requestBodyLength = source._requestBodyLength;
 		_requestBody = source._requestBody;
+		_requestShowList = source._requestShowList;
 		_requestSocket = source._requestSocket;
 		_servers = source._servers;
 		_requestServer = source._requestServer;
@@ -66,6 +62,11 @@ void Request::printSizeR()
 	std::cout << "data size is " << _sizeR << std::endl;
 }
 
+bool	Request::getRequestShowList()
+{
+	return (_requestShowList);
+}
+
 int Request::setRequest(std::vector<Server> *list_server, SocketConnect *socket)
 {
 	_servers = list_server;
@@ -73,14 +74,51 @@ int Request::setRequest(std::vector<Server> *list_server, SocketConnect *socket)
 	
 	try
 	{
-		readRequest();
-		setRequestHeader();
-		setRequestBodyLength();
-		setRequestBody();
-		findServer();
-		findDirSetting();
-		checkProtocol();
-		findResponseFile();
+        try {
+		    readRequest();
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
+        try {
+		    setRequestHeader();
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
+        try {
+		    setRequestBodyLength();
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
+        try {
+		    setRequestBody();
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
+        try {
+		    findServer();
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
+        try {
+		    findDirSetting();
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
+        try {
+		    checkRedirect();
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
+        try {
+		    checkProtocol();
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
+        try {
+		    findResponseFile();
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
 	}
 	catch (ERR_Request& e)
 	{
@@ -124,7 +162,7 @@ int	Request::setRequestHeader()
 {
 	int res = _requestHeader.setMethodLocationProtocol(&_dataR);
 	if (res != 0)
-		throw ERR_Request("The first line of request is wront", res);
+		throw ERR_Request("The first line of request is wrong", res);
 	res = _requestHeader.setHeaderOthers(&_dataR);
 	if (res != 0)
 		throw ERR_Request("Header information is wrong", res);
@@ -158,13 +196,26 @@ int Request::setRequestBody()
 	return (0);
 }
 
+bool	Request::checkPort(std::vector<Server>::iterator it, int port)
+{
+	std::vector<int>	ports = it->getPorts();
+	std::vector<int>::iterator it_port;
+	for (it_port = ports.begin(); it_port != ports.end(); it_port++)
+	{
+		if (port == *it_port)
+			return (1);
+	}
+	return (0);
+}
+
 int	Request::findServer()
 {
 	std::vector<Server>::iterator	it;
 	std::cout << "_requestHeader.getRequestHost() is " << _requestHeader.getRequestHost() << std::endl;
 	for (it = _servers->begin(); it != _servers->end(); it++)
 	{
-		if (_requestHeader.getRequestHost() == it->getServerName())
+        std::cout << "Port is " << _requestHeader.getRequestPort() << std::endl;
+		if (_requestHeader.getRequestHost() == it->getServerName() && checkPort(it, stoi(_requestHeader.getRequestPort())))
 		{
 			_requestServer = &(*it);
 			return (0);
@@ -176,7 +227,7 @@ int	Request::findServer()
 int	Request::findDirSetting()
 {
 	std::string					requestLocation;
-	std::vector<DirSettings> 	list_dirsetting = _requestServer->getOptDirSettings();
+	std::vector<DirSettings> 	*list_dirsetting = _requestServer->getOptDirSettings();
 
 	requestLocation = _requestHeader.getRequestLocation();
 	if (requestLocation.back() == '/')
@@ -184,7 +235,7 @@ int	Request::findDirSetting()
 	
 	for (; requestLocation != ""; deleteStringEnd(&requestLocation, "/"))
 	{
-		for (std::vector<DirSettings>::iterator it = list_dirsetting.begin(); it != list_dirsetting.end(); it++)
+		for (std::vector<DirSettings>::iterator it = list_dirsetting->begin(); it != list_dirsetting->end(); it++)
 		{
 			if (requestLocation == it->getLocation())
 			{
@@ -193,8 +244,19 @@ int	Request::findDirSetting()
 			}
 		}
 	}
-	_requestDirSetting = new DirSettings(_requestServer->getRootDirSettings());
-	// std::cout << "requestDir is gotten " << _requestServer->getRootDirSettings()->getLocation() << std::endl;
+	_requestDirSetting = _requestServer->getRootDirSettings();
+	std::cout << "!!! requestDir is gotten " << _requestServer->getRootDirSettings()->getLocation() << std::endl;
+	return (0);
+}
+
+int	Request::checkRedirect()
+{
+	if (_requestServer->getRootDirSettings()->getRedirect().size() != 0)
+	{
+		std::cout << "!!!! redirect is set " << _requestServer->getRootDirSettings()->getRedirect().begin()->first << " " << _requestServer->getRootDirSettings()->getRedirect().begin()->second << std::endl;
+		_requestSocket->setRedirect(_requestServer->getRootDirSettings()->getRedirect().begin()->second);
+		throw ERR_Request("Redirect is set", _requestServer->getRootDirSettings()->getRedirect().begin()->first);
+	}
 	return (0);
 }
 
@@ -218,22 +280,48 @@ int Request::checkProtocol()
 
 int Request::findResponseFile()
 {
+	struct stat	status;
 	std::string filepath = _requestHeader.getRequestLocation();
 	std::cout << "filepath is " << filepath << std::endl;
 	if (filepath.back() == '/')
 	{
 		filepath.pop_back();
 		_requestFilePath = _requestServer->getRootDir() + _requestDirSetting->getIndexPage();
-		std::cout << "!! _requestFilePath is " << _requestFilePath << std::endl;
+		std::cout << "!!! _requestFilePath is " << _requestFilePath << std::endl;
+		if (stat(_requestFilePath.c_str(), &status) != 0)
+		{
+			if (!_requestDirSetting->getDirPermission())
+				throw ERR_Request("file not found and showing list not allowed", 403);
+			_requestShowList = 1;
+		}
+		std::cout << "!!! _requestShowList is " << _requestShowList << std::endl;
 		return (0);
 	}
 	if (filepath.front() == '/')
 		filepath.erase(0, 1);
 	_requestFilePath = _requestServer->getRootDir() + filepath;
 	std::cout << "!! _requestFilePath is " << _requestFilePath << std::endl;
-	struct stat	status;
 	if (stat(_requestFilePath.c_str(), &status) != 0)
 		throw ERR_Request("file not found", 404);
+	if ((status.st_mode & S_IFMT) == S_IFREG)
+	{
+		std::cout << "This is a file: _requestFilePath(index) is " << _requestFilePath << std::endl;
+		return (0);
+	}
+		
+	if ((status.st_mode & S_IFMT) == S_IFDIR)
+	{
+		_requestFilePath = _requestFilePath + "/" + _requestDirSetting->getIndexPage();
+		std::cout << "This is a directory: _requestFilePath is " << _requestFilePath << std::endl;
+		if (stat(_requestFilePath.c_str(), &status) != 0)
+		{
+			if (!_requestDirSetting->getDirPermission())
+				throw ERR_Request("file not found and showing list not allowed", 403);
+			_requestShowList = 1;
+		}
+		return (0);
+	}
+	std::cout << "!! _requestShowList is " << _requestShowList << std::endl;
 	return (0);
 }
 
@@ -248,3 +336,4 @@ const char *Request::ERR_Request::what() const _NOEXCEPT
 {
 	return (_error_msg);
 }
+

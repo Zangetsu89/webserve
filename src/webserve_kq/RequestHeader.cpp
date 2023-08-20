@@ -154,70 +154,17 @@ int	RequestHeader::setHostPort()
 	it = _requestHeaderOthers.find("Host");
 	if (it == _requestHeaderOthers.end())
 		return (400);
-	std::string	hostport = it->second;
-	it_str = hostport.find(":");
+	std::string	hostPort = it->second;
+	it_str = hostPort.find(":");
 	if (it_str == std::string::npos)
 	{
-		_requestHost = hostport;
-		_requestPort = 80;
-	}	
+		_requestHost = hostPort;
+		_requestPort = "80";
+	}
 	else
 	{
-		_requestHost = splitString(&hostport, ":");
-		_requestPort = removeWhitespace(hostport);
+		_requestHost = splitString(&hostPort, ":");
+		_requestPort = removeWhitespace(hostPort);
 	}
 	return (0);
 }
-
-
-
-// void	RequestHeader::setFile()
-// {
-// 	if (_requestHeaderLocation.back() == '/')
-// 	{
-// 		_requestHeaderLocation.pop_back();
-// 		_requestHeaderFile = _requestHeaderServer->getRootDir() + _requestHeaderDirSetting->getindexFile()[0];
-// 		return ;
-// 	}
-// 	_requestHeaderFile = _requestHeaderServer->getRootDir() + "/" + _requestHeaderLocation;
-// 	struct stat	status;
-// 	if (stat(_requestHeaderFile.c_str(), &status) != 0)
-// 		_requestHeaderFile = "";
-// }
-
-// void	RequestHeader::setHostPortLength()
-// {
-// 	std::map<std::string, std::string>::iterator it;
-
-// 	it = _requestHeaderHeaderOthers.find("Host");
-// 	if (it != _requestHeaderHeaderOthers.end())
-// 	{
-// 		std::string	hostport = it->second;
-// 		_requestHeaderHost = splitString(&hostport, ":");
-// 		_requestHeaderPort = removeWhitespace(hostport);
-// 	}
-		
-// 	it = _requestHeaderHeaderOthers.find("Content-Length");
-// 	if (it != _requestHeaderHeaderOthers.end())
-// 	{
-// 		_contentLength = stoi(it->second);
-// 	}
-// }
-
-// bool	RequestHeader::checkMethod()
-// {
-// 	try
-// 	{
-// 		if (!checkMethodAllowed(_requestHeaderMethod, _requestHeaderDirSetting))
-// 		{
-// 			std::cout << "This method is not allowd " << _requestHeaderMethod << std::endl;
-// 			return (0);
-// 		}
-// 		return (1);
-// 	}
-// 	catch(std::exception &e)
-// 	{
-// 		return (0);
-// 	}
-// }
-

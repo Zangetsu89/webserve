@@ -25,9 +25,10 @@ class SocketConnect
 	socklen_t 			_clientSockaddrLen;
 	struct kevent		_clientKevent;
 	std::vector<Server>	*_servers;
-    Request             _clientRequest;
+    Request				_clientRequest;
 	// Response			_clientResponse;
 	int					_errorNum;
+	std::string			_redirectURL;
 	// Error				_errorInfo;
 
 	public:
@@ -49,6 +50,7 @@ class SocketConnect
 	// setter and others
 	int setRequest(std::vector<Server> *list_server);
 	void				setError(int err);
+	void				setRedirect(std::string url);
 	int					sendResponse();
 
 	// exception

@@ -38,6 +38,7 @@ SocketConnect& SocketConnect::operator=(const SocketConnect &source)
 		_clientRequest = source._clientRequest;
 		// _clientResponse = source._clientResponse;
 		_errorNum = source._errorNum;
+		_redirectURL = source._redirectURL;
 		// _errorInfo = source._errorInfo;
 	}
 	return (*this);
@@ -81,12 +82,32 @@ void	SocketConnect::setError(int err)
 	_errorNum = err;
 }
 
+void	SocketConnect::setRedirect(std::string url)
+{
+	_redirectURL = url;
+}
+
+
 // writing function : not done yet...
 int SocketConnect::sendResponse()
 {
-	// dammy response, simular with 403 error
-	const char *dammydata = "HTTP/1.1 403 Forbidden\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n<!DOCTYPE html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"><title>Error 403</title><link href=\"css.css\" rel=\"stylesheet\"></head><body>Error 403</body></html>";
-	write(_numSocket, dammydata, strlen(dammydata)); // dammy response
+	// dummy response, if it is not redirect, send dummy 403 error
+	// const char *dummydata = "HTTP/1.1 403 Forbidden\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n<!DOCTYPE html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"><title>Error 403</title><link href=\"css.css\" rel=\"stylesheet\"></head><body>Error 403</body></html>";
+	if (_redirectURL != "")
+	{
+		const char *dummydata = "HTTP/1.1 302 Found\r\nLocation: ";
+		const char *redirecturl = _redirectURL.c_str();
+		write(_numSocket, dummydata, strlen(dummydata)); // dummy response
+		write(_numSocket, redirecturl, strlen(redirecturl)); // dummy response
+	}
+	else
+	{
+		const char *dummydata = "HTTP/1.1 403 Forbidden\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n<!DOCTYPE html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"><title>Error 403</title><link href=\"css.css\" rel=\"stylesheet\"></head><body>Error 403</body></html>";
+		write(_numSocket, dummydata, strlen(dummydata)); // dummy response
+	}
+
+	
+
 	return (0);
 }
 
