@@ -11,12 +11,11 @@
 /* ************************************************************************** */
 
 #include "../../include/ConfigMacros.hpp"
-#include <iostream>
 
 std::vector<std::string> getAllOf(std::string src, std::string title)
 {
 	size_t start_pos = 0;
-	std::vector<std::string> list;
+	std::vector<std::string>	list;
 	while (src.find(title, start_pos)!= (size_t)(-1))
 	{
 		start_pos = src.find(title, start_pos);

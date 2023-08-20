@@ -11,9 +11,6 @@
 /* ************************************************************************** */
 
 #include "../../include/DirSettings.hpp"
-#include <cstdlib>
-#include <algorithm>
-#include <iostream>
 
 bool	DirSettings::checkCGI(std::string location)
 {
@@ -64,6 +61,7 @@ DirSettings::DirSettings(std::string settings)
 	std::string					dirPermission;
 	std::string					bodySize;
 	size_t						start_pos;
+	std::vector<std::string>	redirect;
 
 	this->_index = getValue(settings, "index", 0);
 	location = getValue(settings, "root", 0);
@@ -93,34 +91,45 @@ DirSettings::DirSettings(std::string settings)
 		}
 	}
 	if (this->_location.length() < 1)
-		throw(std::invalid_argument("location of directory not found"));
-	methods = getValue(settings, "allowed_methods", 0);
+		throw(std::invalid_argument("location of directory not found."));
+	methods = getValue(settings, "allowed_methods ", 0);
 	this->_methods = charSplit(methods, ',');
 	for (unsigned int i = 0; i < this->_methods.size(); i++)
 	{
 		this->_methods[i].erase(std::remove(this->_methods[i].begin(), this->_methods[i].end(), ' '), this->_methods[i].end());
 	}
 	start_pos = 0;
-	while ((start_pos = settings.find("error_page", start_pos))!= (size_t)(-1))
+	while ((start_pos = settings.find("error_page ", start_pos))!= (size_t)(-1))
 	{
 		
-		errorPage = charSplit(getValue(settings, "error_page", start_pos), ' ');
-		if (methods.size() < 2)
+		errorPage = charSplit(getValue(settings, "error_page ", start_pos), ' ');
+		if (errorPage.size() < 2)
 			break ;
 		this->_errorPage.insert(this->_errorPage.end(), std::pair<int, std::string>(atoi(errorPage[0].c_str()), errorPage[1]));
-		start_pos = start_pos + 10;
+		start_pos = start_pos + 11;
 	}
-	dirPermission = getValue(settings, "directory_list", 0);
+	dirPermission = getValue(settings, "directory_list ", 0);
 	if (dirPermission == "TRUE")
 		this->_dirPermission = true;
 	else
 		this->_dirPermission = false;
 	start_pos = 0;
-	bodySize = getValue(settings, "client_body_size", 0);
+	bodySize = getValue(settings, "client_body_size ", 0);
 	if (bodySize.length() > 0)
 		this->_maxBodySize = atoi(bodySize.c_str());
 	else
 		this->_maxBodySize = std::numeric_limits<size_t>::max();
+
+	start_pos = 0;
+	while ((start_pos = settings.find("return ", start_pos))!= (size_t)(-1))
+	{
+		
+		redirect = charSplit(getValue(settings, "return ", start_pos), ' ');
+		if (redirect.size() < 2)
+			break ;
+		this->_redirect.insert(this->_redirect.end(), std::pair<int, std::string>(atoi(redirect[0].c_str()), redirect[1]));
+		start_pos = start_pos + 7;
+	}
 }
 
 std::string	DirSettings::getLocation() const
@@ -165,7 +174,11 @@ size_t	DirSettings::getMaxBodySize() const
 
 void	DirSettings::setLocation(std::string root, std::string location)
 {
-	if ((root.c_str()[root.length() - 1] == '/' && location.c_str()[0] != '/')||\
+	if (root.size() == 0 && location.c_str()[0] != '/')
+		this->_location = "/" + location;
+	else if (root.size() == 0 && location.c_str()[0] == '/')
+		this->_location = location;
+	else if ((root.c_str()[root.length() - 1] == '/' && location.c_str()[0] != '/')||\
 	(root.c_str()[root.length() - 1] != '/' && location.c_str()[0] == '/'))
 		this->_location = root + location;
 	else if (root.c_str()[root.length() - 1] == '/' && location.c_str()[0] == '/')

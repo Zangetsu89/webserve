@@ -43,9 +43,31 @@ int  main(int argc, char *argv[])
 	{
 		std::string file_path(argv[1]);
 		Config      config(file_path);
-//		list_Servers = *config.getServers();
-//		std::cout<<"Listening port: "<<list_Servers[0].getPorts()[0]<<std::endl;
-//		std::cout<<"Listening port: "<<list_Servers[1].getPorts()[0]<<std::endl;
+		list_Servers = *config.getServers();
+        if (list_Servers.size() == 0)
+        {
+            std::cout << "Error: no server information" << std::endl;
+            return 1;
+        } else {
+            for (size_t i = 0; i < list_Servers.size(); i++)
+            {
+                std::cout << std::endl;
+                try {
+                    std::cout << i << ": server name is " << list_Servers[i].getServerName() << std::endl;
+                } catch (std::exception &e) {
+                    std::cout << e.what() << std::endl;
+                }
+//                try {
+//                    for (size_t j = 0; j < list_Servers[i].getPorts().size(); j++)
+//                    {
+//                        std::cout << "port: " << list_Servers[i].getPorts()[j] << std::endl;
+//                    }
+//                } catch (std::exception &e) {
+//                    std::cout << e.what() << std::endl;
+//                }
+                std::cout << std::endl;
+            }
+        }
 
 		// with this function, listening sockets are set in the list servers in config class
 		config.setKqServers(kq);

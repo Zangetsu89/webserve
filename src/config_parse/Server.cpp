@@ -26,24 +26,38 @@ Server::Server(std::string settings)
 
 	//first set up the default directory with the default content.
 	//then copy the rest to the other directories if another location is found.
-	this->_serverName = getValue(settings, "server_name", 0);
-	pos = settings.find("listen", 0);
-	listen = getValue(settings, "listen", pos);
-	listensplit = charSplit(listen, ' ');
-	port = charSplit(listensplit[0], ':');
-    this->_ports.push_back(atoi(port[port.size() - 1].c_str()));
-	pos = listen.length() + 6;
-	while (settings.find("listen", pos) != (size_t)(-1))
+	try {
+        this->_serverName = getValue(settings, "server_name ", 0);
+    } catch (std::exception &e) {
+        throw std::invalid_argument("No server_name in config file");
+    }
+    try {
+        pos = settings.find("listen ", 0);
+        listen = getValue(settings, "listen ", pos);
+        if (listen.empty())
+            throw std::invalid_argument("No listen in config file");
+        listensplit = charSplit(listen, ' ');
+        port = charSplit(listensplit[0], ':');
+        if (!isNumeric(port[port.size() - 1]))
+            throw std::invalid_argument("Port is not numeric");
+        this->_ports.push_back(atoi(port[port.size() - 1].c_str()));
+    } catch (std::exception &e) {
+        throw std::invalid_argument(e.what());
+    }
+	pos = listen.length() + 7;
+	while (settings.find("listen ", pos) != (size_t)(-1))
 	{
-		pos = settings.find("listen", pos);
-		listen = getValue(settings, "listen", pos);
+		pos = settings.find("listen ", pos);
+		listen = getValue(settings, "listen ", pos);
 		listensplit = charSplit(listen, ' ');
 		port = charSplit(listensplit[0], ':');
+        if (!isNumeric(port[port.size() - 1]))
+            throw std::invalid_argument("Port is not numeric");
 		this->_ports.push_back(atoi(port[port.size() - 1].c_str()));
 		pos = pos + listen.length() + 6;
 	}
-	std::vector<std::string> set = strSplit(settings, "location");
-	this->_rootDir = getValue(settings, "root", 0);
+	std::vector<std::string> set = strSplit(settings, "location ");
+	this->_rootDir = getValue(settings, "root ", 0);
 	std::cout<<"Root directory: "<<this->_rootDir<<std::endl;
 	unsigned int i;
 	for (i = 0; i < set.size(); i++)
@@ -112,35 +126,46 @@ std::string Server::getRootDir() const
     return (this->_rootDir);
 }
 
-DirSettings	Server::getRootDirSettings() const
+DirSettings	*Server::getRootDirSettings()
 {
-	return (this->_rootDirSettings);
+	return (&_rootDirSettings);
 }
 
-std::vector<DirSettings> Server::getOptDirSettings() const
+std::vector<DirSettings> *Server::getOptDirSettings()
 {
-	return(this->_optDirSettings);
+	return(&_optDirSettings);
 }
 
-std::vector<DirSettings> Server::getCGIDirSettings() const
+std::vector<DirSettings> *Server::getCGIDirSettings()
 {
-	return(this->_cgiDirSettings);
+	return(&_cgiDirSettings);
 }
 
-std::vector<SocketListen>	Server::getSocketListen() const
+std::vector<SocketListen>	*Server::getSocketListen()
 {
 	// std::cout << "!!getSocketListen() size is " << _listSocketListen.size() << std::endl;
-	return(this->_listSocketListen);
+	return(&_listSocketListen);
 }
 
 void		Server::setSocketListen(int kq)
 {
-	// std::cout << "port size is " << this->_ports.size() << std::endl;
 	for (unsigned int i = 0; i < this->_ports.size(); i++)
 	{
 		SocketListen	tempsock (_ports[i], kq);
+		std::cout << "setting listening port is " << _ports[i] << std::endl;
 		_listSocketListen.push_back(tempsock);
 	}
 
 }
+
+bool Server::isNumeric(std::string str)
+{
+    for (size_t i = 0; i < str.length(); i++)
+    {
+        if (!isdigit(str[i]))
+            return (false);
+    }
+    return (true);
+}
+
 
