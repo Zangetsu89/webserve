@@ -14,6 +14,7 @@
 #define DIRSETTINGS_HPP
 
 #include <string>
+#include <iostream>
 #include <map>
 #include <limits>
 #include "ConfigMacros.hpp"

@@ -11,9 +11,6 @@
 /* ************************************************************************** */
 
 #include "../../include/DirSettings.hpp"
-#include <cstdlib>
-#include <algorithm>
-#include <iostream>
 
 bool	DirSettings::checkCGI(std::string location)
 {
