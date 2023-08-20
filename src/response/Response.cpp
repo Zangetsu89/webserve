@@ -169,6 +169,9 @@ void Response::setBody(std::string body) {
 
 void Response::sendErrorResponse(SocketConnect *socketConnect) {
     std::string response = "";
+    if (socketConnect->getErrorNum() == 302) {
+        response = "HTTP/1.1 302 Found\r\nLocation: " + socketConnect->getRedirectURL() + "\r\n\r\n";
+    }
     if (socketConnect->getErrorNum() == 400) {
         response = "HTTP/1.1 400 Bad Request\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n"
                    "<!DOCTYPE html><html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">"
