@@ -7,16 +7,12 @@
 #include "../../include/Request.hpp"
 #include "../../include/SocketConnect.hpp"
 #include "../../include/util.hpp"
-#include <sys/stat.h>
 
-Request::Request():_requestBodyLength(0),_requestShowList(0)
-{
 
+Request::Request():_requestBodyLength(0),_requestShowList(0) {
 }
 
-Request::~Request()
-{
-
+Request::~Request() {
 }
 
 Request& Request::operator=(const Request &source)
@@ -78,15 +74,51 @@ int Request::setRequest(std::vector<Server> *list_server, SocketConnect *socket)
 	
 	try
 	{
-		readRequest();
-		setRequestHeader();
-		setRequestBodyLength();
-		setRequestBody();
-		findServer();
-		findDirSetting();
-		checkRedirect();
-		checkProtocol();
-		findResponseFile();
+        try {
+		    readRequest();
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
+        try {
+		    setRequestHeader();
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
+        try {
+		    setRequestBodyLength();
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
+        try {
+		    setRequestBody();
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
+        try {
+		    findServer();
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
+        try {
+		    findDirSetting();
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
+        try {
+		    checkRedirect();
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
+        try {
+		    checkProtocol();
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
+        try {
+		    findResponseFile();
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
 	}
 	catch (ERR_Request& e)
 	{
@@ -182,6 +214,7 @@ int	Request::findServer()
 	std::cout << "_requestHeader.getRequestHost() is " << _requestHeader.getRequestHost() << std::endl;
 	for (it = _servers->begin(); it != _servers->end(); it++)
 	{
+        std::cout << "Port is " << _requestHeader.getRequestPort() << std::endl;
 		if (_requestHeader.getRequestHost() == it->getServerName() && checkPort(it, stoi(_requestHeader.getRequestPort())))
 		{
 			_requestServer = &(*it);

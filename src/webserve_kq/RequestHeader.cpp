@@ -154,17 +154,17 @@ int	RequestHeader::setHostPort()
 	it = _requestHeaderOthers.find("Host");
 	if (it == _requestHeaderOthers.end())
 		return (400);
-	std::string	hostport = it->second;
-	it_str = hostport.find(":");
+	std::string	hostPort = it->second;
+	it_str = hostPort.find(":");
 	if (it_str == std::string::npos)
 	{
-		_requestHost = hostport;
-		_requestPort = 80;
-	}	
+		_requestHost = hostPort;
+		_requestPort = "80";
+	}
 	else
 	{
-		_requestHost = splitString(&hostport, ":");
-		_requestPort = removeWhitespace(hostport);
+		_requestHost = splitString(&hostPort, ":");
+		_requestPort = removeWhitespace(hostPort);
 	}
 	return (0);
 }

@@ -7,6 +7,7 @@
 # include <sys/types.h>
 # include <sys/event.h>
 # include <sys/time.h>
+# include <sys/stat.h>
 # include <stdlib.h>
 # include "macro.hpp"
 # include "Server.hpp"
