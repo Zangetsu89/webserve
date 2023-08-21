@@ -30,6 +30,17 @@ Request *Response::getRequest() {
 
 void Response::filterResponses(SocketConnect *socketConnect) {
     // if content-type is text/html, read the response file and store it in _body
+    // Check file extention and set content-type
+    // if file extention is .html, set content-type to text/html
+    // if file extention is .css, set content-type to text/css
+    // if file extention is .js, set content-type to text/javascript
+    // if file extention is .jpg, set content-type to image/jpeg
+    // if file extention is .png, set content-type to image/png
+    // if file extention is .gif, set content-type to image/gif
+    // if file extention is .txt, set content-type to text/plain
+
+    this->_contentType = filterContentType(this->_request->getRequestFilePath());
+    std::cout << "CONTENT TYPE: " << this->_contentType << std::endl;
     std::string filePath = this->_request->getRequestFilePath();
     readResponseFile(filePath);
     sendResponse(socketConnect);
@@ -49,11 +60,59 @@ void Response::readResponseFile(std::string filePath) {
     }
 }
 
+std::string Response::filterContentType(std::string filePath) {
+    std::string contentType = "text/plain";
+    std::string extention = filePath.substr(filePath.find_last_of(".") + 1);
+    if (extention == "html") {
+        contentType = "text/html";
+    } else if (extention == "css") {
+        contentType = "text/css";
+    } else if (extention == "js") {
+        contentType = "text/javascript";
+    } else if (extention == "jpg") {
+        contentType = "image/jpeg";
+    } else if (extention == "png") {
+        contentType = "image/png";
+    } else if (extention == "gif") {
+        contentType = "image/gif";
+    }
+    return contentType;
+}
+
 void Response::sendResponse(SocketConnect *socketConnect) {
-    std::string response = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n" + this->_body;
+    std::string response = "HTTP/1.1 200 OK\r\nContent-Type: " + this->_contentType + "; charset=UTF-8\r\n\r\n" + this->_body;
+//    std::string response = "HTTP/1.1 200 OK\r\n"
+//                               "Content-Type: image/jpeg\r\n"
+//                               "Content-Length: " + std::to_string(contentLength) + "\r\n\r\n" +
+//                                this->_body;
     write(socketConnect->getNumSocket(), response.c_str(), response.length());
 }
 
+//std::streamsize Response::getImageSize(std::string filePath) {
+//    std::ifstream file(filePath, std::ios::binary); // Replace "image.jpg" with your JPEG file's path
+//
+//    if (!file.is_open()) {
+//        std::cerr << "Failed to open the file." << std::endl;
+//        return 1;
+//    }
+//
+//    // Get the current position, which is the start of the file
+//    std::streampos start = file.tellg();
+//
+//    // Move to the end of the file
+//    file.seekg(0, std::ios::end);
+//
+//    // Get the position at the end of the file, which is its size
+//    std::streampos end = file.tellg();
+//
+//    // Calculate the size by subtracting start from end
+//    std::streamsize fileSize = end - start;
+//
+//    std::cout << "File size: " << fileSize << " bytes" << std::endl;
+//
+//    file.close();
+//    return (fileSize);
+//}
 //void Response::createResponse() {
 //    std::string response = "HTTP/1.1 " + std::to_string(this->_statusCode) + " " + this->_statusMessage + "\r\n";
 //    response += "Content-Type: " + this->_contentType + "\r\n";

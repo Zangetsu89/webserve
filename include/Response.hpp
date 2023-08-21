@@ -6,6 +6,8 @@
 #include <filesystem>
 #include "Request.hpp"
 #include "SocketConnect.hpp"
+# include <iostream>
+# include <fstream>
 
 class Response {
 
@@ -31,6 +33,8 @@ class Response {
         void filterResponses(SocketConnect *socketConnect);
         void readResponseFile(std::string filePath);
         void sendResponse(SocketConnect *socketConnect);
+        std::string filterContentType(std::string filePath);
+//        std::streamsize getImageSize(std::string filePath);
 //        void createResponse();
 //        void displayResponse();
 //        void sendResponse(int fd);
