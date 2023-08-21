@@ -103,6 +103,7 @@ int KqueueLoop::startLoop(char **env)
 					}
 					else if (_kev_catch[i].filter == EVFILT_WRITE) // check if the socket is to write
 					{
+                        Response response = Response(*currentsocket->getClientRequest());
 						std::cout << std::endl << "[WRITE Event on connection socket(EVFILT_WRITE)] " << currentsocket->getSocketConnect() << std::endl;
 						if (currentsocket->getErrorNum() != 0)
 						{
@@ -114,7 +115,7 @@ int KqueueLoop::startLoop(char **env)
 						{
 							// send response data, clean and close socket
 							std::cout << "send response! " << std::endl;
-							ResponseGenerate(*currentsocket->getClientRequest(), env);
+							response.prepareResponse(env);
 							// currentsocket->sendResponse();
 						}
 						delete (currentsocket);
