@@ -16,12 +16,12 @@ KqueueLoop::KqueueLoop(std::vector<Server> *servers, int kq): _kq_main(kq), _n_e
 	{
 		std::vector<Server> &temp = *_servers;
 		Server &tempserver = temp[i];
-		std::vector<SocketListen> tempsocketlist = tempserver.getSocketListen();
+		std::vector<SocketListen> *tempsocketlist = tempserver.getSocketListen();
 
-		for (int i = 0; i < (int)tempsocketlist.size(); i++)
+		for (int i = 0; i < (int)tempsocketlist->size(); i++)
 		{
-			_listListeningSocketInt.push_back(tempsocketlist[i].getNumSocket());
-		}
+			std::vector<SocketListen>::iterator itr = tempsocketlist->begin() + i;
+			_listListeningSocketInt.push_back(itr->getNumSocket());		}
 	}
 }
 
@@ -143,5 +143,5 @@ KqueueLoop::ERR_KqueueLoop::ERR_KqueueLoop(const char *error_msg):_error_msg(err
 
 const char	*KqueueLoop::ERR_KqueueLoop::what() const _NOEXCEPT
 {
-    return (_error_msg);
+	return (_error_msg);
 }

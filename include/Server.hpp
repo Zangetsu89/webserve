@@ -50,21 +50,22 @@ class Server
 	// getter
 	std::string					getServerName() const;
 	std::vector<int>			getPorts() const;
-    std::string                 getRootDir() const;
-	DirSettings					getRootDirSettings() const;
-	std::vector<DirSettings>	getOptDirSettings() const;
-	std::vector<DirSettings>	getCGIDirSettings() const;
-	std::vector<SocketListen>	getSocketListen() const;					
+    std::string					getRootDir() const;
+	DirSettings					*getRootDirSettings();
+	std::vector<DirSettings>	*getOptDirSettings();
+	std::vector<DirSettings>	*getCGIDirSettings();
+	std::vector<SocketListen>	*getSocketListen();
 
 	//setter
 	void						setSocketListen(int kq);
+    bool                        isNumeric(std::string str);
 
 	//exception
 	public:
 	class	ERR_Server : public std::exception
 	{
 		private:
-			const char	*_error_msg;
+		const char	*_error_msg;
 		public:
 		ERR_Server();
 		ERR_Server(const char *error_msg);
