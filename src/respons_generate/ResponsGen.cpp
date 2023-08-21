@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/08/15 17:24:16 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/08/21 15:16:11 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/08/21 15:34:32 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ void    ResponsGenerate(Request R, char **env)
 		{
 			//this is the case with a file
 			char *arg[3];
-			arg[1] = "python";
+			arg[1] = "python3";
 			arg[3] = (char *)path.c_str();
 			if (method == "GET")
 			{
@@ -53,7 +53,7 @@ void    ResponsGenerate(Request R, char **env)
 	{
 		//this is the case of a directory{
 		char *arg[4];
-		arg[1] = "python";
+		arg[1] = "python3";
 		arg[3] = (char *)path.c_str();
 		arg[4] = (char *)path.c_str();
 		if (method == "GET")
