@@ -36,7 +36,7 @@ class KqueueLoop
 
 
 	int		checkListeningSocket(int sock);
-	int 	startLoop();
+	int 	startLoop(char **env);
 	int 	getKqMain();
 
 	// exception : after calling this exception -> exit

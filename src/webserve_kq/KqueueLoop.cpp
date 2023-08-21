@@ -3,6 +3,7 @@
 //
 
 #include "../../include/KqueueLoop.hpp"
+#include "../../include/ResponseGen.hpp"
 #include "../../include/SocketConnect.hpp"
 
 KqueueLoop::KqueueLoop(std::vector<Server> *servers, int kq): _kq_main(kq), _n_ev(0), _servers(servers)
@@ -59,7 +60,7 @@ int KqueueLoop::checkListeningSocket(int sock)
 }
 
 
-int KqueueLoop::startLoop()
+int KqueueLoop::startLoop(char **env)
 {
 	std::cout << "Kqueue start" << std::endl;
 	while(1)
@@ -113,7 +114,8 @@ int KqueueLoop::startLoop()
 						{
 							// send response data, clean and close socket
 							std::cout << "send response! " << std::endl;
-							currentsocket->sendResponse();
+							ResponseGenerate(*currentsocket->getClientRequest(), env);
+							// currentsocket->sendResponse();
 						}
 						delete (currentsocket);
 						close(_kev_catch[i].ident);

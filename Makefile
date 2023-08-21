@@ -10,6 +10,7 @@ DIR_SRC			=	src
 DIR_CLI			=	webserve_cli
 DIR_KQ			=	webserve_kq
 DIR_PARSE		=	config_parse
+DIR_CGI			=	response_generate
 
 #cpp files (add files for main. you can keep your main.cpp and Makefile in your work directory without writing in this file)
 SRCS_MAIN		:=	main.cpp
@@ -26,8 +27,8 @@ SRCS_PARSE		:=	$(DIR_SRC)/$(DIR_PARSE)/DirSettings.cpp			\
 					$(DIR_SRC)/$(DIR_PARSE)/Config.cpp				\
 					$(DIR_SRC)/$(DIR_PARSE)/Server.cpp
 
-
-SRCS			:= $(SRCS_MAIN) $(SRCS_CLI) $(SRCS_KQ) $(SRCS_PARSE)
+SRCS_CGI		:=	$(DIR_SRC)/$(DIR_CGI)/ResponseGen.cpp
+SRCS			:=	$(SRCS_MAIN) $(SRCS_CGI) $(SRCS_CLI) $(SRCS_KQ) $(SRCS_PARSE)
 
 HEADERS			=	$(wildcard $(DIR_HEADER)/*.hpp)
 
@@ -35,8 +36,9 @@ OBJS_MAIN		= $(addprefix $(DIR_OBJ)/, $(patsubst %.cpp, %.o , $(SRCS_MAIN)))
 OBJS_CLI		= $(patsubst $(DIR_SRC)/$(DIR_CLI)/%, $(DIR_OBJ)/% , $(patsubst %.cpp, %.o , $(SRCS_CLI)))
 OBJS_KQ			= $(patsubst $(DIR_SRC)/$(DIR_KQ)/%, $(DIR_OBJ)/% , $(patsubst %.cpp, %.o , $(SRCS_KQ)))
 OBJS_PARSE		= $(patsubst $(DIR_SRC)/$(DIR_PARSE)/%, $(DIR_OBJ)/% , $(patsubst %.cpp, %.o , $(SRCS_PARSE)))
+OBJS_CGI		= $(patsubst $(DIR_SRC)/$(DIR_CGI)/%, $(DIR_OBJ)/% , $(patsubst %.cpp, %.o , $(SRCS_CGI)))
 
-OBJS = $(OBJS_MAIN) $(OBJS_CLI) $(OBJS_KQ) $(OBJS_PARSE)
+OBJS = $(OBJS_MAIN) $(OBJS_CLI) $(OBJS_KQ) $(OBJS_PARSE) $(OBJS_CGI)
 
 all:			$(NAME)
 
@@ -54,6 +56,9 @@ $(DIR_OBJ)/%.o:	$(DIR_SRC)/$(DIR_KQ)/%.cpp $(HEADERS)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(DIR_OBJ)/%.o:	$(DIR_SRC)/$(DIR_PARSE)/%.cpp $(HEADERS)
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(DIR_OBJ)/%.o:	$(DIR_SRC)/$(DIR_CGI)/%.cpp $(HEADERS)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(DIR_HEADER):

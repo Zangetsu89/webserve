@@ -325,6 +325,15 @@ int Request::findResponseFile()
 	return (0);
 }
 
+DirSettings		*Request::getRequestDirSettings()
+{
+	return (this->_requestDirSetting);
+}
+
+
+
+
+
 // exception
 Request::ERR_Request::ERR_Request() : _error_msg("Request setting failed"), _error_num(0) {}
 Request::ERR_Request::ERR_Request(const char *error_msg, int err) : _error_msg(error_msg), _error_num(err)
