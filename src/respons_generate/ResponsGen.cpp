@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/08/15 17:24:16 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/08/21 15:34:32 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/08/21 15:45:59 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@ void    ResponsGenerate(Request R, char **env)
 	RequestHeader Header = *(R.getRequestHeader());
 	std::string method = Header.getRequestMethod();
 	std::string path = Header.getRequestLocation();
+	bool permission = R._requestDirSetting->getDirPermission();
 	if (opendir(path.c_str()) == NULL)
 	{
 		if (errno = ENOTDIR)
