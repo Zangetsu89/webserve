@@ -1,4 +1,7 @@
 import sys
+import mimetypes
+
+#if type is not included in hte list, it should be an attachment as application/octet-stream
 
 file_path = sys.argv[1:][0]
 
@@ -6,17 +9,19 @@ try:
     with open(file_path, 'rb') as file:
         file_content = file.read()
 
+    # Set the appropriate Content-Type based on the file content
+    mime_type, _ = mimetypes.guess_type(file_path)
+    if mime_type:
+        content_type = mime_type;
+    else:
+        content_type = application/octet-stream
+
     # Get the filename from the file path
     filename = file_path.split('/')[-1]
 
-    # Set the appropriate Content-Type based on the file extension
-    if filename.endswith('.txt'):
-        content_type = 'text/plain'
-    else:
-        content_type = 'application/octet-stream'
-
-    print(f"Content-type: {content_type}")
-    print(f"Content-Disposition: attachment; filename={filename}\n")
+    print("Content-type: " + content_type+"\n")
+    if content_type == "application/octet-stream":
+        print("Content-Disposition: attachment; filename=" + filename+ "\n")
     
     sys.stdout.flush()  # Flush any previous output
 

@@ -1,16 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        ::::::::            */
-/*   Respons.cpp                                        :+:    :+:            */
+/*   ResponsGen.cpp                                     :+:    :+:            */
 /*                                                     +:+                    */
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/08/15 17:24:16 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/08/15 18:11:47 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/08/21 15:16:11 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../../include/Respons.hpp"
+#include "../../include/ResponsGen.hpp"
 
 //The respons generate function should see if the path is a directory or 
 //file. If directory, check if there is an index file, if yes, return the index
@@ -19,6 +19,7 @@
 //If not a directory, check if plain text or a file: actually python handles this allready
 //all plain text POST get saved in html/user directory?
 //if GET searches for a plain file, look for the file in html/user directory?
+//the POST method should contain plain text message?
 
 void    ResponsGenerate(Request R, char **env)
 {
@@ -45,30 +46,28 @@ void    ResponsGenerate(Request R, char **env)
 			{
 				arg[2] = "./cgi/standard_delete.py";
 			}
-			execve("python", arg, env);
+			execve("python3", arg, env);
 		}
 	}
 	else
 	{
-		//this is the case of a directory
+		//this is the case of a directory{
+		char *arg[4];
+		arg[1] = "python";
+		arg[3] = (char *)path.c_str();
+		arg[4] = (char *)path.c_str();
 		if (method == "GET")
 		{
-			char *arg[3];
-			arg[1] = "python";
-			arg[3] = (char *)path.c_str();
-			if (method == "GET")
-			{
-				arg[2] = "./cgi/standard_get.py";
-			}
-			if (method == "POST")
-			{
-				arg[2] = "./cgi/standard_post.py";
-			}
-			if (method == "DELETE")
-			{
-				arg[2] = "./cgi/standard_delete.py";
-			}
-			execve("python", arg, env);
+			arg[2] = "./cgi/directory_get.py";
 		}
+		if (method == "POST")
+		{
+			arg[2] = "./cgi/standard_post.py";
+		}
+		if (method == "DELETE")
+		{
+			arg[2] = "./cgi/standard_delete.py";
+		}
+		execve("python3", arg, env);
 	}
 }
