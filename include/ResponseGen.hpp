@@ -19,6 +19,35 @@
 #include <fcntl.h>
 #include <dirent.h>
 
-void    ResponseGenerate(Request R, char **env);
+class Response {
+
+    private:
+        Response();
+        Request _request;
+
+    public:
+    Response(Request R);
+    Response(Response const &source);
+    ~Response();
+    Response &operator=(Response const &source);
+
+    void    responseGenerate(char **env);
+    void    prepareResponse(char **env);
+
+    // exception
+    class ERR_Response : public std::exception
+    {
+        private:
+            const char *_error_msg;
+
+        public:
+            int _error_num;
+            ERR_Response();
+            ERR_Response(const char *error_msg, int err);
+            const char *what() const _NOEXCEPT; // _NOEXCEPT is needed since C++11
+    };
+};
+
+
 
 #endif

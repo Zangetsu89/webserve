@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/08/15 17:24:16 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/08/22 17:56:31 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/08/22 18:01:45 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 //if GET searches for a plain file, look for the file in html/user directory?
 //the POST method should contain plain text message?
 
+<<<<<<< HEAD
 int	postRequest(Request R, char **env)
 {
 	int err;
@@ -57,11 +58,69 @@ int	postRequest(Request R, char **env)
 
 
 void    ResponseGenerate(Request R, char **env)
+=======
+Response::Response() {
+}
+
+Response::Response(Request R) {
+    this->_request = R;
+}
+
+Response::Response(Response const &source) {
+    *this = source;
+}
+
+Response::~Response() {
+}
+
+Response &Response::operator=(Response const &source) {
+    if (this != &source)
+    {
+        this->_request = source._request;
+    }
+    return (*this);
+}
+
+void    Response::prepareResponse(char **env) {
+    int fd[2];
+    int fd2[2];
+    int err;
+
+    if (pipe(fd) == -1)
+        throw ERR_Response("pipe failed", 500);
+    if (pipe(fd2) == -1)
+        throw ERR_Response("pipe failed", 500);
+    // We need to pipe twice here to first read from the child process and then write to the server. We only fork once.
+    int pid = fork();
+    if (pid == 0)
+    {
+        close(fd[0]);
+        dup2(fd[1], 1);
+        responseGenerate(env);
+    }
+    else
+    {
+        close(fd[1]);
+        waitpid(pid, &err, 0);
+        if (err != 0)
+            throw ERR_Response("fork failed", 500);
+        char buffer[1024];
+        int len = read(fd[0], buffer, 1024);
+        if (len == -1)
+            throw ERR_Response("read failed", 500);
+        buffer[len] = '\0';
+        std::cout << buffer << std::endl;
+    }
+
+}
+
+void    Response::responseGenerate(char **env)
+>>>>>>> f6564dedd8ac0c3da1bde0ee3423819571f28393
 {
-	RequestHeader Header = *(R.getRequestHeader());
+	RequestHeader Header = *(_request.getRequestHeader());
 	std::string method = Header.getRequestMethod();
 	std::string path = Header.getRequestLocation();
-	bool permission = R.getRequestDirSettings()->getDirPermission();
+	bool permission = _request.getRequestDirSettings()->getDirPermission();
 	
 	std::cout<<"Response Generate function started."<<std::endl;
 
@@ -141,4 +200,15 @@ void    ResponseGenerate(Request R, char **env)
 		}
 		execve("python3", arg, env);
 	}
+}
+
+// exception
+Response::ERR_Response::ERR_Response() : _error_msg("Response setting failed"), _error_num(0) {
+}
+Response::ERR_Response::ERR_Response(const char *error_msg, int err) : _error_msg(error_msg), _error_num(err){
+}
+
+const char *Response::ERR_Response::what() const _NOEXCEPT
+{
+return (_error_msg);
 }
