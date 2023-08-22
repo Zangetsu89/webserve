@@ -1,7 +1,7 @@
 import sys
 import mimetypes
 
-#if type is not included in hte list, it should be an attachment as application/octet-stream
+#if type is not included in the list, it should be an attachment as application/octet-stream
 
 file_path = sys.argv[1:][0]
 

@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/08/15 17:24:16 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/08/21 17:14:12 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/08/22 17:56:31 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,41 @@
 //all plain text POST get saved in html/user directory?
 //if GET searches for a plain file, look for the file in html/user directory?
 //the POST method should contain plain text message?
+
+int	postRequest(Request R, char **env)
+{
+	int err;
+	//get file directory
+	std::string path = R.getRequestFilePath();
+	unsigned int pos = path.rfind("/");
+	std::string dir = path.substr(0, pos);
+	std::string content; //write the Header and typer in content?
+
+	char *command[2];
+	command[0] = (char*)("mkdir");
+	command[1] = (char *)dir.c_str();
+	int pid = fork();
+	if (pid == 0)
+		execve("mkdir", command, env);
+	else
+	{
+		waitpid(pid, &err, 0);
+		if (err!= 0)
+			return (err);
+		else
+		{
+			int pid2;
+			pid2 = fork();
+			if (pid == 0)
+				execve("echo", command, env);
+			else
+			{
+				waidpid(pid2, &err, 0);
+			}
+		}
+	}
+}
+
 
 void    ResponseGenerate(Request R, char **env)
 {
@@ -42,14 +77,27 @@ void    ResponseGenerate(Request R, char **env)
 			{
 				arg[1] = (char *)("./cgi/file_get.py");
 			}
-			if (method == "POST")
-			{
-				arg[1] = (char *)("./cgi/file_post.py");
-			}
 			if (method == "DELETE")
 			{
-				arg[1] = (char *)("./cgi/standard_delete.py");
+				int err;
+			int pid = fork();
+			if (pid == 0)
+			{
+				char *command[3];
+				command[0] = (char*)("rm");
+				command[1] = (char*)("-r");
+				command[2] = (char *)path.c_str();
+				execve("rm", command, env);
 			}
+			waitpid(pid, &err, 0);
+			if (err!= 0)
+				arg[3] = (char *)("false");
+			else
+				arg[3] = (char *)("true");
+				arg[1] = (char *)("./cgi/delete.py");
+			}
+			else
+				return ;
 			execve("python3", arg, env);
 		}
 	}
@@ -69,7 +117,9 @@ void    ResponseGenerate(Request R, char **env)
 		}
 		if (method == "POST")
 		{
-			arg[1] = (char *)("./cgi/standard_post.py");
+			//here should be a function to fork and extract Request_data
+			//save it in a specified directory, if not exist, make the directory
+			arg[1] = (char *)("./cgi/file_post.py");
 		}
 		if (method == "DELETE")
 		{
@@ -87,7 +137,7 @@ void    ResponseGenerate(Request R, char **env)
 				arg[3] = (char *)("false");
 			else
 				arg[3] = (char *)("true");
-			arg[1] = (char *)("./cgi/standard_delete.py");
+			arg[1] = (char *)("./cgi/delete.py");
 		}
 		execve("python3", arg, env);
 	}
