@@ -2,11 +2,10 @@
 // Socket for Connection
 //
 
+#include "../../include/Request.hpp"
 #include "../../include/SocketConnect.hpp"
-#include "../../include/util.hpp"
 
-SocketConnect::SocketConnect(int socket, int kq):
-_dataR(0), _sizeR(NOT_DEFINED), _sizeW(NOT_DEFINED), _error(-1)
+SocketConnect::SocketConnect(int socket, int kq, std::vector<Server> *servers): _servers(servers)
 {
 	_numSocket = accept(socket, (struct sockaddr *) &_clientSockaddr, &_clientSockaddrLen);
 	if (_numSocket < 3)
@@ -14,15 +13,12 @@ _dataR(0), _sizeR(NOT_DEFINED), _sizeW(NOT_DEFINED), _error(-1)
 		std::cout << "accept failed. _numSocket is " << _numSocket << std::endl;
 		throw ERR_SocketConnect("accept new request failed");
 	}
-    _clientSockaddrLen = sizeof(_clientSockaddr);
-	
+	_clientSockaddrLen = sizeof(_clientSockaddr);
 	if (fcntl(_numSocket, F_SETFL, O_NONBLOCK) < 0)
 		throw ERR_SocketConnect("fcntl failed");
 	EV_SET(&_clientKevent, _numSocket, EVFILT_READ, EV_ENABLE | EV_ADD, 0, 0, this);
-
 	if (kevent(kq, &_clientKevent, 1, NULL, 0, NULL) < 0)
-		throw SocketConnect::ERR_SocketConnect("kevent for socket failed");
-
+		throw ERR_SocketConnect("kevent for socket failed");
 }
 
 SocketConnect::~SocketConnect()
@@ -32,22 +28,30 @@ SocketConnect::~SocketConnect()
 
 SocketConnect& SocketConnect::operator=(const SocketConnect &source)
 {
-	_numSocket = source._numSocket;
-	_clientSockaddr = source._clientSockaddr;
-	_clientSockaddrLen = source._clientSockaddrLen;
-	_clientKevent = source._clientKevent;
-	_dataR = source._dataR;
-	_dataW = source._dataW;
-	_sizeR = source._sizeR;
-	_sizeW = source._sizeW;
-	_clientRequest = source._clientRequest;
-	_error = source._error;
+	if (this != &source)
+	{
+		_numSocket = source._numSocket;
+		_clientSockaddr = source._clientSockaddr;
+		_clientSockaddrLen = source._clientSockaddrLen;
+		_clientKevent = source._clientKevent;
+		_servers = source._servers;
+		_clientRequest = source._clientRequest;
+		// _clientResponse = source._clientResponse;
+		_errorNum = source._errorNum;
+		_redirectURL = source._redirectURL;
+		// _errorInfo = source._errorInfo;
+	}
 	return (*this);
 }
 
 SocketConnect::SocketConnect(const SocketConnect &source)
 {
 	*this = source;
+}
+
+int SocketConnect::getNumSocket()
+{
+    return (_numSocket);
 }
 
 // getter
@@ -57,151 +61,87 @@ int	SocketConnect::getSocketConnect()
 	return (_numSocket);
 }
 
-struct kevent	*SocketConnect::getKevent()
-{
-	return (&_clientKevent);
-}
-
-int			SocketConnect::getSizeR()
-{
-	return (_sizeR);
-}
-
-int			SocketConnect::getSizeW()
-{
-	return (_sizeW);
-}
-
-std::vector<char>	*SocketConnect::getDataR()
-{
-	return (&_dataR);
-}
-
-char	*SocketConnect::getDataW()
-{
-	char	*data_w = (char *)_dataW.c_str();
-	return (data_w);
-}
-
 Request		*SocketConnect::getClientRequest()
 {
 	return (&_clientRequest);
 }
 
-
-int	SocketConnect::getError()
+int	SocketConnect::getErrorNum()
 {
-	return (_error);
+	return (_errorNum);
 }
+
 
 // setter and others
 
-void	SocketConnect::addReadData(char *buff, int size)
+int SocketConnect::setRequest(std::vector<Server> *list_server)
 {
-	for (int i = 0; i < size; i++)
-	{
-		_dataR.push_back(buff[i]);
-		_sizeR++;
-	}
-}
-
-void	SocketConnect::setDataW(std::string str)
-{
-	_dataW = str;
-}
-
-void	SocketConnect::setSizeR(int i)
-{
-	_sizeR = i;
-}
-
-void	SocketConnect::setSizeW(int i)
-{
-	_sizeW = i;
-}
-
-void	SocketConnect::printReadData()
-{
-	std::cout << std::endl << "[request data] - - - - - - - - - -" << std::endl << std::endl;
-	for (int i = 0; i < _sizeR; i++)
-	{
-		write(1, &_dataR[i], 1);
-	}
-	std::cout << std::endl << "- - - - - - - - - - - - - - -" << std::endl << std::endl;
-
-}
-
-int	SocketConnect::setRequest(std::vector<char> *data_read, std::vector<Server> list_server)
-{
-	std::string	str_read = toString(data_read);
-	std::string	oneline;
-
-	try
-	{
-		oneline = splitString(&str_read, " ");
-		std::cout << "method is "<< oneline << std::endl;
-		_clientRequest._requestMethod = oneline;
-
-		oneline = splitString(&str_read, " ");
-		std::cout << "location is "<< oneline << std::endl;
-		_clientRequest._requestLocation = oneline;
-
-		oneline = splitString(&str_read, "\nHost: ");
-		oneline = splitString(&str_read, ":");
-		std::cout << "host is "<< oneline << std::endl;
-		_clientRequest._requestHost = oneline;
-
-		oneline = splitString(&str_read, "\n");
-		std::cout << "port is "<< oneline << std::endl;
-		_clientRequest._requestPort = oneline;
-	}
-	catch(const std::exception& e)
-	{
-		std::cout << "Request data doesn't contain correct header data" << std::endl;
-		return (400);
-	}
-	try
-	{
-		_clientRequest.checkMethod(list_server);
-	}
-	catch(const std::exception& e)
-	{
-		std::cerr << "This method is not acceptable at this endpoint" << '\n';
-		return (405);
-	}
-	
-	try
-	{
-		oneline = splitString(&str_read, "\nContent-Length: ");
-		std::cout << "content before length is "<< oneline <<  std::endl;
-		_clientRequest._requestBeforeContentLength = oneline;
-		oneline = splitString(&str_read, "\n");
-		std::cout << "content length is "<< oneline <<  std::endl;
-		_clientRequest._contentLength = stoi(oneline);
-	}
-	catch(const std::exception& e)
-	{
-		std::cout << "Request data doesn't indicate Content-Length" << std::endl;
-		return (0);
-	}
-
-	try
-	{
-		oneline = splitString(&str_read, "\n");
-		std::cout << "content body is "<< str_read <<  std::endl;
-		_clientRequest._contentBody = str_read;
-	}
-	catch(const std::exception& e)
-	{
-		std::cerr << "Request data body content is not correct format" << '\n';
-		return (400);
-	}
+	_errorNum = _clientRequest.setRequest(list_server, this);
+	if (_errorNum != 0)
+		return (_errorNum);
 	return (0);
 }
 
-void	SocketConnect::setError(int err)
+void	SocketConnect::setError()
 {
-	_error = err;
+    std::cout << "TEST in setError " << _clientRequest.getRequestErrorNum() << std::endl;
+	_errorNum = _clientRequest.getRequestErrorNum();
+}
+
+void	SocketConnect::setRedirect(std::string url)
+{
+	_redirectURL = url;
+}
+
+std::string	SocketConnect::getRedirectURL()
+{
+    return (_redirectURL);
+}
+
+
+// writing function : not done yet...
+int SocketConnect::sendResponse()
+{
+    try {
+        // read from _clientRequest._requestFilePath
+        std::ifstream file(_clientRequest._requestFilePath.c_str());
+        std::stringstream buffer;
+        buffer << file.rdbuf();
+        std::string contents(buffer.str());
+
+        std::string response = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n" + contents;
+        write(_numSocket, response.c_str(), response.length());
+    } catch (std::exception &e) {
+        std::cout << "Error: " << e.what() << std::endl;
+    }
+    // std::cout << "TEST in sendResponse" << std::endl;
+	// dammy response, simular with 403 error
+//    const char *dammydata = "HTTP/1.1 404 Not Found\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n"
+//                            "<!DOCTYPE html><html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">"
+//                            "<title>Error 404</title><link href=\"css.css\" rel=\"stylesheet\"></head><body>"
+//                            "<h1>Error 404</h1><p>The requested page could not be found.</p></body></html>";
+//	const char *dammydata = "HTTP/1.1 403 Forbidden\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n<!DOCTYPE html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"><title>Error 403</title><link href=\"css.css\" rel=\"stylesheet\"></head><body>Error 403</body></html>";
+//	write(_numSocket, dammydata, strlen(dammydata)); // dammy response
+//    std::cout << "TESTTTTTT" << _numSocket << std::endl;
+	// dummy response, if it is not redirect, send dummy 403 error
+	// const char *dummydata = "HTTP/1.1 403 Forbidden\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n<!DOCTYPE html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"><title>Error 403</title><link href=\"css.css\" rel=\"stylesheet\"></head><body>Error 403</body></html>";
+
+    // what we pulled from main
+//	if (_redirectURL != "")
+//	{
+//		const char *dummydata = "HTTP/1.1 302 Found\r\nLocation: ";
+//		const char *redirecturl = _redirectURL.c_str();
+//		write(_numSocket, dummydata, strlen(dummydata)); // dummy response
+//		write(_numSocket, redirecturl, strlen(redirecturl)); // dummy response
+//	}
+//	else
+//	{
+//		const char *dummydata = "HTTP/1.1 403 Forbidden\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n<!DOCTYPE html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"><title>Error 403</title><link href=\"css.css\" rel=\"stylesheet\"></head><body>Error 403</body></html>";
+//		write(_numSocket, dummydata, strlen(dummydata)); // dummy response
+//	}
+
+
+	return (0);
 }
 
 // exception
@@ -213,4 +153,11 @@ const char	*SocketConnect::ERR_SocketConnect::what() const _NOEXCEPT
 	return (_error_msg);
 }
 
-
+bool SocketConnect::isCGI() const {
+    // Check if the request location matches the CGI location
+    // You might need to modify this logic based on your URL parsing logic
+    if (_clientRequest._requestFilePath.find("/cgi-bin/") == 0) {
+        return true;
+    }
+    return false;
+}

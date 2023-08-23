@@ -4,7 +4,7 @@
 
 #include "../../include/SocketListen.hpp"
 
-SocketListen::SocketListen(int port, int kq): _numPort(port)
+SocketListen::SocketListen(int port, int kq)
 {
 	if ((_numSocket = socket(AF_INET, SOCK_STREAM, 0)) <= 0)
 		throw ERR_SocketListen("listening socket making failed");
@@ -15,8 +15,7 @@ SocketListen::SocketListen(int port, int kq): _numPort(port)
 
 	if (bind(_numSocket, (struct sockaddr *) &_listenSockaddr, sizeof(_listenSockaddr)) < 0)
 	{
-		// throw ERR_SocketListen("bind failed");
-		std::cout << "this listening port is already set" << std::endl;
+		// if the same port is already opened by other server setting, do nothing.
 		return ;
 	}
 	if (fcntl(_numSocket, F_SETFL, O_NONBLOCK) < 0)
@@ -37,11 +36,13 @@ SocketListen::~SocketListen()
 
 SocketListen& SocketListen::operator=(const SocketListen &source)
 {
-	_numPort = source._numPort;
-	_numSocket = source._numSocket;
-	_listenSockaddr = source._listenSockaddr;
-	_listenSockaddrLen = source._listenSockaddrLen;
-	_listenKevent = source._listenKevent;
+	if (this != &source)
+	{
+		_numSocket = source._numSocket;
+		_listenSockaddr = source._listenSockaddr;
+		_listenSockaddrLen = source._listenSockaddrLen;
+		_listenKevent = source._listenKevent;
+	}
 	return (*this);
 }
 
@@ -51,8 +52,7 @@ SocketListen::SocketListen(const SocketListen &source)
 }
 
 // getter
-
-int	SocketListen::getSocketListen()
+int	SocketListen::getNumSocket()
 {
 	return (_numSocket);
 }

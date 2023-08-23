@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        ::::::::            */
+/*   Server.hpp                                         :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2023/07/11 17:51:43 by lizhang       #+#    #+#                 */
+/*   Updated: 2023/07/27 15:15:37 by lizhang       ########   odam.nl         */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef SERVER_HPP
 # define SERVER_HPP
 # include <vector>
@@ -7,41 +19,53 @@
 # include <sys/event.h>
 # include <sys/time.h>
 # include <stdlib.h>
-# include "macro.hpp"
+# include <unistd.h>
+# include <netdb.h>
+# include <signal.h>
+# include <string>
+# include "ConfigMacros.hpp"
 # include "SocketListen.hpp"
+# include "DirSettings.hpp"
 
 class SocketListen;
+class DirSettings;
 class Server
 {
-	// private member
 	private:
-	std::string					_serverName;
-	std::string					_rootDir;
-	std::vector<int>			_listPort;
-	std::vector<SocketListen>	_listSocketListen;
-
-	// base member function
-	protected:
-	Server();	// do not use : Server must be created with port(s), name, root_dir, main kqueue
+	std::string						_serverName;
+	std::vector<int>				_ports;
+	std::string						_rootDir;
+	DirSettings						_rootDirSettings;
+	std::vector<DirSettings>		_optDirSettings;
+	std::vector<DirSettings>		_cgiDirSettings;
+	std::vector<SocketListen>		_listSocketListen;
 
 	public:
-	Server(std::vector<int> ports, std::string name, std::string root_dir, int kq);
+	Server();
+	Server(std::string settings);
+	Server(Server const &source);
 	~Server();
-	Server& operator=(const Server &source);
-	Server(const Server &source);
+	Server	&operator=(Server const &source);
 
 	// getter
-	std::string					getServerName();
-	std::string					getRootDir();
-	std::vector<SocketListen>	*getListeningSocket();
-	int							checkListeningSock(int sock);
+	std::string					getServerName() const;
+	std::vector<int>			getPorts() const;
+    std::string					getRootDir() const;
+	DirSettings					*getRootDirSettings();
+	std::vector<DirSettings>	*getOptDirSettings();
+	std::vector<DirSettings>	*getCGIDirSettings();
+	std::vector<SocketListen>	*getSocketListen();
 
-	// exception
+	//setter
+	void						setSocketListen(int kq);
+    bool                        isNumeric(std::string str);
+
+	//exception
 	public:
 	class	ERR_Server : public std::exception
 	{
 		private:
-			const char	*_error_msg;
+		const char	*_error_msg;
 		public:
 		ERR_Server();
 		ERR_Server(const char *error_msg);
