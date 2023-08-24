@@ -46,9 +46,10 @@ class Request
 	void			printDataR();
 	void			printSizeR();
 	bool			getRequestShowList();
+	int				getSizeR();
 
+	void			addDataR(char c);
 	int 			setRequest(std::vector<Server> *list_server, SocketConnect *socket);
-	int 			readRequest();
 	int 			setRequestHeader();
 	int 			setRequestBodyLength();
 	int 			setRequestBody();
