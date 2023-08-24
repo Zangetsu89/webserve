@@ -29,6 +29,7 @@ class Request
 	int				_requestBodyLength;
 	std::string		_requestBody;
 	bool			_requestShowList;
+    int             _errorNum;
 
 	SocketConnect			*_requestSocket;
 	std::vector<Server>		*_servers;
@@ -47,6 +48,8 @@ class Request
 	void			printSizeR();
 	bool			getRequestShowList();
 	int				getSizeR();
+    int				getRequestErrorNum();
+    void			setErrorNum(int num);
 
 	void			addDataR(char c);
 	int 			setRequest(std::vector<Server> *list_server, SocketConnect *socket);
@@ -66,13 +69,13 @@ class Request
 	class ERR_Request : public std::exception
 	{
 		private:
-		const char *_error_msg;
+		    const char *_error_msg;
 
 		public:
-		int _error_num;
-		ERR_Request();
-		ERR_Request(const char *error_msg, int err);
-		const char *what() const _NOEXCEPT; // _NOEXCEPT is needed since C++11
+		    int _error_num;
+		    ERR_Request();
+		    ERR_Request(const char *error_msg, int err);
+		    const char *what() const _NOEXCEPT; // _NOEXCEPT is needed since C++11
 	};
 };
 
