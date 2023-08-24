@@ -95,17 +95,17 @@ int KqueueLoop::startLoop()
 					{
 						// read and store data, make response data(not added yet), change kevent filter and set this to kev_catch
 						std::cout << std::endl << "[READ Event on connection socket(EVFILT_READ)] " << _kev_catch[i].ident << std::endl;
-						char	buff[BUFF];
-						int	r = 1;
-						while (r > 0)
+						char	    buff[BUFFSIZE];
+						ssize_t 	bytesRead = 1;
+						while (bytesRead > 0)
 						{
-							r = read(currentsocket->getSocketConnect(), buff, BUFF);
-							if (r < 0) // if an error happens during reading, close the connection 
+                            bytesRead = read(currentsocket->getSocketConnect(), buff, BUFFSIZE);
+							if (bytesRead < 0) // if an error happens during reading, close the connection
 							{
 								EV_SET(&_kev_catch[i], _kev_catch[i].ident, 0,0 , EV_ERROR, 0, _kev_catch[i].udata);
 								kevent(_kq_main, &_kev_catch[i], 1, NULL, 0, NULL);
 							}
-							else if (r < BUFF)
+							else if (bytesRead < BUFFSIZE)
 							{
 								currentsocket->setRequest(_servers);
 								EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_READ, EV_DELETE, 0, 0, _kev_catch[i].udata);
@@ -116,7 +116,7 @@ int KqueueLoop::startLoop()
 							}
 							else // reading is not finished
 							{
-								for (int i = 0; i < r; i++)
+								for (int i = 0; i < bytesRead; i++)
 									currentsocket->getClientRequest()->addDataR(buff[i]);
 								EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_READ, EV_ADD, 0, 0, _kev_catch[i].udata);
 								kevent(_kq_main, &_kev_catch[i], 1, NULL, 0, NULL);
