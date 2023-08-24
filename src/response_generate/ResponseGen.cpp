@@ -21,44 +21,6 @@
 //if GET searches for a plain file, look for the file in html/user directory?
 //the POST method should contain plain text message?
 
-<<<<<<< HEAD
-int	postRequest(Request R, char **env)
-{
-	int err;
-	//get file directory
-	std::string path = R.getRequestFilePath();
-	unsigned int pos = path.rfind("/");
-	std::string dir = path.substr(0, pos);
-	std::string content; //write the Header and typer in content?
-
-	char *command[2];
-	command[0] = (char*)("mkdir");
-	command[1] = (char *)dir.c_str();
-	int pid = fork();
-	if (pid == 0)
-		execve("mkdir", command, env);
-	else
-	{
-		waitpid(pid, &err, 0);
-		if (err!= 0)
-			return (err);
-		else
-		{
-			int pid2;
-			pid2 = fork();
-			if (pid == 0)
-				execve("echo", command, env);
-			else
-			{
-				waidpid(pid2, &err, 0);
-			}
-		}
-	}
-}
-
-
-void    ResponseGenerate(Request R, char **env)
-=======
 Response::Response() {
 }
 
@@ -115,7 +77,6 @@ void    Response::prepareResponse(char **env) {
 }
 
 void    Response::responseGenerate(char **env)
->>>>>>> f6564dedd8ac0c3da1bde0ee3423819571f28393
 {
 	RequestHeader Header = *(_request.getRequestHeader());
 	std::string method = Header.getRequestMethod();
@@ -201,6 +162,41 @@ void    Response::responseGenerate(char **env)
 		execve("python3", arg, env);
 	}
 }
+
+int	Response::postRequest(Request R, char **env)
+{
+    int err;
+    //get file directory
+    std::string path = R.getRequestFilePath();
+    unsigned int pos = path.rfind("/");
+    std::string dir = path.substr(0, pos);
+    std::string content; //write the Header and typer in content?
+
+    char *command[2];
+    command[0] = (char*)("mkdir");
+    command[1] = (char *)dir.c_str();
+    int pid = fork();
+    if (pid == 0)
+        execve("mkdir", command, env);
+    else
+    {
+        waitpid(pid, &err, 0);
+        if (err!= 0)
+            return (err);
+        else
+        {
+            int pid2;
+            pid2 = fork();
+            if (pid == 0)
+                execve("echo", command, env);
+            else
+            {
+                waidpid(pid2, &err, 0);
+            }
+        }
+    }
+}
+
 
 // exception
 Response::ERR_Response::ERR_Response() : _error_msg("Response setting failed"), _error_num(0) {

@@ -33,6 +33,7 @@ class Response {
 
     void    responseGenerate(char **env);
     void    prepareResponse(char **env);
+    void    postRequest(Request R, char **env);
 
     // exception
     class ERR_Response : public std::exception
