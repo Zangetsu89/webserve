@@ -3,7 +3,7 @@
 //
 
 #include "../../include/KqueueLoop.hpp"
-#include "../../include/ResponseGen.hpp"
+#include "../../include/CgiHandler.hpp"
 #include "../../include/SocketConnect.hpp"
 
 KqueueLoop::KqueueLoop(std::vector<Server> *servers, int kq): _kq_main(kq), _n_ev(0), _servers(servers)
@@ -127,7 +127,7 @@ int KqueueLoop::startLoop(char **env)
 					}
 					else if (_kev_catch[i].filter == EVFILT_WRITE) // check if the socket is to write
 					{
-                        Response response = Response(*currentsocket->getClientRequest());
+                        CgiHandler response = CgiHandler(*currentsocket->getClientRequest());
 						std::cout << std::endl << "[WRITE Event on connection socket(EVFILT_WRITE)] " << currentsocket->getSocketConnect() << std::endl;
 						if (currentsocket->getErrorNum() != 0 && currentsocket->getClientRequest()->getSizeR())
 						{

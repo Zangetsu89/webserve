@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        ::::::::            */
-/*   ResponseGen.cpp                                    :+:    :+:            */
+/*   CgiHandler.cpp                                    :+:    :+:            */
 /*                                                     +:+                    */
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../../include/ResponseGen.hpp"
+#include "../../include/CgiHandler.hpp"
 
 //The respons generate function should see if the path is a directory or 
 //file. If directory, check if there is an index file, if yes, return the index
@@ -21,21 +21,21 @@
 //if GET searches for a plain file, look for the file in html/user directory?
 //the POST method should contain plain text message?
 
-Response::Response() {
+CgiHandler::CgiHandler() {
 }
 
-Response::Response(Request R) {
+CgiHandler::CgiHandler(Request R) {
     this->_request = R;
 }
 
-Response::Response(Response const &source) {
+CgiHandler::CgiHandler(CgiHandler const &source) {
     *this = source;
 }
 
-Response::~Response() {
+CgiHandler::~CgiHandler() {
 }
 
-Response &Response::operator=(Response const &source) {
+CgiHandler &CgiHandler::operator=(CgiHandler const &source) {
     if (this != &source)
     {
         this->_request = source._request;
@@ -43,15 +43,15 @@ Response &Response::operator=(Response const &source) {
     return (*this);
 }
 
-void    Response::prepareResponse(char **env) {
+void    CgiHandler::prepareResponse(char **env) {
     int fd[2];
     int fd2[2];
     int err;
 
     if (pipe(fd) == -1)
-        throw ERR_Response("pipe failed", 500);
+        throw ERR_CgiHandler("pipe failed", 500);
     if (pipe(fd2) == -1)
-        throw ERR_Response("pipe failed", 500);
+        throw ERR_CgiHandler("pipe failed", 500);
     // We need to pipe twice here to first read from the child process and then write to the server. We only fork once.
     int pid = fork();
     if (pid == 0)
@@ -65,24 +65,24 @@ void    Response::prepareResponse(char **env) {
         close(fd[1]);
         waitpid(pid, &err, 0);
         if (err != 0)
-            throw ERR_Response("fork failed", 500);
+            throw ERR_CgiHandler("fork failed", 500);
         char buffer[1024];
         int len = read(fd[0], buffer, 1024);
         if (len == -1)
-            throw ERR_Response("read failed", 500);
+            throw ERR_CgiHandler("read failed", 500);
         buffer[len] = '\0';
         std::cout << buffer << std::endl;
     }
 
 }
 
-void    Response::responseGenerate(char **env)
+void    CgiHandler::responseGenerate(char **env)
 {
 	RequestHeader Header = *(_request.getRequestHeader());
 	std::string method = Header.getRequestMethod();
 	std::string path = Header.getRequestLocation();
 	bool permission = _request.getRequestDirSettings()->getDirPermission();
-	
+
 	std::cout<<"Response Generate function started."<<std::endl;
 
 	if (opendir(path.c_str()) == NULL)
@@ -110,15 +110,15 @@ void    Response::responseGenerate(char **env)
 				execve("rm", command, env);
 			}
 			waitpid(pid, &err, 0);
-			if (err!= 0)
-				arg[3] = (char *)("false");
-			else
-				arg[3] = (char *)("true");
-				arg[1] = (char *)("./cgi/delete.py");
-			}
-			else
-				return ;
-			execve("python3", arg, env);
+//			if (err!= 0)
+//				arg[3] = (char *)("false");
+//			else
+//				arg[3] = (char *)("true");
+//				arg[1] = (char *)("./cgi/delete.py");
+//			}
+//			else
+//				return ;
+//			execve("python3", arg, env);
 		}
 	}
 	else
@@ -163,48 +163,49 @@ void    Response::responseGenerate(char **env)
 	}
 }
 
-int	Response::postRequest(Request R, char **env)
+//int	CgiHandler::postRequest(Request R, char **env)
+//{
+//    int err;
+//    //get file directory
+//    std::string path = R.getRequestFilePath();
+//    unsigned int pos = path.rfind("/");
+//    std::string dir = path.substr(0, pos);
+//    std::string content; //write the Header and typer in content?
+//
+//    char *command[2];
+//    command[0] = (char*)("mkdir");
+//    command[1] = (char *)dir.c_str();
+//    int pid = fork();
+//    if (pid == 0)
+//        execve("mkdir", command, env);
+//    else
+//    {
+//        waitpid(pid, &err, 0);
+//        if (err!= 0)
+//            return (err);
+//        else
+//        {
+//            int pid2;
+//            pid2 = fork();
+//            if (pid == 0)
+//                execve("echo", command, env);
+//            else
+//            {
+//                std::cout << "TEST\n" << std::endl;
+////                waidpid(pid2, &err, 0);
+//            }
+//        }
+//    }
+}
+
+
+CgiHandler::ERR_CgiHandler::ERR_CgiHandler() : _error_msg("Request setting failed"), _error_num(0) {}
+CgiHandler::ERR_CgiHandler::ERR_CgiHandler(const char *error_msg, int err) : _error_msg(error_msg), _error_num(err)
 {
-    int err;
-    //get file directory
-    std::string path = R.getRequestFilePath();
-    unsigned int pos = path.rfind("/");
-    std::string dir = path.substr(0, pos);
-    std::string content; //write the Header and typer in content?
 
-    char *command[2];
-    command[0] = (char*)("mkdir");
-    command[1] = (char *)dir.c_str();
-    int pid = fork();
-    if (pid == 0)
-        execve("mkdir", command, env);
-    else
-    {
-        waitpid(pid, &err, 0);
-        if (err!= 0)
-            return (err);
-        else
-        {
-            int pid2;
-            pid2 = fork();
-            if (pid == 0)
-                execve("echo", command, env);
-            else
-            {
-                waidpid(pid2, &err, 0);
-            }
-        }
-    }
 }
 
-
-// exception
-Response::ERR_Response::ERR_Response() : _error_msg("Response setting failed"), _error_num(0) {
-}
-Response::ERR_Response::ERR_Response(const char *error_msg, int err) : _error_msg(error_msg), _error_num(err){
-}
-
-const char *Response::ERR_Response::what() const _NOEXCEPT
+const char *CgiHandler::ERR_CgiHandler::what() const _NOEXCEPT
 {
-return (_error_msg);
+    return (_error_msg);
 }

@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        ::::::::            */
-/*   ResponseGen.hpp                                    :+:    :+:            */
+/*   CgiHandler.hpp                                    :+:    :+:            */
 /*                                                     +:+                    */
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
@@ -10,8 +10,8 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef RESPONSEGEN_HPP
-#define RESPONSEGEN_HPP
+#ifndef CGIHANDLER_HPP
+#define CGIHANDLER_HPP
 
 #include "Request.hpp"
 #include "RequestHeader.hpp"
@@ -19,32 +19,32 @@
 #include <fcntl.h>
 #include <dirent.h>
 
-class Response {
+class CgiHandler {
 
     private:
-        Response();
+        CgiHandler();
         Request _request;
 
     public:
-    Response(Request R);
-    Response(Response const &source);
-    ~Response();
-    Response &operator=(Response const &source);
+    CgiHandler(Request R);
+    CgiHandler(CgiHandler const &source);
+    ~CgiHandler();
+    CgiHandler &operator=(CgiHandler const &source);
 
     void    responseGenerate(char **env);
     void    prepareResponse(char **env);
-    void    postRequest(Request R, char **env);
+//    void    postRequest(Request R, char **env);
 
     // exception
-    class ERR_Response : public std::exception
+    class ERR_CgiHandler : public std::exception
     {
         private:
             const char *_error_msg;
 
         public:
             int _error_num;
-            ERR_Response();
-            ERR_Response(const char *error_msg, int err);
+            ERR_CgiHandler();
+            ERR_CgiHandler(const char *error_msg, int err);
             const char *what() const _NOEXCEPT; // _NOEXCEPT is needed since C++11
     };
 };

@@ -13,6 +13,7 @@
 #include <fcntl.h>
 #include "Server.hpp"
 #include "macro.hpp"
+#include <array>
 
 class Server;
 class KqueueLoop
