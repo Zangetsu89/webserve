@@ -107,7 +107,7 @@ int KqueueLoop::startLoop()
 							}
 							else if (bytesRead < BUFFSIZE)
 							{
-								for (int i = 0; i < r; i++)
+								for (int i = 0; i < bytesRead; i++)
 									currentsocket->getClientRequest()->addDataR(buff[i]);
 								currentsocket->setRequest(_servers);
 								EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_READ, EV_DELETE, 0, 0, _kev_catch[i].udata);
