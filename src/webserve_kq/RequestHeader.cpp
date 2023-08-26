@@ -92,20 +92,18 @@ int	RequestHeader::setMethodLocationProtocol(std::vector<char> *dataR)
 	std::string	slicepart;
 	try
 	{
-		 slicepart = splitString(&str_read, " ");
-		 _requestMethod = slicepart;
-		 if (_requestMethod != "GET" && _requestMethod != "POST" && _requestMethod != "DELETE")
-			 return (400); // bad request
-
-		 slicepart = splitString(&str_read, " ");
-		 _requestLocation = slicepart;
-		 if (_requestLocation[0] != '/') // request location must start by "/""
-			 return (400);
-
-		 slicepart = splitString(&str_read, "\n");
-		 _requestHTTPprotocol = slicepart;
-		 if (_requestHTTPprotocol != "HTTP/1.1")
-			 return (400);
+		slicepart = splitString(&str_read, " ");
+		_requestMethod = slicepart;
+		if (_requestMethod != "GET" && _requestMethod != "POST" && _requestMethod != "DELETE")
+			return (400); // bad request
+		slicepart = splitString(&str_read, " ");
+		_requestLocation = slicepart;
+		if (_requestLocation[0] != '/') // request location must start by "/""
+			return (400);
+		slicepart = splitString(&str_read, "\n");
+		_requestHTTPprotocol = slicepart;
+		if (_requestHTTPprotocol != "HTTP/1.1")
+			return (400);
 	}
 	catch(const std::exception& e)
 	{
