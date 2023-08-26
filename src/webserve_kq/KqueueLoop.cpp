@@ -70,7 +70,7 @@ int KqueueLoop::startLoop()
 			try
 			{
 				// check if the socket is closed by client (or error happens on the socket)
-				if (_kev_catch[i].flags == EV_ERROR)
+				if (_kev_catch[i].flags & EV_ERROR)
 				{
 					std::cout << "error on a socket" << _kev_catch[i].ident << std::endl;
 					delete ((SocketConnect *)_kev_catch[i].udata);
@@ -107,12 +107,15 @@ int KqueueLoop::startLoop()
 							}
 							else if (r < BUFF)
 							{
+								for (int i = 0; i < r; i++)
+									currentsocket->getClientRequest()->addDataR(buff[i]);
 								currentsocket->setRequest(_servers);
 								EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_READ, EV_DELETE, 0, 0, _kev_catch[i].udata);
 								EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_WRITE, EV_ADD, 0, 0, _kev_catch[i].udata);
-								kevent(_kq_main, &_kev_catch[i], 1, NULL, 0, NULL);
+								kevent(_kq_main, &_kev_catch[i], 1, NULL, 0, NULL);			
 								// to print the request
 								currentsocket->getClientRequest()->printDataR();
+								break;
 							}
 							else // reading is not finished
 							{
