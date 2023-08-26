@@ -85,14 +85,46 @@ int Request::setRequest(std::vector<Server> *list_server, SocketConnect *socket)
 	
 	try
 	{
-		setRequestHeader();
-		setRequestBodyLength();
-		setRequestBody();
-		findServer();
-		findDirSetting();
-		checkRedirect();
-		checkProtocol();
-		findResponseFile();
+        try {
+            setRequestHeader();
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
+        try {
+            setRequestBodyLength();
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
+        try {
+            setRequestBody();
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
+        try {
+            findServer();
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
+        try {
+            findDirSetting();
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
+        try {
+            checkRedirect();
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
+        try {
+            checkProtocol();
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
+        try {
+            findResponseFile();
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
 	}
 	catch (ERR_Request& e)
 	{
