@@ -67,7 +67,7 @@ void    CgiHandler::prepareResponse(char **env) {
         if (err != 0)
             throw ERR_CgiHandler("fork failed", 500);
         char buffer[1024];
-        int len = read(fd[0], buffer, 1024);
+        ssize_t len = read(fd[0], buffer, 1024);
         if (len == -1)
             throw ERR_CgiHandler("read failed", 500);
         buffer[len] = '\0';
@@ -85,7 +85,7 @@ void    CgiHandler::responseGenerate(char **env)
 
 	std::cout<<"Response Generate function started."<<std::endl;
 
-	if (opendir(path.c_str()) == NULL)
+	if (opendir(path.c_str()) == nullptr)
 	{
 		if (errno == ENOTDIR)
 		{
