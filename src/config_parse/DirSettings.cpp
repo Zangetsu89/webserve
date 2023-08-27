@@ -14,7 +14,7 @@
 
 bool	DirSettings::checkCGI(std::string location)
 {
-	if (location.find("CGI") != (size_t)(-1) || location.find("cgi") != (size_t)(-1))
+	if (location.find("CGI") != (size_t)(-1) || location.find("cgi-bin") != (size_t)(-1))
 		return (1);
 	return(0);
 }

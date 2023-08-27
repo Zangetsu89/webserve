@@ -11,28 +11,35 @@
 /* ************************************************************************** */
 
 #ifndef CGIHANDLER_HPP
-#define CGIHANDLER_HPP
+# define CGIHANDLER_HPP
+# include "Request.hpp"
+# include "RequestHeader.hpp"
+# include <unistd.h>
+# include <fcntl.h>
+# include <dirent.h>
 
-#include "Request.hpp"
-#include "RequestHeader.hpp"
-#include <unistd.h>
-#include <fcntl.h>
-#include <dirent.h>
 
 class CgiHandler {
 
     private:
-        CgiHandler();
-        Request _request;
+        int                                 _pipeRead;
+        int                                 _pipeWrite;
+        Request                             _request;
+        char                                **_env;
+        std::string                         _cgiDataRead;
+
+
 
     public:
-    CgiHandler(Request R);
-    CgiHandler(CgiHandler const &source);
-    ~CgiHandler();
-    CgiHandler &operator=(CgiHandler const &source);
-
-    void    responseGenerate(char **env);
-    void    prepareResponse(char **env);
+        CgiHandler();
+        CgiHandler(Request R, char **env);
+        CgiHandler(CgiHandler const &source);
+        ~CgiHandler();
+        CgiHandler &operator=(CgiHandler const &source);
+        void readRequest(uintptr_t i);
+        bool comparePipeFds(int fd);
+//        void    responseGenerate(char **env);
+//        void    cgiInit(char **env);
 //    void    postRequest(Request R, char **env);
 
     // exception
@@ -47,6 +54,10 @@ class CgiHandler {
             ERR_CgiHandler(const char *error_msg, int err);
             const char *what() const _NOEXCEPT; // _NOEXCEPT is needed since C++11
     };
+
+    void cgiInit();
+
+    void responseGenerate();
 };
 
 

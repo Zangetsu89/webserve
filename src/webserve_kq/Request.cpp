@@ -50,6 +50,18 @@ RequestHeader	*Request::getRequestHeader()
 	return (&_requestHeader);
 }
 
+void Request::readRequest(int fd)
+{
+    char buf[BUFFSIZE];
+    int ret = read(fd, buf, BUFFSIZE);
+    if (ret == Error) {
+        throw ERR_Request("read request failed", 500);
+    }
+    for (int i = 0; i < ret; i++) {
+        addDataR(buf[i]);
+    }
+}
+
 int Request::getRequestErrorNum()
 {
     return (_errorNum);
@@ -89,10 +101,8 @@ void	Request::addDataR(char c)
 	_sizeR++;
 }
 
-int Request::setRequest(std::vector<Server> *list_server, SocketConnect *socket)
+int Request::setRequest()
 {
-	_servers = list_server;
-	_requestSocket = socket;
 	
 	try
 	{
@@ -158,7 +168,8 @@ int	Request::setRequestHeader()
 	int res = _requestHeader.setMethodLocationProtocol(&_dataR);
 	if (res != 0) {
         setErrorNum(res);
-		throw ERR_Request("The first line of request is wrong", res);
+        return (res);
+//		throw ERR_Request("The first line of request is wrong", res);
     }
 	res = _requestHeader.setHeaderOthers(&_dataR);
 	if (res != 0) {
@@ -209,6 +220,10 @@ bool	Request::checkPort(std::vector<Server>::iterator it, int port)
 
 int	Request::findServer()
 {
+    if (_requestHeader.getRequestHost().empty()) {
+        setErrorNum(400);
+        return (400);
+    }
 	std::vector<Server>::iterator	it;
 	std::cout << "_requestHeader.getRequestHost() is " << _requestHeader.getRequestHost() << std::endl;
 	for (it = _servers->begin(); it != _servers->end(); it++)
@@ -345,8 +360,26 @@ DirSettings		*Request::getRequestDirSettings()
 	return (this->_requestDirSetting);
 }
 
-
-
+bool Request::isRequestComplete() {
+    // iterator to find the end of header
+    std::vector<char> CRLF = {'\r', '\n', '\r', '\n'};
+    std::string contentLength = "Content-Length:";
+    auto it = std::search(_dataR.begin(), _dataR.end(), CRLF.begin(), CRLF.end());
+    if (it == _dataR.end()) {
+        return false;
+    }
+    // check if the request body is complete by looking at the content-length in the header and compare it to the read data
+    auto contentLengthIndex = search(_dataR.begin(), _dataR.end(), contentLength.begin(), contentLength.end());
+    if (contentLengthIndex == _dataR.end()) {
+        return true;
+    }
+    unsigned long contentLengthValue = std::atoi(_dataR.data() + (contentLengthIndex - _dataR.begin()) + contentLength.size());
+    unsigned long headerSize = it - _dataR.begin() + CRLF.size();
+    if (_dataR.size() - headerSize >= contentLengthValue) {
+        return true;
+    }
+    return false;
+}
 
 
 // exception

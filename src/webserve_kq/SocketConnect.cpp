@@ -4,6 +4,7 @@
 
 #include "../../include/Request.hpp"
 #include "../../include/SocketConnect.hpp"
+#include "../../include/KqueueLoop.hpp"
 
 SocketConnect::SocketConnect(int socket, int kq, std::vector<Server> *servers): _servers(servers)
 {
@@ -16,9 +17,9 @@ SocketConnect::SocketConnect(int socket, int kq, std::vector<Server> *servers): 
 	_clientSockaddrLen = sizeof(_clientSockaddr);
 	if (fcntl(_numSocket, F_SETFL, O_NONBLOCK) < 0)
 		throw ERR_SocketConnect("fcntl failed");
-	EV_SET(&_clientKevent, _numSocket, EVFILT_READ, EV_ENABLE | EV_ADD, 0, 0, this);
-	if (kevent(kq, &_clientKevent, 1, NULL, 0, NULL) < 0)
-		throw ERR_SocketConnect("kevent for socket failed");
+//	EV_SET(&_clientKevent, _numSocket, EVFILT_READ, EV_ENABLE | EV_ADD, 0, 0, this);
+//	if (kevent(kq, &_clientKevent, 1, NULL, 0, NULL) < 0)
+//		throw ERR_SocketConnect("kevent for socket failed");
 }
 
 SocketConnect::~SocketConnect()
@@ -71,6 +72,30 @@ int	SocketConnect::getErrorNum()
 	return (_errorNum);
 }
 
+bool SocketConnect::isEventOrCgi(int fd) {
+    return (fd == _numSocket || _cgiHandler.comparePipeFds(fd));
+}
+
+void SocketConnect::handleRead(int fd, int _kq_main) {
+if (fd == _numSocket) {
+        // Read from socket
+        _clientRequest.readRequest(fd);
+        if (_clientRequest.isRequestComplete()) {
+            _clientRequest.setRequest();
+        } else {
+            addKqFilter(_kq_main, EVFILT_READ, EV_CLEAR | EV_ADD, fd);
+        }
+    } else {
+        // Read from CGI
+//        _cgiHandler.readRequest(fd);
+//        if (_cgiHandler.isRequestComplete()) {
+//            // If request is complete, send it to the client
+//            _clientRequest = _cgiHandler.getRequest();
+//            _clientRequest.printDataR();
+//            sendResponse();
+//        }
+    }
+}
 
 // setter and others
 
@@ -156,7 +181,7 @@ const char	*SocketConnect::ERR_SocketConnect::what() const _NOEXCEPT
 bool SocketConnect::isCGI() const {
     // Check if the request location matches the CGI location
     // You might need to modify this logic based on your URL parsing logic
-    if (_clientRequest._requestFilePath.find("/cgi-bin/") == 0) {
+    if (_clientRequest._requestFilePath.find("/cgi-bin-bin/") == 0) {
         return true;
     }
     return false;

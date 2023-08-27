@@ -54,4 +54,6 @@ class KqueueLoop
 	};
 };
 
+void    addKqFilter(int kqMain, int filter, int flags, int eventFd);
+
 #endif

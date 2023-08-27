@@ -42,6 +42,8 @@ class Request
 	Request &operator=(const Request &source);
 	Request(const Request &source);
 
+    void            readRequest(int fd);
+    bool            isRequestComplete();
 	std::string		getRequestFilePath();
 	RequestHeader	*getRequestHeader();
 	void			printDataR();
@@ -52,7 +54,7 @@ class Request
     void			setErrorNum(int num);
 
 	void			addDataR(char c);
-	int 			setRequest(std::vector<Server> *list_server, SocketConnect *socket);
+	int 			setRequest();
 	int 			setRequestHeader();
 	int 			setRequestBodyLength();
 	int 			setRequestBody();

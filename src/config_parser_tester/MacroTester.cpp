@@ -34,17 +34,17 @@ location /redirect {\n\
 	return 302 https:://eu.siteground.com/kb/domain-redirects/;\n\
 }\n\
 \n\
-location /cgi-bin/*.py {\n\
+location /cgi-bin-bin/*.py {\n\
 	allowed_methods GET,POST;\n\
 	index index.py;\n\
-	cgi.py /opt/homebrew/bin/python3;\n\
+	cgi-bin.py /opt/homebrew/bin/python3;\n\
 }\n\
 \n\
 \n\
-location /cgi-bin/*.php {\n\
+location /cgi-bin-bin/*.php {\n\
 	allowed_methods GET, POST, DELETE;\n\
 	index index.php\n\
-	cgi .py /opt/homebrew/bin/php;\n\
+	cgi-bin .py /opt/homebrew/bin/php;\n\
 }\n\
 }\n\
 \n\
@@ -88,17 +88,17 @@ location /redirect {\n\
 	return 302 https:://eu.siteground.com/kb/domain-redirects/;\n\
 }\n\
 \n\
-location /cgi-bin/*.py {\n\
+location /cgi-bin-bin/*.py {\n\
 	allowed_methods GET,POST;\n\
 	index index.py;\n\
-	cgi.py /opt/homebrew/bin/python3;\n\
+	cgi-bin.py /opt/homebrew/bin/python3;\n\
 }\n\
 \n\
 \n\
-location /cgi-bin/*.php {\n\
+location /cgi-bin-bin/*.php {\n\
 	allowed_methods GET, POST, DELETE;\n\
 	index index.php\n\
-	cgi .py /opt/homebrew/bin/php;\n\
+	cgi-bin .py /opt/homebrew/bin/php;\n\
 }\n")
 	{
 		std::cout<<"test1 fails, getAllOf is not correct!"<<std::endl;

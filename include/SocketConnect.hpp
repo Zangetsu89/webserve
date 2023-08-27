@@ -15,6 +15,7 @@
 # include <fcntl.h>
 # include "Server.hpp"
 # include "Request.hpp"
+# include "CgiHandler.hpp"
 
 class Server;
 class Request;
@@ -31,6 +32,7 @@ class SocketConnect
 	// Response			_clientResponse;
 	int					_errorNum;
 	std::string			_redirectURL;
+    CgiHandler          _cgiHandler;
 	// Error				_errorInfo;
 
 	public:
@@ -48,6 +50,8 @@ class SocketConnect
 	int					getErrorNum();
     int                 getNumSocket();
     std::string         getRedirectURL();
+    bool                isEventOrCgi(int fd);
+    void                handleRead(int fd, int _kq_main);
 	// Error				*getErrorInfo();
 
 

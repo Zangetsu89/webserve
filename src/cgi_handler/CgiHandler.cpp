@@ -10,6 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <array>
 #include "../../include/CgiHandler.hpp"
 
 //The respons generate function should see if the path is a directory or 
@@ -21,11 +22,10 @@
 //if GET searches for a plain file, look for the file in html/user directory?
 //the POST method should contain plain text message?
 
-CgiHandler::CgiHandler() {
+CgiHandler::CgiHandler() : _pipeRead(-1), _pipeWrite(-1) {
 }
 
-CgiHandler::CgiHandler(Request R) {
-    this->_request = R;
+CgiHandler::CgiHandler(Request R, char **env) : _request(R), _env(env), _pipeRead(-1), _pipeWrite(-1){
 }
 
 CgiHandler::CgiHandler(CgiHandler const &source) {
@@ -43,40 +43,95 @@ CgiHandler &CgiHandler::operator=(CgiHandler const &source) {
     return (*this);
 }
 
-void    CgiHandler::prepareResponse(char **env) {
-    int fd[2];
-    int fd2[2];
-    int err;
+bool CgiHandler::comparePipeFds(int fd) {
+    return (fd == _pipeRead || fd == _pipeWrite);
+}
 
-    if (pipe(fd) == -1)
-        throw ERR_CgiHandler("pipe failed", 500);
-    if (pipe(fd2) == -1)
-        throw ERR_CgiHandler("pipe failed", 500);
-    // We need to pipe twice here to first read from the child process and then write to the server. We only fork once.
-    int pid = fork();
-    if (pid == 0)
-    {
-        close(fd[0]);
-        dup2(fd[1], 1);
-        responseGenerate(env);
+void CgiHandler::readRequest(uintptr_t eventId) {
+    // read request from request.
+
+    char buffer[BUFFSIZE];
+    ssize_t bytesRead = read(eventId, buffer, BUFFSIZE);
+
+    if (bytesRead < 0) { // if an error happens during reading, close the connection
+        throw ERR_CgiHandler("reading from pipe failed", 500);
+    } else if (bytesRead < BUFFSIZE) {
+        for (int i = 0; i < bytesRead; i++)
+            _cgiDataRead += buffer[i];
+        std::cout << "READING FROM CGI " << _cgiDataRead << std::endl;
+//        cgiInit(_env);
+    } else { // reading is not finished
+        for (int i = 0; i < bytesRead; i++)
+            _cgiDataRead += buffer[i];
     }
-    else
-    {
-        close(fd[1]);
-        waitpid(pid, &err, 0);
-        if (err != 0)
-            throw ERR_CgiHandler("fork failed", 500);
-        char buffer[1024];
-        ssize_t len = read(fd[0], buffer, 1024);
-        if (len == -1)
-            throw ERR_CgiHandler("read failed", 500);
-        buffer[len] = '\0';
-        std::cout << buffer << std::endl;
+    std::cout << "END OF readRequest" << std::endl;
+}
+
+void    CgiHandler::cgiInit() {
+    std::array<int, 2> pipe1{}; // Pipe between ./webserv and python
+    std::array<int, 2> pipe2{}; // Pipe between python and ./webserv
+//    int status;
+
+    // Create pipes
+    if (pipe(pipe1.data()) == Error || pipe(pipe2.data()) == Error) {
+        throw ERR_CgiHandler("pipe failed", 500);
     }
+
+    // Fork first child process (./webserv | python)
+    pid_t pid1 = fork();
+    if (pid1 == 0) {
+        // Child process code for ./webserv | python
+        close(pipe1[1]); // Close write end of pipe1
+        close(pipe2[0]); // Close read end of pipe2
+
+        // Redirect stdin to read from pipe1
+        dup2(pipe1[0], STDIN_FILENO);
+
+        // Redirect stdout to write to pipe2
+        dup2(pipe2[1], STDOUT_FILENO);
+
+        // Execute python
+        responseGenerate();
+        execlp("python", "python", "-u", "-c", "print(input())", NULL);
+
+        perror("execlp python");
+    }
+
+    pid_t pid2 = fork();
+    if (pid2 == 0) {
+        // Child process code for python | ./webserv
+        close(pipe1[0]); // Close read end of pipe1
+        close(pipe2[1]); // Close write end of pipe2
+
+        // Redirect stdin to read from pipe2
+        dup2(pipe2[0], STDIN_FILENO);
+
+        // Redirect stdout to write to pipe1
+        dup2(pipe1[1], STDOUT_FILENO);
+
+        // Execute ./webserv
+        execl("./webserv", "./webserv", NULL);
+
+        perror("execl ./webserv");
+    }
+
+//    else
+//    {
+//        close(pipe1[1]);
+//        waitpid(pid1, &status, 0);
+//        if (status != 0)
+//            throw ERR_CgiHandler("fork failed", 500);
+//        char buffer[1024];
+//        ssize_t len = read(pipe1[0], buffer, 1024);
+//        if (len == -1)
+//            throw ERR_CgiHandler("read failed", 500);
+//        buffer[len] = '\0';
+//        std::cout << buffer << std::endl;
+//    }
 
 }
 
-void    CgiHandler::responseGenerate(char **env)
+void    CgiHandler::responseGenerate()
 {
 	RequestHeader Header = *(_request.getRequestHeader());
 	std::string method = Header.getRequestMethod();
@@ -95,7 +150,7 @@ void    CgiHandler::responseGenerate(char **env)
 			arg[2] = (char *)path.c_str();
 			if (method == "GET")
 			{
-				arg[1] = (char *)("./cgi/file_get.py");
+				arg[1] = (char *)("./cgi-bin/file_get.py");
 			}
 			if (method == "DELETE")
 			{
@@ -107,14 +162,14 @@ void    CgiHandler::responseGenerate(char **env)
 				command[0] = (char*)("rm");
 				command[1] = (char*)("-r");
 				command[2] = (char *)path.c_str();
-				execve("rm", command, env);
+				execve("rm", command, _env);
 			}
 			waitpid(pid, &err, 0);
 //			if (err!= 0)
 //				arg[3] = (char *)("false");
 //			else
 //				arg[3] = (char *)("true");
-//				arg[1] = (char *)("./cgi/delete.py");
+//				arg[1] = (char *)("./cgi-bin/delete.py");
 //			}
 //			else
 //				return ;
@@ -133,13 +188,13 @@ void    CgiHandler::responseGenerate(char **env)
 				arg[3] = (char *)("true");
 			else
 				arg[3] = (char *)("false");
-			arg[1] = (char *)("./cgi/directory_get.py");
+			arg[1] = (char *)("./cgi-bin/directory_get.py");
 		}
 		if (method == "POST")
 		{
 			//here should be a function to fork and extract Request_data
 			//save it in a specified directory, if not exist, make the directory
-			arg[1] = (char *)("./cgi/file_post.py");
+			arg[1] = (char *)("./cgi-bin/file_post.py");
 		}
 		if (method == "DELETE")
 		{
@@ -150,16 +205,16 @@ void    CgiHandler::responseGenerate(char **env)
 				char *command[2];
 				command[0] = (char*)("rm");
 				command[1] = (char *)path.c_str();
-				execve("rm", command, env);
+				execve("rm", command, _env);
 			}
 			waitpid(pid, &err, 0);
 			if (err!= 0)
 				arg[3] = (char *)("false");
 			else
 				arg[3] = (char *)("true");
-			arg[1] = (char *)("./cgi/delete.py");
+			arg[1] = (char *)("./cgi-bin/delete.py");
 		}
-		execve("python3", arg, env);
+		execve("python3", arg, _env);
 	}
 }
 
