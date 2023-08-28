@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/03 12:24:03 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/08/04 23:57:53 by keika         ########   odam.nl         */
+/*   Updated: 2023/08/28 17:22:05 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ DirSettings::DirSettings(DirSettings const &another)
 	this->_dirPermission = another._dirPermission;
 	this->_redirect = another._redirect;
 	this->_maxBodySize = another._maxBodySize;
+	this->_cgiDir = another._cgiDir;
 }
 
 DirSettings::~DirSettings()
@@ -49,6 +50,7 @@ DirSettings &DirSettings::operator=(DirSettings const &another)
 	this->_dirPermission = another._dirPermission;
 	this->_redirect = another._redirect;
 	this->_maxBodySize = another._maxBodySize;
+	this->_cgiDir = another._cgiDir;
 	return (*this);
 }
 
@@ -83,6 +85,7 @@ DirSettings::DirSettings(std::string settings)
 			if (this->checkCGI(location) != 0)
 			{
 				this->_type = CGI;
+				this->_cgiDir = getValue(settings)
 			}
 			else
 			{

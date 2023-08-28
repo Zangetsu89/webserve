@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/08/15 17:24:16 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/08/22 18:01:45 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/08/28 16:20:05 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,8 +24,9 @@
 Response::Response() {
 }
 
-Response::Response(Request R) {
+Response::Response(std::string cgiDir, Request R) {
     this->_request = R;
+	this->_cgiDir = cgiDir;
 }
 
 Response::Response(Response const &source) {
@@ -39,6 +40,7 @@ Response &Response::operator=(Response const &source) {
     if (this != &source)
     {
         this->_request = source._request;
+		this->_cgiDir = source._cgiDir;
     }
     return (*this);
 }
@@ -76,49 +78,66 @@ void    Response::prepareResponse(char **env) {
 
 }
 
+//responseGenerate should need the following: 
+//get: path
+//post: path and content
+//delete: path
+
+static char **stringCharArray(std::vector<std::string> strVector)
+{
+	char *Array[strVector.size() + 1];
+	for (unsigned int i = 0; i < strVector.size(); i++)
+	{
+		Array[i] = (char *)strVector[i].c_str();
+	}
+	Array[strVector.size()] = NULL;
+	return(Array);
+}
+
 void    Response::responseGenerate(char **env)
 {
 	RequestHeader Header = *(_request.getRequestHeader());
 	std::string method = Header.getRequestMethod();
 	std::string path = Header.getRequestLocation();
+	std::string content = this->_request.getRequestBody();
 	bool permission = _request.getRequestDirSettings()->getDirPermission();
 	
 	std::cout<<"Response Generate function started."<<std::endl;
 
 	if (opendir(path.c_str()) == NULL)
 	{
+		std::vector<std::string> arg;
 		if (errno == ENOTDIR)
 		{
 			//this is the case with a file
-			char *arg[3];
-			arg[0] = (char *)("python3");
-			arg[2] = (char *)path.c_str();
+			arg.push_back("/usr/local/bin/python3");
 			if (method == "GET")
 			{
-				arg[1] = (char *)("./cgi/file_get.py");
+				arg.push_back(this->_cgiDir + "/file_get.py");
+				char **charArg = stringCharArray(arg);
+				execve("/usr/local/bin/python3", charArg, env);
+			}
+			if (method == "POST")
+			{
+				char *arg[5];
+				std::string cgiDir = this->_cgiDir + "file_post.py";
+				arg[0] = (char *)("python3");
+				arg[1] = (char *)cgiDir.c_str();
+				arg[2] = (char *)path.c_str();
+				arg[3] = (char *)content.c_str();
+				arg[4] = NULL;
+				execve("/usr/local/bin/python3", arg, env);
 			}
 			if (method == "DELETE")
 			{
-				int err;
-			int pid = fork();
-			if (pid == 0)
-			{
-				char *command[3];
-				command[0] = (char*)("rm");
-				command[1] = (char*)("-r");
-				command[2] = (char *)path.c_str();
-				execve("rm", command, env);
-			}
-			waitpid(pid, &err, 0);
-			if (err!= 0)
-				arg[3] = (char *)("false");
-			else
-				arg[3] = (char *)("true");
+				char *arg[3];
+				arg[0] = (char *)("python3");
 				arg[1] = (char *)("./cgi/delete.py");
+				arg[2] = NULL;
+				execve("/usr/local/bin/python3", arg, env);
 			}
 			else
 				return ;
-			execve("python3", arg, env);
 		}
 	}
 	else
@@ -135,12 +154,7 @@ void    Response::responseGenerate(char **env)
 				arg[3] = (char *)("false");
 			arg[1] = (char *)("./cgi/directory_get.py");
 		}
-		if (method == "POST")
-		{
-			//here should be a function to fork and extract Request_data
-			//save it in a specified directory, if not exist, make the directory
-			arg[1] = (char *)("./cgi/file_post.py");
-		}
+		
 		if (method == "DELETE")
 		{
 			int err;
@@ -163,7 +177,7 @@ void    Response::responseGenerate(char **env)
 	}
 }
 
-int	Response::postRequest(Request R, char **env)
+void	Response::postRequest(Request R, char **env)
 {
     int err;
     //get file directory

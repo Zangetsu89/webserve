@@ -61,6 +61,7 @@ class Request
 	int 			checkProtocol();
 	int 			findResponseFile();
 	DirSettings		*getRequestDirSettings();
+	std::string		getRequestBody();
 
 	// exception
 	class ERR_Request : public std::exception

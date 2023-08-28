@@ -314,7 +314,10 @@ DirSettings		*Request::getRequestDirSettings()
 	return (this->_requestDirSetting);
 }
 
-
+std::string		Request::getRequestBody()
+{
+	return (this->_requestBody);
+}
 
 
 

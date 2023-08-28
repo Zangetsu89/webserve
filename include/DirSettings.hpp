@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/02 15:53:01 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/08/05 00:00:02 by keika         ########   odam.nl         */
+/*   Updated: 2023/08/28 16:25:39 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,7 @@ class	DirSettings
 		bool									_dirPermission;
 		std::map<int, std::string>				_redirect;
 		size_t									_maxBodySize;
+		std::string								_cgiDir;
 		bool									checkCGI(std::string location);
 
 	public:
@@ -55,6 +56,7 @@ class	DirSettings
 		bool									getDirPermission() const;
 		std::map<int, std::string>				getRedirect() const;
 		size_t 									getMaxBodySize() const;
+		std::string								getCGIDir() const;
 
 		void									setLocation(std::string root, std::string location);
 		void									setIndexPage(std::string indexPage);

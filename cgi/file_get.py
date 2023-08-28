@@ -12,7 +12,7 @@ try:
     # Set the appropriate Content-Type based on the file content
     mime_type, _ = mimetypes.guess_type(file_path)
     if mime_type:
-        content_type = mime_type;
+        content_type = mime_type
     else:
         content_type = application/octet-stream
 
