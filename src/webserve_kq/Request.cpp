@@ -67,6 +67,17 @@ bool	Request::getRequestShowList()
 	return (_requestShowList);
 }
 
+int	Request::getSizeR()
+{
+	return(_sizeR);
+}
+
+void	Request::addDataR(char c)
+{
+	_dataR.push_back(c);
+	_sizeR++;
+}
+
 int Request::setRequest(std::vector<Server> *list_server, SocketConnect *socket)
 {
 	_servers = list_server;
@@ -75,54 +86,49 @@ int Request::setRequest(std::vector<Server> *list_server, SocketConnect *socket)
 	try
 	{
         try {
-		    readRequest();
+            setRequestHeader();
         } catch (const std::exception& e) {
             std::cerr << e.what() << std::endl;
         }
         try {
-		    setRequestHeader();
+            setRequestBodyLength();
         } catch (const std::exception& e) {
             std::cerr << e.what() << std::endl;
         }
         try {
-		    setRequestBodyLength();
+            setRequestBody();
         } catch (const std::exception& e) {
             std::cerr << e.what() << std::endl;
         }
         try {
-		    setRequestBody();
+            findServer();
         } catch (const std::exception& e) {
             std::cerr << e.what() << std::endl;
         }
         try {
-		    findServer();
+            findDirSetting();
         } catch (const std::exception& e) {
             std::cerr << e.what() << std::endl;
         }
         try {
-		    findDirSetting();
+            checkRedirect();
         } catch (const std::exception& e) {
             std::cerr << e.what() << std::endl;
         }
         try {
-		    checkRedirect();
+            checkProtocol();
         } catch (const std::exception& e) {
             std::cerr << e.what() << std::endl;
         }
         try {
-		    checkProtocol();
-        } catch (const std::exception& e) {
-            std::cerr << e.what() << std::endl;
-        }
-        try {
-		    findResponseFile();
+            findResponseFile();
         } catch (const std::exception& e) {
             std::cerr << e.what() << std::endl;
         }
 	}
 	catch (ERR_Request& e)
 	{
-		std::cout << "err is " << e._error_num << '\n';
+		std::cout << e.what() <<  " : err is " << e._error_num << '\n';
 		return (e._error_num);
 	}
 	catch(const std::exception& e)
@@ -133,28 +139,6 @@ int Request::setRequest(std::vector<Server> *list_server, SocketConnect *socket)
 	// // to print the header parser result
 	// _requestHeader.displayHeaderOthers();
 	// _requestHeader.displayHeaderAll();
-	return (0);
-}
-
-int Request::readRequest()
-{
-	char	buff[BUFF];
-	int		r = 1;
-	// maybe we have to set the time out
-	while (r > 0)
-	{
-		r = read(_requestSocket->getSocketConnect(), buff, BUFF);
-		if (r <= 0)
-			break ;
-		for (int i = 0; i < r; i++)
-		{
-			_dataR.push_back(buff[i]);
-			_sizeR++;
-		}
-	}
-	// to print the request
-	printDataR();
-	// printSizeR();
 	return (0);
 }
 

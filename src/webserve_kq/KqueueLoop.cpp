@@ -71,7 +71,7 @@ int KqueueLoop::startLoop(char **env)
 			try
 			{
 				// check if the socket is closed by client (or error happens on the socket)
-				if (_kev_catch[i].flags == EV_ERROR)
+				if (_kev_catch[i].flags & EV_ERROR)
 				{
 					std::cout << "error on a socket" << _kev_catch[i].ident << std::endl;
 					delete ((SocketConnect *)_kev_catch[i].udata);
@@ -96,22 +96,49 @@ int KqueueLoop::startLoop(char **env)
 					{
 						// read and store data, make response data(not added yet), change kevent filter and set this to kev_catch
 						std::cout << std::endl << "[READ Event on connection socket(EVFILT_READ)] " << _kev_catch[i].ident << std::endl;
-						currentsocket->setRequest(_servers);
-						EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_READ, EV_DELETE, 0, 0, _kev_catch[i].udata);
-						EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_WRITE, EV_ADD, 0, 0, _kev_catch[i].udata);
-						kevent(_kq_main, &_kev_catch[i], 1, NULL, 0, NULL);
+						char	    buff[BUFFSIZE];
+						ssize_t 	bytesRead = 1;
+						while (bytesRead > 0)
+						{
+                            bytesRead = read(currentsocket->getSocketConnect(), buff, BUFFSIZE);
+							if (bytesRead < 0) // if an error happens during reading, close the connection
+							{
+								EV_SET(&_kev_catch[i], _kev_catch[i].ident, 0,0 , EV_ERROR, 0, _kev_catch[i].udata);
+								kevent(_kq_main, &_kev_catch[i], 1, NULL, 0, NULL);
+							}
+							else if (bytesRead < BUFFSIZE)
+							{
+								for (int i = 0; i < bytesRead; i++)
+									currentsocket->getClientRequest()->addDataR(buff[i]);
+								currentsocket->setRequest(_servers);
+								EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_READ, EV_DELETE, 0, 0, _kev_catch[i].udata);
+								EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_WRITE, EV_ADD, 0, 0, _kev_catch[i].udata);
+								kevent(_kq_main, &_kev_catch[i], 1, NULL, 0, NULL);			
+								// to print the request
+								currentsocket->getClientRequest()->printDataR();
+								break;
+							}
+							else // reading is not finished
+							{
+								for (int i = 0; i < bytesRead; i++)
+									currentsocket->getClientRequest()->addDataR(buff[i]);
+								EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_READ, EV_ADD, 0, 0, _kev_catch[i].udata);
+								kevent(_kq_main, &_kev_catch[i], 1, NULL, 0, NULL);
+							}
+						}
+
 					}
 					else if (_kev_catch[i].filter == EVFILT_WRITE) // check if the socket is to write
 					{
                         Response response = Response(*currentsocket->getClientRequest());
 						std::cout << std::endl << "[WRITE Event on connection socket(EVFILT_WRITE)] " << currentsocket->getSocketConnect() << std::endl;
-						if (currentsocket->getErrorNum() != 0)
+						if (currentsocket->getErrorNum() != 0 && currentsocket->getClientRequest()->getSizeR())
 						{
 							// if _error is set, send error file
 							std::cout << "Error in getting Request data! " << currentsocket->getErrorNum() << std::endl;
 							currentsocket->sendResponse();
 						}
-						else 
+						else if (currentsocket->getClientRequest()->getSizeR()) // if the request is no content, ignore this
 						{
 							// send response data, clean and close socket
 							std::cout << "send response! " << std::endl;

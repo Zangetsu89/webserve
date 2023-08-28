@@ -6,6 +6,6 @@
 
 // for main
 # define TOTAL_KEV 128
-# define BUFF 600
+# define BUFFSIZE 600
 
 #endif //MACRO_H
