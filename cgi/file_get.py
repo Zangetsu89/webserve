@@ -10,9 +10,9 @@ try:
         file_content = file.read()
 
     #if data comes from a post request from the browser before
-    if file_content.find("Content-type: ")
+    if "Content-type: " in file_content:
         print(file_content)
-        return
+        exit()
     # Set the appropriate Content-Type based on the file content
     mime_type, _ = mimetypes.guess_type(file_path)
     if mime_type:

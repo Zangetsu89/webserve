@@ -16,6 +16,8 @@ save_file(content_type, path, content)
 
 print("Content-Type: text/plain")
 if success == "true":
-	print("<html>Data saved successfully.")
+    print("Content-type: text/html\n")
+	print("<html><body><h1>Data saved successfully.</h1></body></html>")
 else
-	print("Data cannot be saved.")
+	print("Content-type: text/html\n")
+	print("<html><body><h1>Data cannot be saved.</h1></body></html>")
