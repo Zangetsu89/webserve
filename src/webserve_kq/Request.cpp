@@ -78,6 +78,11 @@ void	Request::addDataR(char c)
 	_sizeR++;
 }
 
+DirSettings		*Request::getRequestDirSetting()
+{
+	return (_requestDirSetting);
+}
+
 int Request::setRequest(std::vector<Server> *list_server, SocketConnect *socket)
 {
 	_servers = list_server;
@@ -212,6 +217,7 @@ int	Request::findDirSetting()
 {
 	std::string					requestLocation;
 	std::vector<DirSettings> 	*list_dirsetting = _requestServer->getOptDirSettings();
+	std::vector<DirSettings> 	*list_CGIdirsetting = _requestServer->getCGIDirSettings();
 
 	requestLocation = _requestHeader.getRequestLocation();
 	if (requestLocation.back() == '/')
@@ -219,11 +225,29 @@ int	Request::findDirSetting()
 	
 	for (; requestLocation != ""; deleteStringEnd(&requestLocation, "/"))
 	{
+		std::string root = _requestServer->getRootDir();
+		root.pop_back();
+		root += requestLocation;
 		for (std::vector<DirSettings>::iterator it = list_dirsetting->begin(); it != list_dirsetting->end(); it++)
 		{
-			if (requestLocation == it->getLocation())
+
+			std::cout << "it->getLocation() is " << it->getLocation() << ", root is " << root << std::endl;
+			std::cout << "it->getLocation().size() is " << it->getLocation().size()  << ", root.size()  is " << root.size()  << std::endl;
+			if (root == it->getLocation())
 			{
 				_requestDirSetting = &(*it);
+				std::cout << "!! requestDir is gotten -> " << root << std::endl;
+				return (0);
+			}
+		}
+		for (std::vector<DirSettings>::iterator it = list_CGIdirsetting->begin(); it != list_CGIdirsetting->end(); it++)
+		{
+			std::cout << "it->getLocation() cgi is " << it->getLocation() << ", root is " << root << std::endl;
+			std::cout << "it->getLocation().size() is " << it->getLocation().size()  << ", root.size()  is " << root.size()  << std::endl;
+			if (root == it->getLocation())
+			{
+				_requestDirSetting = &(*it);
+				std::cout << "!! requestDir is gotten, CGI -> " << root << std::endl;
 				return (0);
 			}
 		}

@@ -82,6 +82,18 @@ Config::Config(std::string file_name)
             } catch (std::exception &e) {
                 std::cout << e.what() << std::endl;
             }
+            try {
+                for (size_t j = 0; j < _servers[i].getCGIDirSettings()->size(); j++)
+                {
+                    std::cout << std::endl << "[CGIdir " << j << "]\n";
+                    std::vector<DirSettings>::iterator itr = _servers[i].getCGIDirSettings()->begin();
+                    // itr += j;
+                    advance(itr, j);
+                    itr->printAllDirSettings();
+                }
+            } catch (std::exception &e) {
+                std::cout << e.what() << std::endl;
+            }
             std::cout << std::endl;
         }
     } catch (std::exception &e) {

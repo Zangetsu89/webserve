@@ -47,6 +47,7 @@ class Request
 	void			printSizeR();
 	bool			getRequestShowList();
 	int				getSizeR();
+	DirSettings		*getRequestDirSetting();
 
 	void			addDataR(char c);
 	int 			setRequest(std::vector<Server> *list_server, SocketConnect *socket);

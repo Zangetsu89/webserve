@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "../../include/DirSettings.hpp"
+#include "../../include/util.hpp"
 
 bool	DirSettings::checkCGI(std::string location)
 {
@@ -65,6 +66,7 @@ DirSettings::DirSettings(std::string settings)
 
 	this->_index = getValue(settings, "index", 0);
 	location = getValue(settings, "root", 0);
+	location = removeWhitespace(location);
 	if (location.length() > 1)
 	{
 		this->_location = location;
@@ -79,7 +81,9 @@ DirSettings::DirSettings(std::string settings)
 		}
 		else if (location.length() > 1)
 		{
+			location = removeWhitespace(location);
 			setLocation(this->_location, location);
+			
 			if (this->checkCGI(location) != 0)
 			{
 				this->_type = CGI;
@@ -130,6 +134,7 @@ DirSettings::DirSettings(std::string settings)
 		this->_redirect.insert(this->_redirect.end(), std::pair<int, std::string>(atoi(redirect[0].c_str()), redirect[1]));
 		start_pos = start_pos + 7;
 	}
+	std::cout << "@@@set@@@ _location is" << _location << "!\n";
 }
 
 std::string	DirSettings::getLocation() const
