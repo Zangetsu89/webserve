@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/08/15 17:24:41 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/08/28 15:54:50 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/08/31 16:57:14 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,6 @@ class Response {
 
     void    responseGenerate(char **env);
     void    prepareResponse(char **env);
-    void    postRequest(Request R, char **env);
 
     // exception
     class ERR_Response : public std::exception

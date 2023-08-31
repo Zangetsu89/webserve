@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/03 12:24:03 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/08/28 17:22:05 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/08/31 15:40:08 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,7 +85,7 @@ DirSettings::DirSettings(std::string settings)
 			if (this->checkCGI(location) != 0)
 			{
 				this->_type = CGI;
-				this->_cgiDir = getValue(settings)
+				this->_cgiDir = getValue("cgi.py ", settings, 0);
 			}
 			else
 			{

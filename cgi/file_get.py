@@ -9,6 +9,10 @@ try:
     with open(file_path, 'rb') as file:
         file_content = file.read()
 
+    #if data comes from a post request from the browser before
+    if file_content.find("Content-type: ")
+        print(file_content)
+        return
     # Set the appropriate Content-Type based on the file content
     mime_type, _ = mimetypes.guess_type(file_path)
     if mime_type:

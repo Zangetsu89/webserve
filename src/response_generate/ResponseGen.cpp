@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/08/15 17:24:16 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/08/28 16:20:05 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/08/31 17:04:05 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,6 +94,33 @@ static char **stringCharArray(std::vector<std::string> strVector)
 	return(Array);
 }
 
+static std::vector<std::string> findFolder(char **env)
+{
+	std::vector<std::string> folders;
+	int i = 0;
+	while (env[i])
+	{
+		if (std::string(env[i]).find("PATH=") != std::string::npos)
+			break ;
+		i++;
+	}
+	if (!env[i])
+		throw(std::invalid_argument("Cannot execute."));
+	folders = charSplit(std::string(env[i] + 5), ':');
+	return folders;
+}
+
+static void exe(std::vector<std::string> arg, std::string command, char **env)
+{
+	std::vector<std::string> folders = findFolder(env);
+	for (unsigned int i = 0; i < folders.size(); i++)
+	{
+		std::string path = folders[i]+"/"+command;
+		arg.insert(arg.begin(), path);
+		execve((char *)path.c_str(), stringCharArray(arg), env);
+	}
+}
+
 void    Response::responseGenerate(char **env)
 {
 	RequestHeader Header = *(_request.getRequestHeader());
@@ -109,106 +136,65 @@ void    Response::responseGenerate(char **env)
 		std::vector<std::string> arg;
 		if (errno == ENOTDIR)
 		{
-			//this is the case with a file
-			arg.push_back("/usr/local/bin/python3");
 			if (method == "GET")
 			{
 				arg.push_back(this->_cgiDir + "/file_get.py");
-				char **charArg = stringCharArray(arg);
-				execve("/usr/local/bin/python3", charArg, env);
+				arg.push_back(path);
+				exe(arg, "python3", env);
 			}
-			if (method == "POST")
+			else if(method == "POST")
 			{
-				char *arg[5];
-				std::string cgiDir = this->_cgiDir + "file_post.py";
-				arg[0] = (char *)("python3");
-				arg[1] = (char *)cgiDir.c_str();
-				arg[2] = (char *)path.c_str();
-				arg[3] = (char *)content.c_str();
-				arg[4] = NULL;
-				execve("/usr/local/bin/python3", arg, env);
+				arg.push_back(this->_cgiDir + "/file_post.py");
+				arg.push_back(path);
+				arg.push_back(Header.getContentType());
+				arg.push_back(content);
+				exe(arg, "python3", env);
 			}
-			if (method == "DELETE")
+			else if(method == "DELETE")
 			{
-				char *arg[3];
-				arg[0] = (char *)("python3");
-				arg[1] = (char *)("./cgi/delete.py");
-				arg[2] = NULL;
-				execve("/usr/local/bin/python3", arg, env);
+				arg.push_back(this->_cgiDir + "/delete.py");
+				arg.push_back(path);
+				exe(arg, "python3", env);
 			}
 			else
-				return ;
+			{
+				arg.push_back(this->_cgiDir + "/request_not_allowd.py");
+				exe(arg, "python3", env);
+			}
 		}
 	}
 	else
 	{
 		//this is the case of a directory{
-		char *arg[4];
-		arg[0] = (char *)("python3");
-		arg[2] = (char *)path.c_str();
+		std::vector<std::string> arg;
 		if (method == "GET")
 		{
 			if (permission == true)
-				arg[3] = (char *)("true");
-			else
-				arg[3] = (char *)("false");
-			arg[1] = (char *)("./cgi/directory_get.py");
-		}
-		
-		if (method == "DELETE")
-		{
-			int err;
-			int pid = fork();
-			if (pid == 0)
 			{
-				char *command[2];
-				command[0] = (char*)("rm");
-				command[1] = (char *)path.c_str();
-				execve("rm", command, env);
+				arg.push_back(this->_cgiDir + "/directory_get.py");
+				arg.push_back(path);
+				arg.push_back("true");
+				exe(arg, "python3", env);
 			}
-			waitpid(pid, &err, 0);
-			if (err!= 0)
-				arg[3] = (char *)("false");
 			else
-				arg[3] = (char *)("true");
-			arg[1] = (char *)("./cgi/delete.py");
+			{
+				arg.push_back(this->_cgiDir + "/directory_get.py");
+				arg.push_back(path);
+				arg.push_back("false");
+				exe(arg, "python3", env);
+			}
 		}
-		execve("python3", arg, env);
+		else if (method == "DELETE")
+		{
+			arg.push_back(this->_cgiDir + "/delete.py");
+			exe(arg, "python3", env);
+		}
+		else
+		{
+			arg.push_back(this->_cgiDir + "/request_not_allowd.py");
+			exe(arg, "python3", env);
+		}
 	}
-}
-
-void	Response::postRequest(Request R, char **env)
-{
-    int err;
-    //get file directory
-    std::string path = R.getRequestFilePath();
-    unsigned int pos = path.rfind("/");
-    std::string dir = path.substr(0, pos);
-    std::string content; //write the Header and typer in content?
-
-    char *command[2];
-    command[0] = (char*)("mkdir");
-    command[1] = (char *)dir.c_str();
-    int pid = fork();
-    if (pid == 0)
-        execve("mkdir", command, env);
-    else
-    {
-        waitpid(pid, &err, 0);
-        if (err!= 0)
-            return (err);
-        else
-        {
-            int pid2;
-            pid2 = fork();
-            if (pid == 0)
-                execve("echo", command, env);
-            else
-            {
-                waidpid(pid2, &err, 0);
-            }
-        }
-    }
 }
 
 
