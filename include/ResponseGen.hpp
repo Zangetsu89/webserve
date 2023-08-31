@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/08/15 17:24:41 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/08/31 16:57:14 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/08/31 17:20:01 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ class Response {
         std::string _cgiDir;
 
     public:
-    Response(std::string cgiDir, Request R);
+    Response(Request R);
     Response(Response const &source);
     ~Response();
     Response &operator=(Response const &source);

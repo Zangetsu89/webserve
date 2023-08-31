@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/08/15 17:24:16 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/08/31 17:04:05 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/08/31 17:19:41 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,9 +24,9 @@
 Response::Response() {
 }
 
-Response::Response(std::string cgiDir, Request R) {
+Response::Response(Request R) {
     this->_request = R;
-	this->_cgiDir = cgiDir;
+	this->_cgiDir = R.getRequestServer().getCGIDirSettings()->getCGIDir();
 }
 
 Response::Response(Response const &source) {

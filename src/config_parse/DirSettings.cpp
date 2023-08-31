@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/03 12:24:03 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/08/31 15:40:08 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/08/31 17:10:42 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -263,4 +263,9 @@ void	DirSettings::printAllDirSettings()
 		std::cout << "redirect is " << it->first << " " << it->second << std::endl;
 	std::cout << "max body is " << _maxBodySize << std::endl;
 
+}
+
+std::string		DirSettings::getCGIDir() const
+{
+	return(this->_cgiDir);
 }
