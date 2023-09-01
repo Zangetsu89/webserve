@@ -152,11 +152,11 @@ int Request::setRequest(std::vector<Server> *list_server, SocketConnect *socket)
         } catch (const std::exception& e) {
             std::cerr << e.what() << std::endl;
         }
-        // try {
-        //     checkRedirect();
-        // } catch (const std::exception& e) {
-        //     std::cerr << e.what() << std::endl;
-        // }
+        try {
+            checkRedirect();
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
         try {
             checkProtocol();
         } catch (const std::exception& e) {
