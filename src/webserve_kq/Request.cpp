@@ -118,6 +118,7 @@ int Request::setRequest(std::vector<Server> *list_server, SocketConnect *socket)
 {
 	_servers = list_server;
 	_requestSocket = socket;
+	printDataR();
 	
 	try
 	{

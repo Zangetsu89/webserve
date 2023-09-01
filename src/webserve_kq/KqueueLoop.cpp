@@ -76,6 +76,7 @@ int KqueueLoop::startLoop(char **env)
 {
 	std::cout << "Kqueue start" << std::endl;
 	std::vector<SocketConnect*> socketConnects;
+	(void)env;
 
 	while(1)
 	{
@@ -135,32 +136,39 @@ int KqueueLoop::startLoop(char **env)
 						kevent(_kq_main, &_kev_catch[i], 1, NULL, 0, NULL);			
 						// to print the request
 						currentsocket->getClientRequest()->printDataR();
-
-					} else if (_kev_catch[i].filter == EVFILT_WRITE) // check if the socket is to write
-                    {
-                        Response response(currentsocket->getClientRequest());
-                        currentsocket->setError();
-                        std::cout << std::endl << "[WRITE Event on connection socket(EVFILT_WRITE)] " << currentsocket->getSocketConnect() << std::endl;
-                        std::cout << currentsocket->getErrorNum() << std::endl;
-                        if (currentsocket->getErrorNum() != 0)
-                        {
-                            // if _error is set, send error file
-                            std::cout << "Error in getting Request data! " << currentsocket->getErrorNum() << std::endl;
-                            response.sendErrorResponse(currentsocket);
-                        }
-                        else
-                        {
-                            // send response data, clean and close socket
-                            std::cout << "send response! " << std::endl;
-                            response.filterResponses(currentsocket);
-//                            currentsocket->sendResponse();
-//                            currentsocket->sendResponse();
-                        }
-                        delete (currentsocket);
-        				socketConnects.erase(socketConnects.begin() + where_socket);
-                        close(_kev_catch[i].ident);
-                    }
+					}
+					else // the data reading is not finished yet
+					{
+						for (int i = 0; i < bytesRead; i++)
+							currentsocket->getClientRequest()->addDataR(buff[i]);
+						EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_READ, EV_ADD, 0, 0, _kev_catch[i].udata);
+						kevent(_kq_main, &_kev_catch[i], 1, NULL, 0, NULL);
+					}
 				}
+				else if (_kev_catch[i].filter == EVFILT_WRITE) // check if the socket is to write
+                {
+                    Response response(currentsocket->getClientRequest());
+                    currentsocket->setError();
+                    std::cout << std::endl << "[WRITE Event on connection socket(EVFILT_WRITE)] " << currentsocket->getSocketConnect() << std::endl;
+                    std::cout << currentsocket->getErrorNum() << std::endl;
+                    if (currentsocket->getErrorNum() != 0)
+                    {
+                        // if _error is set, send error file
+                        std::cout << "Error in getting Request data! " << currentsocket->getErrorNum() << std::endl;
+                        response.sendErrorResponse(currentsocket);
+                    }
+                    else
+                    {
+                        // send response data, clean and close socket
+                        std::cout << "send response! " << std::endl;
+                        response.filterResponses(currentsocket);
+//                        currentsocket->sendResponse();
+//                        currentsocket->sendResponse();
+                    }
+                    delete (currentsocket);
+       				socketConnects.erase(socketConnects.begin() + where_socket);
+                    close(_kev_catch[i].ident);
+                }
 			}
 			catch (std::exception &e) // we must leave the error without using exit (otherwise the server stops for one error on a stream)
 			{

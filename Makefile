@@ -1,6 +1,6 @@
 NAME			=	webserv
 CC				=	c++
-CFLAGS			=	-Wall -Wextra -Werror -std=c++11 -g -fsanitize=address
+CFLAGS			=	-Wall -Wextra -Werror -std=c++11 -g #-fsanitize=address
 RM				=	rm -f
 DIR_HEADER		= 	include
 DIR_OBJ			=	obj

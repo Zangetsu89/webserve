@@ -235,7 +235,7 @@ void    CgiHandler::responseGenerate(char **env)
 //            }
 //        }
 //    }
-}
+// }
 
 
 CgiHandler::ERR_CgiHandler::ERR_CgiHandler() : _error_msg("Request setting failed"), _error_num(0) {}
