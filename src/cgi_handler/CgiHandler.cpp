@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/08/15 17:24:16 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/08/22 18:01:45 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/09/01 13:03:06 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@ CgiHandler::CgiHandler() {
 
 CgiHandler::CgiHandler(Request R) {
     this->_request = R;
+	//this->_cgiDir = R.getRequestServer()->getCGIDirSettings()->getCGIDir();
 }
 
 CgiHandler::CgiHandler(CgiHandler const &source) {
@@ -39,6 +40,7 @@ CgiHandler &CgiHandler::operator=(CgiHandler const &source) {
     if (this != &source)
     {
         this->_request = source._request;
+		this->_cgiDir = source._cgiDir;
     }
     return (*this);
 }
@@ -76,40 +78,80 @@ void    CgiHandler::prepareResponse(char **env) {
 
 }
 
+static char **stringCharArray(std::vector<std::string> strVector)
+{
+	char **Array;
+	Array = (char **)malloc(sizeof (char *)* strVector.size() + 1);
+	for (unsigned int i = 0; i < strVector.size(); i++)
+	{
+		Array[i] = (char *)strVector[i].c_str();
+	}
+	Array[strVector.size()] = NULL;
+	return((char **)Array);
+}
+
+static std::vector<std::string> findFolder(char **env)
+{
+	std::vector<std::string> folders;
+	int i = 0;
+	while (env[i])
+	{
+		if (std::string(env[i]).find("PATH=") != std::string::npos)
+			break ;
+		i++;
+	}
+	if (!env[i])
+		throw(std::invalid_argument("Cannot execute."));
+	folders = charSplit(std::string(env[i] + 5), ':');
+	return folders;
+}
+
+static void exe(std::vector<std::string> arg, std::string command, char **env)
+{
+	std::vector<std::string> folders = findFolder(env);
+	for (unsigned int i = 0; i < folders.size(); i++)
+	{
+		std::string path = folders[i]+"/"+command;
+		arg.insert(arg.begin(), path);
+		execve((char *)path.c_str(), stringCharArray(arg), env);
+	}
+}
+
 void    CgiHandler::responseGenerate(char **env)
 {
 	RequestHeader Header = *(_request.getRequestHeader());
 	std::string method = Header.getRequestMethod();
 	std::string path = Header.getRequestLocation();
+	std::string content = this->_request.getRequestBody();
 	bool permission = _request.getRequestDirSettings()->getDirPermission();
 
 	std::cout<<"Response Generate function started."<<std::endl;
 
 	if (opendir(path.c_str()) == nullptr)
 	{
+		std::vector<std::string> arg;
 		if (errno == ENOTDIR)
 		{
-			//this is the case with a file
-			char *arg[3];
-			arg[0] = (char *)("python3");
-			arg[2] = (char *)path.c_str();
 			if (method == "GET")
 			{
-				arg[1] = (char *)("./cgi/file_get.py");
+				arg.push_back(this->_cgiDir + "/file_get.py");
+				arg.push_back(path);
+				exe(arg, "python3", env);
 			}
-			if (method == "DELETE")
+			else if(method == "POST")
 			{
-				int err;
-			int pid = fork();
-			if (pid == 0)
-			{
-				char *command[3];
-				command[0] = (char*)("rm");
-				command[1] = (char*)("-r");
-				command[2] = (char *)path.c_str();
-				execve("rm", command, env);
+				arg.push_back(this->_cgiDir + "/file_post.py");
+				arg.push_back(path);
+				//arg.push_back(Header.getContentType());
+				arg.push_back(content);
+				exe(arg, "python3", env);
 			}
-			waitpid(pid, &err, 0);
+			else if(method == "DELETE")
+			{
+				arg.push_back(this->_cgiDir + "/delete.py");
+				arg.push_back(path);
+				exe(arg, "python3", env);
+			}
 //			if (err!= 0)
 //				arg[3] = (char *)("false");
 //			else
@@ -119,47 +161,44 @@ void    CgiHandler::responseGenerate(char **env)
 //			else
 //				return ;
 //			execve("python3", arg, env);
+			else
+			{
+				arg.push_back(this->_cgiDir + "/request_not_allowd.py");
+				exe(arg, "python3", env);
+			}
 		}
 	}
 	else
 	{
 		//this is the case of a directory{
-		char *arg[4];
-		arg[0] = (char *)("python3");
-		arg[2] = (char *)path.c_str();
+		std::vector<std::string> arg;
 		if (method == "GET")
 		{
 			if (permission == true)
-				arg[3] = (char *)("true");
-			else
-				arg[3] = (char *)("false");
-			arg[1] = (char *)("./cgi/directory_get.py");
-		}
-		if (method == "POST")
-		{
-			//here should be a function to fork and extract Request_data
-			//save it in a specified directory, if not exist, make the directory
-			arg[1] = (char *)("./cgi/file_post.py");
-		}
-		if (method == "DELETE")
-		{
-			int err;
-			int pid = fork();
-			if (pid == 0)
 			{
-				char *command[2];
-				command[0] = (char*)("rm");
-				command[1] = (char *)path.c_str();
-				execve("rm", command, env);
+				arg.push_back(this->_cgiDir + "/directory_get.py");
+				arg.push_back(path);
+				arg.push_back("true");
+				exe(arg, "python3", env);
 			}
-			waitpid(pid, &err, 0);
-			if (err!= 0)
-				arg[3] = (char *)("false");
 			else
-				arg[3] = (char *)("true");
-			arg[1] = (char *)("./cgi/delete.py");
+			{
+				arg.push_back(this->_cgiDir + "/directory_get.py");
+				arg.push_back(path);
+				arg.push_back("false");
+				exe(arg, "python3", env);
+			}
 		}
-		execve("python3", arg, env);
+		else if (method == "DELETE")
+		{
+			arg.push_back(this->_cgiDir + "/delete.py");
+			exe(arg, "python3", env);
+		}
+		else
+		{
+			arg.push_back(this->_cgiDir + "/request_not_allowd.py");
+			exe(arg, "python3", env);
+		}
 	}
 }
 

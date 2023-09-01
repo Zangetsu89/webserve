@@ -11,6 +11,7 @@
 # include <stdlib.h>
 # include "macro.hpp"
 # include "Server.hpp"
+# include "DirSettings.hpp"
 # include "RequestHeader.hpp"
 
 class Server;
@@ -26,6 +27,7 @@ class Request
 
 	RequestHeader	_requestHeader;
 	std::string		_requestFilePath;
+	std::string		_requestContentType;
 	int				_requestBodyLength;
 	std::string		_requestBody;
 	bool			_requestShowList;
@@ -43,6 +45,9 @@ class Request
 	Request(const Request &source);
 
 	std::string		getRequestFilePath();
+	std::string		getRequestContentType();
+	int				getRequestBodyLength();
+	std::string		getRequestBody();
 	RequestHeader	*getRequestHeader();
 	void			printDataR();
 	void			printSizeR();
@@ -50,20 +55,22 @@ class Request
 	int				getSizeR();
     int				getRequestErrorNum();
     void			setErrorNum(int num);
+	DirSettings		*getRequestDirSettings();
 
 	void			addDataR(char c);
 	int 			setRequest(std::vector<Server> *list_server, SocketConnect *socket);
 	int 			setRequestHeader();
+	int 			setRequestContentType();
 	int 			setRequestBodyLength();
 	int 			setRequestBody();
-	bool			checkPort(std::vector<Server>::iterator it, int port);
+	//bool			checkPort(std::vector<Server>::iterator it, int port);
 	int 			findServer();
 	int 			findDirSetting();
 	int 			checkRedirect();
 	int 			checkMethod();
 	int 			checkProtocol();
 	int 			findResponseFile();
-	DirSettings		*getRequestDirSettings();
+	int 			readRequest();
 
 	// exception
 	class ERR_Request : public std::exception

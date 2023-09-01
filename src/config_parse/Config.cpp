@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/06/26 16:49:22 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/08/07 13:35:33 by keika         ########   odam.nl         */
+/*   Updated: 2023/09/01 12:45:49 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,6 +75,18 @@ Config::Config(std::string file_name)
                 {
                     std::cout << std::endl << "[optdir " << j << "]\n";
                     std::vector<DirSettings>::iterator itr = _servers[i].getOptDirSettings()->begin();
+                    // itr += j;
+                    advance(itr, j);
+                    itr->printAllDirSettings();
+                }
+            } catch (std::exception &e) {
+                std::cout << e.what() << std::endl;
+            }
+            try {
+                for (size_t j = 0; j < _servers[i].getCGIDirSettings()->size(); j++)
+                {
+                    std::cout << std::endl << "[CGIdir " << j << "]\n";
+                    std::vector<DirSettings>::iterator itr = _servers[i].getCGIDirSettings()->begin();
                     // itr += j;
                     advance(itr, j);
                     itr->printAllDirSettings();

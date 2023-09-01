@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/08/15 17:24:41 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/08/21 15:54:05 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/09/01 13:07:47 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 #define CGIHANDLER_HPP
 
 #include "Request.hpp"
+#include "DirSettings.hpp"
 #include "RequestHeader.hpp"
 #include <unistd.h>
 #include <fcntl.h>
@@ -23,7 +24,8 @@ class CgiHandler {
 
     private:
         CgiHandler();
-        Request _request;
+        Request     _request;
+        std::string _cgiDir;
 
     public:
     CgiHandler(Request R);
@@ -34,6 +36,7 @@ class CgiHandler {
     void    responseGenerate(char **env);
     void    prepareResponse(char **env);
 //    void    postRequest(Request R, char **env);
+
 
     // exception
     class ERR_CgiHandler : public std::exception
