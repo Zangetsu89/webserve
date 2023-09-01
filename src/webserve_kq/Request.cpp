@@ -21,6 +21,7 @@ Request& Request::operator=(const Request &source)
 	{
 		_requestHeader = source._requestHeader;
 		_requestFilePath = source._requestFilePath;
+		_requestContentType = source._requestContentType;
 		_requestBodyLength = source._requestBodyLength;
 		_requestBody = source._requestBody;
 		_requestShowList = source._requestShowList;
