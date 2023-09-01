@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/03 12:24:03 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/08/04 23:57:53 by keika         ########   odam.nl         */
+/*   Updated: 2023/09/01 10:30:20 by kito          ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,7 +134,6 @@ DirSettings::DirSettings(std::string settings)
 		this->_redirect.insert(this->_redirect.end(), std::pair<int, std::string>(atoi(redirect[0].c_str()), redirect[1]));
 		start_pos = start_pos + 7;
 	}
-	std::cout << "@@@set@@@ _location is" << _location << "!\n";
 }
 
 std::string	DirSettings::getLocation() const

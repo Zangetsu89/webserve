@@ -102,13 +102,10 @@ int KqueueLoop::startLoop()
 					if (newSocket == NULL)
 						throw std::invalid_argument("error on accepting new socket");
 					socketConnects.push_back(newSocket);
-					std::cout << "the last socket num is " << socketConnects.back()->getSocketConnect() << std::endl;
 					continue;
 				}
 
 				// the socket is a connection socket
-				std::cout << "(int)_kev_catch[i].ident is " << (int)_kev_catch[i].ident << std::endl;
-				std::cout << "2 the last socket num is " << socketConnects.back()->getSocketConnect() << std::endl;
 				int	where_socket = getEventIndexFromSocketsList(socketConnects, (int)_kev_catch[i].ident);
 				if (where_socket < 0)
 					throw std::invalid_argument("Socket not found");

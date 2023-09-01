@@ -44,6 +44,21 @@ std::string	Request::getRequestFilePath()
 	return (_requestFilePath);
 }
 
+std::string	Request::getRequestContentType()
+{
+	return (_requestContentType);
+}
+
+int	Request::getRequestBodyLength()
+{
+	return (_requestBodyLength);
+}
+
+std::string	Request::getRequestBody()
+{
+	return (_requestBody);
+}
+
 RequestHeader	*Request::getRequestHeader()
 {
 	return (&_requestHeader);
@@ -96,6 +111,11 @@ int Request::setRequest(std::vector<Server> *list_server, SocketConnect *socket)
             std::cerr << e.what() << std::endl;
         }
         try {
+            setRequestContentType();
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
+        try {
             setRequestBodyLength();
         } catch (const std::exception& e) {
             std::cerr << e.what() << std::endl;
@@ -141,9 +161,12 @@ int Request::setRequest(std::vector<Server> *list_server, SocketConnect *socket)
 		std::cerr << e.what() << '\n';
 	}
 
-	// // to print the header parser result
-	// _requestHeader.displayHeaderOthers();
-	// _requestHeader.displayHeaderAll();
+	// to print the header parser result
+	_requestHeader.displayHeaderOthers();
+	_requestHeader.displayHeaderAll();
+ 	std::cout << "_requestContentType is " << _requestContentType << std::endl;
+ 	std::cout << "_requestBodyLength is " << _requestBodyLength << std::endl;
+ 	std::cout << "_requestBody is " << _requestBody << std::endl;
 	return (0);
 }
 
@@ -156,6 +179,16 @@ int	Request::setRequestHeader()
 	if (res != 0)
 		throw ERR_Request("Header information is wrong", res);
 	return (_requestHeader.setHostPort());
+}
+
+int Request::setRequestContentType()
+{
+	std::map<std::string, std::string>::iterator it;
+
+	it = _requestHeader.getHeaderOthers()->find("Content-Type");
+	if (it != _requestHeader.getHeaderOthers()->end())
+		_requestContentType = it->second;
+	return (0);
 }
 
 int Request::setRequestBodyLength()
@@ -231,8 +264,6 @@ int	Request::findDirSetting()
 		for (std::vector<DirSettings>::iterator it = list_dirsetting->begin(); it != list_dirsetting->end(); it++)
 		{
 
-			std::cout << "it->getLocation() is " << it->getLocation() << ", root is " << root << std::endl;
-			std::cout << "it->getLocation().size() is " << it->getLocation().size()  << ", root.size()  is " << root.size()  << std::endl;
 			if (root == it->getLocation())
 			{
 				_requestDirSetting = &(*it);
@@ -242,8 +273,6 @@ int	Request::findDirSetting()
 		}
 		for (std::vector<DirSettings>::iterator it = list_CGIdirsetting->begin(); it != list_CGIdirsetting->end(); it++)
 		{
-			std::cout << "it->getLocation() cgi is " << it->getLocation() << ", root is " << root << std::endl;
-			std::cout << "it->getLocation().size() is " << it->getLocation().size()  << ", root.size()  is " << root.size()  << std::endl;
 			if (root == it->getLocation())
 			{
 				_requestDirSetting = &(*it);
