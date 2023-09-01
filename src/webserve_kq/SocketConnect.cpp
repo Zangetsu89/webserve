@@ -14,6 +14,10 @@ SocketConnect::SocketConnect(int socket, int kq, std::vector<Server> *servers): 
 		throw ERR_SocketConnect("accept new request failed");
 	}
 	_clientSockaddrLen = sizeof(_clientSockaddr);
+	_timeout.tv_sec = 10; // set 10 second to max waiting time for data transfer 
+	_timeout.tv_usec = 0;
+	if (setsockopt(_numSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&_timeout, sizeof(_timeout)) < 0)
+		throw ERR_SocketConnect("setsockopt for timeout failed");
 	if (fcntl(_numSocket, F_SETFL, O_NONBLOCK) < 0)
 		throw ERR_SocketConnect("fcntl failed");
 	EV_SET(&_clientKevent, _numSocket, EVFILT_READ, EV_ENABLE | EV_ADD, 0, 0, this);
@@ -40,6 +44,7 @@ SocketConnect& SocketConnect::operator=(const SocketConnect &source)
 		_errorNum = source._errorNum;
 		_redirectURL = source._redirectURL;
 		// _errorInfo = source._errorInfo;
+		_timeout = source._timeout;
 	}
 	return (*this);
 }

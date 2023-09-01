@@ -6,11 +6,12 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/03 12:24:03 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/08/04 23:57:53 by keika         ########   odam.nl         */
+/*   Updated: 2023/09/01 10:30:20 by kito          ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/DirSettings.hpp"
+#include "../../include/util.hpp"
 
 bool	DirSettings::checkCGI(std::string location)
 {
@@ -65,6 +66,7 @@ DirSettings::DirSettings(std::string settings)
 
 	this->_index = getValue(settings, "index", 0);
 	location = getValue(settings, "root", 0);
+	location = removeWhitespace(location);
 	if (location.length() > 1)
 	{
 		this->_location = location;
@@ -79,7 +81,9 @@ DirSettings::DirSettings(std::string settings)
 		}
 		else if (location.length() > 1)
 		{
+			location = removeWhitespace(location);
 			setLocation(this->_location, location);
+			
 			if (this->checkCGI(location) != 0)
 			{
 				this->_type = CGI;

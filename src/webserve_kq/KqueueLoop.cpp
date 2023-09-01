@@ -58,10 +58,23 @@ int KqueueLoop::checkListeningSocket(int sock)
 	return (-1);
 }
 
+static int getEventIndexFromSocketsList(std::vector<SocketConnect*> socketConnects, int eventFd)
+{
+	std::cout << "socketConnects.size() is " << socketConnects.size() << std::endl;
+    for (int i = 0; i < (int)socketConnects.size(); i++) {
+		std::cout << "socketConnects[i]->getSocketConnect() is " << socketConnects[i]->getSocketConnect() << std::endl;
+        if (socketConnects[i]->getSocketConnect() == eventFd) {
+            return i;
+        }
+    }
+    return -1;
+}
 
 int KqueueLoop::startLoop()
 {
 	std::cout << "Kqueue start" << std::endl;
+	std::vector<SocketConnect*> socketConnects;
+
 	while(1)
 	{
 		_n_ev = kevent(_kq_main, NULL, 0, _kev_catch, TOTAL_KEV, NULL);
@@ -84,67 +97,99 @@ int KqueueLoop::startLoop()
 				{
 					// make new connection socket, connect the new socket to udata of kevent
 					std::cout << std::endl << "[Event on listenning socket] " << if_socket_listen << std::endl;
-					_kev_catch[i].udata = new SocketConnect((int)_kev_catch[i].ident, _kq_main, _servers);
-					if (_kev_catch[i].udata == NULL)
+					// _kev_catch[i].udata = new SocketConnect((int)_kev_catch[i].ident, _kq_main, _servers);
+					SocketConnect *newSocket = new SocketConnect((int)_kev_catch[i].ident, _kq_main, _servers);
+					if (newSocket == NULL)
 						throw std::invalid_argument("error on accepting new socket");
+					socketConnects.push_back(newSocket);
+					continue;
 				}
-				else // the socket is a connection socket
+
+				// the socket is a connection socket
+				int	where_socket = getEventIndexFromSocketsList(socketConnects, (int)_kev_catch[i].ident);
+				if (where_socket < 0)
+					throw std::invalid_argument("Socket not found");
+				SocketConnect	*currentsocket = socketConnects[where_socket];
+				if (_kev_catch[i].filter == EVFILT_READ) // check if the socket is to read
 				{
-					SocketConnect	*currentsocket = static_cast<SocketConnect *>(_kev_catch[i].udata);
-					if (_kev_catch[i].filter == EVFILT_READ) // check if the socket is to read
+					// read and store data, make response data(not added yet), change kevent filter and set this to kev_catch
+					std::cout << std::endl << "[READ Event on connection socket(EVFILT_READ)] " << _kev_catch[i].ident << std::endl;
+					char	    buff[BUFFSIZE];
+					ssize_t 	bytesRead = 1;
+
+                    bytesRead = read(currentsocket->getSocketConnect(), buff, BUFFSIZE);
+					if (bytesRead < 0) // if an error happens during reading, close the connection
 					{
-						// read and store data, make response data(not added yet), change kevent filter and set this to kev_catch
-						std::cout << std::endl << "[READ Event on connection socket(EVFILT_READ)] " << _kev_catch[i].ident << std::endl;
-						char	    buff[BUFFSIZE];
-						ssize_t 	bytesRead = 1;
-						while (bytesRead > 0)
-						{
-                            bytesRead = read(currentsocket->getSocketConnect(), buff, BUFFSIZE);
-							if (bytesRead < 0) // if an error happens during reading, close the connection
-							{
-								EV_SET(&_kev_catch[i], _kev_catch[i].ident, 0,0 , EV_ERROR, 0, _kev_catch[i].udata);
-								kevent(_kq_main, &_kev_catch[i], 1, NULL, 0, NULL);
-							}
-							else if (bytesRead < BUFFSIZE)
-							{
-								for (int i = 0; i < bytesRead; i++)
-									currentsocket->getClientRequest()->addDataR(buff[i]);
-								currentsocket->setRequest(_servers);
-								EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_READ, EV_DELETE, 0, 0, _kev_catch[i].udata);
-								EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_WRITE, EV_ADD, 0, 0, _kev_catch[i].udata);
-								kevent(_kq_main, &_kev_catch[i], 1, NULL, 0, NULL);			
-								// to print the request
-								currentsocket->getClientRequest()->printDataR();
-								break;
-							}
-							else // reading is not finished
-							{
-								for (int i = 0; i < bytesRead; i++)
-									currentsocket->getClientRequest()->addDataR(buff[i]);
-								EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_READ, EV_ADD, 0, 0, _kev_catch[i].udata);
-								kevent(_kq_main, &_kev_catch[i], 1, NULL, 0, NULL);
-							}
-						}
+						EV_SET(&_kev_catch[i], _kev_catch[i].ident, 0,0 , EV_ERROR, 0, _kev_catch[i].udata);
+						kevent(_kq_main, &_kev_catch[i], 1, NULL, 0, NULL);
+					}
+					else if (bytesRead < BUFFSIZE)
+					{
+						for (int i = 0; i < bytesRead; i++)
+							currentsocket->getClientRequest()->addDataR(buff[i]);
+						currentsocket->setRequest(_servers);
+						EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_READ, EV_DELETE, 0, 0, _kev_catch[i].udata);
+						EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_WRITE, EV_ADD, 0, 0, _kev_catch[i].udata);
+						kevent(_kq_main, &_kev_catch[i], 1, NULL, 0, NULL);			
+						// to print the request
+						currentsocket->getClientRequest()->printDataR();
 
 					}
-					else if (_kev_catch[i].filter == EVFILT_WRITE) // check if the socket is to write
+					else // reading is not finished
 					{
-						std::cout << std::endl << "[WRITE Event on connection socket(EVFILT_WRITE)] " << currentsocket->getSocketConnect() << std::endl;
-						if (currentsocket->getErrorNum() != 0 && currentsocket->getClientRequest()->getSizeR())
-						{
-							// if _error is set, send error file
-							std::cout << "Error in getting Request data! " << currentsocket->getErrorNum() << std::endl;
-							currentsocket->sendResponse();
-						}
-						else if (currentsocket->getClientRequest()->getSizeR()) // if the request is no content, ignore this
-						{
-							// send response data, clean and close socket
-							std::cout << "send response! " << std::endl;
-							currentsocket->sendResponse();
-						}
-						delete (currentsocket);
-						close(_kev_catch[i].ident);
+						for (int i = 0; i < bytesRead; i++)
+							currentsocket->getClientRequest()->addDataR(buff[i]);
+						EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_READ, EV_ADD, 0, 0, _kev_catch[i].udata);
+						kevent(_kq_main, &_kev_catch[i], 1, NULL, 0, NULL);
+
 					}
+				}
+				else if (_kev_catch[i].filter == EVFILT_WRITE) // check if the socket is to write
+				{
+					std::cout << std::endl << "[WRITE Event on connection socket(EVFILT_WRITE)] " << currentsocket->getSocketConnect() << std::endl;
+					std::cout << std::endl << "getRequestFilePath() is " << currentsocket->getClientRequest()->getRequestFilePath() << std::endl;
+
+					if (currentsocket->getErrorNum() != 0 && currentsocket->getClientRequest()->getSizeR())
+					{
+						// if _error is set, send error file
+						std::cout << "Error in getting Request data! " << currentsocket->getErrorNum() << std::endl;
+						currentsocket->sendResponse();
+					}
+					else if (currentsocket->getClientRequest()->getSizeR()) // if the request is no content, ignore this
+					{
+						// send response data, clean and close socket
+						std::cout << "currentsocket->getClientRequest()->getRequestDirSetting()->getLocation() is " << currentsocket->getClientRequest()->getRequestDirSetting()->getLocation() << std::endl;
+						if (currentsocket->getClientRequest()->getRequestDirSetting()->getDirType() == 2)
+						{
+							std::cout << "CGI directory! " << std::endl;
+							char *argv[4];
+							argv[0] = (char*)"php";
+							argv[1] = (char*)"./www/server80/cgi-bin/index.php&say=Hi&to=you";
+							argv[2] = (char*)"say=Hi&to=you";
+							argv[3] = NULL;
+							char *env[3];
+							env[0] = (char*)"QUERY_STRINGsay=Hi";
+							env[1] = (char*)"to=you";
+							env[2] = NULL;
+							int	pid = fork();
+							int	err;
+							if (pid == 0)
+							{
+								execve("/usr/bin/php", argv, env);
+								std::cout << "Execve failed! " << std::endl;
+							}
+							else
+							{
+								waitpid(pid, &err, 0);
+							}
+							// checkt the extension and if it matches to the CGI type, call CGI function
+						}
+						std::cout << "send response! " << std::endl;
+						currentsocket->sendResponse();
+					}
+					delete(currentsocket);
+					socketConnects.erase(socketConnects.begin() + where_socket);
+					close(_kev_catch[i].ident);
 				}
 			}
 			catch (std::exception &e) // we must leave the error without using exit (otherwise the server stops for one error on a stream)

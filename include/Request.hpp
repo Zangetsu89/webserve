@@ -26,6 +26,7 @@ class Request
 
 	RequestHeader	_requestHeader;
 	std::string		_requestFilePath;
+	std::string		_requestContentType;
 	int				_requestBodyLength;
 	std::string		_requestBody;
 	bool			_requestShowList;
@@ -42,15 +43,20 @@ class Request
 	Request(const Request &source);
 
 	std::string		getRequestFilePath();
+	std::string		getRequestContentType();
+	int				getRequestBodyLength();
+	std::string		getRequestBody();
 	RequestHeader	*getRequestHeader();
 	void			printDataR();
 	void			printSizeR();
 	bool			getRequestShowList();
 	int				getSizeR();
+	DirSettings		*getRequestDirSetting();
 
 	void			addDataR(char c);
 	int 			setRequest(std::vector<Server> *list_server, SocketConnect *socket);
 	int 			setRequestHeader();
+	int 			setRequestContentType();
 	int 			setRequestBodyLength();
 	int 			setRequestBody();
 	bool			checkPort(std::vector<Server>::iterator it, int port);

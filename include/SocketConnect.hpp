@@ -30,6 +30,7 @@ class SocketConnect
 	int					_errorNum;
 	std::string			_redirectURL;
 	// Error				_errorInfo;
+	struct timeval		_timeout;
 
 	public:
 	SocketConnect();
@@ -48,7 +49,7 @@ class SocketConnect
 
 
 	// setter and others
-	int setRequest(std::vector<Server> *list_server);
+	int					setRequest(std::vector<Server> *list_server);
 	void				setError(int err);
 	void				setRedirect(std::string url);
 	int					sendResponse();

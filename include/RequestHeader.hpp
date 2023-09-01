@@ -23,6 +23,8 @@ class RequestHeader
 	std::string _requestHTTPprotocol;
 	std::string _requestHost;
 	std::string _requestPort;
+	std::string _requestContentType;
+	int			_requestContentLength;
 	std::map<std::string, std::string> _requestHeaderOthers;
 
 	SocketConnect			*_requestSocket;
@@ -49,6 +51,8 @@ class RequestHeader
 	int				setMethodLocationProtocol(std::vector<char> *dataR);
 	int				setHeaderOthers(std::vector<char> *dataR);
 	int				setHostPort();
+	int				setContentType();
+	int				setRequestContentLength();
 
 };
 
