@@ -18,6 +18,9 @@ SocketListen::SocketListen(int port, int kq)
 		// if the same port is already opened by other server setting, do nothing.
 		return ;
 	}
+	int	reuseport = 1;
+	if ((setsockopt(_numSocket, SOL_SOCKET, SO_REUSEADDR, &reuseport, sizeof(reuseport))) < 0)
+		throw ERR_SocketListen("setsockopt for reuse port failed");
 	if (fcntl(_numSocket, F_SETFL, O_NONBLOCK) < 0)
 		throw ERR_SocketListen("fcntl failed on listening socket");
 	EV_SET(&_listenKevent, _numSocket, EVFILT_READ, EV_ENABLE | EV_ADD, 0, 0, NULL);

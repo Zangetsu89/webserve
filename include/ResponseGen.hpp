@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/08/15 17:24:41 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/08/31 17:20:01 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/09/01 13:07:47 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 #define RESPONSEGEN_HPP
 
 #include "Request.hpp"
+#include "DirSettings.hpp"
 #include "RequestHeader.hpp"
 #include <unistd.h>
 #include <fcntl.h>

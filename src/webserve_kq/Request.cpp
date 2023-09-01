@@ -25,6 +25,7 @@ Request& Request::operator=(const Request &source)
 	{
 		_requestHeader = source._requestHeader;
 		_requestFilePath = source._requestFilePath;
+		_requestContentType = source._requestContentType;
 		_requestBodyLength = source._requestBodyLength;
 		_requestBody = source._requestBody;
 		_requestShowList = source._requestShowList;
@@ -46,6 +47,21 @@ Request::Request(const Request &source)
 std::string	Request::getRequestFilePath()
 {
 	return (_requestFilePath);
+}
+
+std::string	Request::getRequestContentType()
+{
+	return (_requestContentType);
+}
+
+int	Request::getRequestBodyLength()
+{
+	return (_requestBodyLength);
+}
+
+std::string	Request::getRequestBody()
+{
+	return (_requestBody);
 }
 
 RequestHeader	*Request::getRequestHeader()
@@ -71,6 +87,22 @@ bool	Request::getRequestShowList()
 	return (_requestShowList);
 }
 
+int	Request::getSizeR()
+{
+	return(_sizeR);
+}
+
+void	Request::addDataR(char c)
+{
+	_dataR.push_back(c);
+	_sizeR++;
+}
+
+DirSettings		*Request::getRequestDirSettings()
+{
+	return (_requestDirSetting);
+}
+
 int Request::setRequest(std::vector<Server> *list_server, SocketConnect *socket)
 {
 	_servers = list_server;
@@ -78,14 +110,51 @@ int Request::setRequest(std::vector<Server> *list_server, SocketConnect *socket)
 	
 	try
 	{
-		readRequest();
-		setRequestHeader();
-		setRequestBodyLength();
-		setRequestBody();
-		findServer();
-		findDirSetting();
-		checkProtocol();
-		findResponseFile();
+        try {
+            setRequestHeader();
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
+        try {
+            setRequestContentType();
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
+        try {
+            setRequestBodyLength();
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
+        try {
+            setRequestBody();
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
+        try {
+            findServer();
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
+        try {
+            findDirSetting();
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
+        // try {
+        //     checkRedirect();
+        // } catch (const std::exception& e) {
+        //     std::cerr << e.what() << std::endl;
+        // }
+        try {
+            checkProtocol();
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
+        try {
+            findResponseFile();
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
 	}
 	catch (ERR_Request& e)
 	{
@@ -97,20 +166,23 @@ int Request::setRequest(std::vector<Server> *list_server, SocketConnect *socket)
 		std::cerr << e.what() << '\n';
 	}
 
-	// // to print the header parser result
-	// _requestHeader.displayHeaderOthers();
-	// _requestHeader.displayHeaderAll();
+	// to print the header parser result
+	_requestHeader.displayHeaderOthers();
+	_requestHeader.displayHeaderAll();
+ 	std::cout << "_requestContentType is " << _requestContentType << std::endl;
+ 	std::cout << "_requestBodyLength is " << _requestBodyLength << std::endl;
+ 	std::cout << "_requestBody is " << _requestBody << std::endl;
 	return (0);
 }
 
 int Request::readRequest()
 {
-	char	buff[BUFF];
+	char	buff[BUFFSIZE];
 	int		r = 1;
 	// maybe we have to set the time out
 	while (r > 0)
 	{
-		r = read(_requestSocket->getSocketConnect(), buff, BUFF);
+		r = read(_requestSocket->getSocketConnect(), buff, BUFFSIZE);
 		if (r <= 0)
 			break ;
 		for (int i = 0; i < r; i++)
@@ -134,6 +206,16 @@ int	Request::setRequestHeader()
 	if (res != 0)
 		throw ERR_Request("Header information is wrong", res);
 	return (_requestHeader.setHostPort());
+}
+
+int Request::setRequestContentType()
+{
+	std::map<std::string, std::string>::iterator it;
+
+	it = _requestHeader.getHeaderOthers()->find("Content-Type");
+	if (it != _requestHeader.getHeaderOthers()->end())
+		_requestContentType = it->second;
+	return (0);
 }
 
 int Request::setRequestBodyLength()
@@ -182,6 +264,7 @@ int	Request::findDirSetting()
 {
 	std::string					requestLocation;
 	std::vector<DirSettings> 	*list_dirsetting = _requestServer->getOptDirSettings();
+	std::vector<DirSettings> 	*list_CGIdirsetting = _requestServer->getCGIDirSettings();
 
 	requestLocation = _requestHeader.getRequestLocation();
 	if (requestLocation.back() == '/')
@@ -189,11 +272,25 @@ int	Request::findDirSetting()
 	
 	for (; requestLocation != ""; deleteStringEnd(&requestLocation, "/"))
 	{
+		std::string root = _requestServer->getRootDir();
+		root.pop_back();
+		root += requestLocation;
 		for (std::vector<DirSettings>::iterator it = list_dirsetting->begin(); it != list_dirsetting->end(); it++)
 		{
-			if (requestLocation == it->getLocation())
+
+			if (root == it->getLocation())
 			{
 				_requestDirSetting = &(*it);
+				std::cout << "!! requestDir is gotten -> " << root << std::endl;
+				return (0);
+			}
+		}
+		for (std::vector<DirSettings>::iterator it = list_CGIdirsetting->begin(); it != list_CGIdirsetting->end(); it++)
+		{
+			if (root == it->getLocation())
+			{
+				_requestDirSetting = &(*it);
+				std::cout << "!! requestDir is gotten, CGI -> " << root << std::endl;
 				return (0);
 			}
 		}

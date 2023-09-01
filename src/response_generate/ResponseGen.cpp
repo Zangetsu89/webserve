@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/08/15 17:24:16 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/08/31 17:19:41 by lizhang       ########   odam.nl         */
+/*   Updated: 2023/09/01 13:03:06 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ Response::Response() {
 
 Response::Response(Request R) {
     this->_request = R;
-	this->_cgiDir = R.getRequestServer().getCGIDirSettings()->getCGIDir();
+	//this->_cgiDir = R.getRequestServer()->getCGIDirSettings()->getCGIDir();
 }
 
 Response::Response(Response const &source) {
@@ -85,13 +85,14 @@ void    Response::prepareResponse(char **env) {
 
 static char **stringCharArray(std::vector<std::string> strVector)
 {
-	char *Array[strVector.size() + 1];
+	char **Array;
+	Array = (char **)malloc(sizeof (char *)* strVector.size() + 1);
 	for (unsigned int i = 0; i < strVector.size(); i++)
 	{
 		Array[i] = (char *)strVector[i].c_str();
 	}
 	Array[strVector.size()] = NULL;
-	return(Array);
+	return((char **)Array);
 }
 
 static std::vector<std::string> findFolder(char **env)
@@ -146,7 +147,7 @@ void    Response::responseGenerate(char **env)
 			{
 				arg.push_back(this->_cgiDir + "/file_post.py");
 				arg.push_back(path);
-				arg.push_back(Header.getContentType());
+				//arg.push_back(Header.getContentType());
 				arg.push_back(content);
 				exe(arg, "python3", env);
 			}

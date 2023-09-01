@@ -21,7 +21,7 @@ RequestHeader& RequestHeader::operator=(const RequestHeader &source)
 	{
 		_requestMethod = source._requestMethod;
 		_requestLocation = source._requestLocation;
-		_requestLocation = source._requestLocation;
+		_requestHTTPprotocol = source._requestHTTPprotocol;
 		_requestHost = source._requestHost;
 		_requestPort = source._requestPort;
 		_requestHeaderOthers = source._requestHeaderOthers;
@@ -80,8 +80,9 @@ void	RequestHeader::displayHeaderOthers()
 
 void	RequestHeader::displayHeaderAll()
 {
-	std::cout << "RequestHeader method is " << _requestMethod << std::endl;
+	std::cout << std::endl << "RequestHeader method is " << _requestMethod << std::endl;
 	std::cout << "RequestHeader location is " << _requestLocation << std::endl;
+	std::cout << "RequestHeader HTTPprotocol is " << _requestHTTPprotocol << std::endl;
 	std::cout << "RequestHeader host is " << _requestHost << ", port is " << _requestPort << std::endl;
 	std::cout << std::endl;
 }
@@ -166,3 +167,5 @@ int	RequestHeader::setHostPort()
 	}
 	return (0);
 }
+
+
