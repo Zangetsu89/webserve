@@ -13,6 +13,7 @@
 #include <fcntl.h>
 #include "Server.hpp"
 #include "macro.hpp"
+#include <array>
 
 class Server;
 class KqueueLoop
@@ -36,7 +37,7 @@ class KqueueLoop
 
 
 	int		checkListeningSocket(int sock);
-	int 	startLoop();
+	int 	startLoop(char **env);
 	int 	getKqMain();
 
 	// exception : after calling this exception -> exit

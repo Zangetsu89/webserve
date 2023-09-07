@@ -54,6 +54,11 @@ SocketConnect::SocketConnect(const SocketConnect &source)
 	*this = source;
 }
 
+int SocketConnect::getNumSocket()
+{
+    return (_numSocket);
+}
+
 // getter
 
 int	SocketConnect::getSocketConnect()
@@ -82,9 +87,10 @@ int SocketConnect::setRequest(std::vector<Server> *list_server)
 	return (0);
 }
 
-void	SocketConnect::setError(int err)
+void	SocketConnect::setError()
 {
-	_errorNum = err;
+    std::cout << "TEST in setError " << _clientRequest.getRequestErrorNum() << std::endl;
+	_errorNum = _clientRequest.getRequestErrorNum();
 }
 
 void	SocketConnect::setRedirect(std::string url)
@@ -92,26 +98,53 @@ void	SocketConnect::setRedirect(std::string url)
 	_redirectURL = url;
 }
 
+std::string	SocketConnect::getRedirectURL()
+{
+    return (_redirectURL);
+}
+
 
 // writing function : not done yet...
 int SocketConnect::sendResponse()
 {
+    try {
+        // read from _clientRequest._requestFilePath
+        std::ifstream file(_clientRequest._requestFilePath.c_str());
+        std::stringstream buffer;
+        buffer << file.rdbuf();
+        std::string contents(buffer.str());
+
+        std::string response = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n" + contents;
+        write(_numSocket, response.c_str(), response.length());
+    } catch (std::exception &e) {
+        std::cout << "Error: " << e.what() << std::endl;
+    }
+    // std::cout << "TEST in sendResponse" << std::endl;
+	// dammy response, simular with 403 error
+//    const char *dammydata = "HTTP/1.1 404 Not Found\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n"
+//                            "<!DOCTYPE html><html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">"
+//                            "<title>Error 404</title><link href=\"css.css\" rel=\"stylesheet\"></head><body>"
+//                            "<h1>Error 404</h1><p>The requested page could not be found.</p></body></html>";
+//	const char *dammydata = "HTTP/1.1 403 Forbidden\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n<!DOCTYPE html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"><title>Error 403</title><link href=\"css.css\" rel=\"stylesheet\"></head><body>Error 403</body></html>";
+//	write(_numSocket, dammydata, strlen(dammydata)); // dammy response
+//    std::cout << "TESTTTTTT" << _numSocket << std::endl;
 	// dummy response, if it is not redirect, send dummy 403 error
 	// const char *dummydata = "HTTP/1.1 403 Forbidden\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n<!DOCTYPE html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"><title>Error 403</title><link href=\"css.css\" rel=\"stylesheet\"></head><body>Error 403</body></html>";
-	if (_redirectURL != "")
-	{
-		const char *dummydata = "HTTP/1.1 302 Found\r\nLocation: ";
-		const char *redirecturl = _redirectURL.c_str();
-		write(_numSocket, dummydata, strlen(dummydata)); // dummy response
-		write(_numSocket, redirecturl, strlen(redirecturl)); // dummy response
-	}
-	else
-	{
-		const char *dummydata = "HTTP/1.1 403 Forbidden\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n<!DOCTYPE html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"><title>Error 403</title><link href=\"css.css\" rel=\"stylesheet\"></head><body>Error 403</body></html>";
-		write(_numSocket, dummydata, strlen(dummydata)); // dummy response
-	}
 
-	
+    // what we pulled from main
+//	if (_redirectURL != "")
+//	{
+//		const char *dummydata = "HTTP/1.1 302 Found\r\nLocation: ";
+//		const char *redirecturl = _redirectURL.c_str();
+//		write(_numSocket, dummydata, strlen(dummydata)); // dummy response
+//		write(_numSocket, redirecturl, strlen(redirecturl)); // dummy response
+//	}
+//	else
+//	{
+//		const char *dummydata = "HTTP/1.1 403 Forbidden\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n<!DOCTYPE html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"><title>Error 403</title><link href=\"css.css\" rel=\"stylesheet\"></head><body>Error 403</body></html>";
+//		write(_numSocket, dummydata, strlen(dummydata)); // dummy response
+//	}
+
 
 	return (0);
 }
@@ -123,4 +156,13 @@ SocketConnect::ERR_SocketConnect::ERR_SocketConnect(const char *error_msg):_erro
 const char	*SocketConnect::ERR_SocketConnect::what() const _NOEXCEPT
 {
 	return (_error_msg);
+}
+
+bool SocketConnect::isCGI() const {
+    // Check if the request location matches the CGI location
+    // You might need to modify this logic based on your URL parsing logic
+    if (_clientRequest._requestFilePath.find("/cgi-bin/") == 0) {
+        return true;
+    }
+    return false;
 }

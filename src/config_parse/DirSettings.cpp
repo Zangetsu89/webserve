@@ -6,7 +6,7 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/03 12:24:03 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/09/01 10:30:20 by kito          ########   odam.nl         */
+/*   Updated: 2023/09/01 12:45:51 by lizhang       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,7 @@ DirSettings::DirSettings(DirSettings const &another)
 	this->_dirPermission = another._dirPermission;
 	this->_redirect = another._redirect;
 	this->_maxBodySize = another._maxBodySize;
+	this->_cgiDir = another._cgiDir;
 }
 
 DirSettings::~DirSettings()
@@ -50,6 +51,7 @@ DirSettings &DirSettings::operator=(DirSettings const &another)
 	this->_dirPermission = another._dirPermission;
 	this->_redirect = another._redirect;
 	this->_maxBodySize = another._maxBodySize;
+	this->_cgiDir = another._cgiDir;
 	return (*this);
 }
 
@@ -87,6 +89,7 @@ DirSettings::DirSettings(std::string settings)
 			if (this->checkCGI(location) != 0)
 			{
 				this->_type = CGI;
+				this->_cgiDir = getValue("cgi.py ", settings, 0);
 			}
 			else
 			{
@@ -264,4 +267,9 @@ void	DirSettings::printAllDirSettings()
 		std::cout << "redirect is " << it->first << " " << it->second << std::endl;
 	std::cout << "max body is " << _maxBodySize << std::endl;
 
+}
+
+std::string		DirSettings::getCGIDir() const
+{
+	return(this->_cgiDir);
 }

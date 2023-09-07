@@ -11,7 +11,7 @@
 #include "include/Config.hpp"
 #include "include/WebservCli.hpp"
 
-int  main(int argc, char *argv[]) 
+int  main(int argc, char *argv[], char **env) 
 {
 	WebservCli 				WebservCli;
 	std::vector<Server>		list_Servers;
@@ -76,7 +76,7 @@ int  main(int argc, char *argv[])
 		// KqueueLoop	mainloop(&list_Servers, kq);
 
 		KqueueLoop	mainloop(config.getServers(), kq);	// we must use the list of servers in the Config class
-		mainloop.startLoop();
+		mainloop.startLoop(env);
 	}
 	catch(std::exception &e) // in this moment, any error calls exit. 
 	{
