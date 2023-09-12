@@ -1,17 +1,10 @@
-//
-// to run the program, define one (or more) config file
-// sorry it contains 6 small functions
-// it will be moved into util.cpp (or something else)
-//
-
-//#include "include/WebservCli.hpp"
+#include "include/WebservCli.hpp"
 #include "include/Server.hpp"
 #include "include/DirSettings.hpp"
 #include "include/KqueueLoop.hpp"
 #include "include/Config.hpp"
-#include "include/WebservCli.hpp"
 
-int  main(int argc, char *argv[]) 
+int  main(int argc, char *argv[], char **env) 
 {
 	WebservCli 				WebservCli;
 	std::vector<Server>		list_Servers;
@@ -47,24 +40,15 @@ int  main(int argc, char *argv[])
         if (list_Servers.size() == 0)
         {
             std::cout << "Error: no server information" << std::endl;
-            return 1;
-        } else {
+            exit (1);
+        }
+		else  // print server info to check
+		{
             for (size_t i = 0; i < list_Servers.size(); i++)
             {
                 std::cout << std::endl;
-                try {
-                    std::cout << i << ": server name is " << list_Servers[i].getServerName() << std::endl;
-                } catch (std::exception &e) {
-                    std::cout << e.what() << std::endl;
-                }
-//                try {
-//                    for (size_t j = 0; j < list_Servers[i].getPorts().size(); j++)
-//                    {
-//                        std::cout << "port: " << list_Servers[i].getPorts()[j] << std::endl;
-//                    }
-//                } catch (std::exception &e) {
-//                    std::cout << e.what() << std::endl;
-//                }
+				std::cout << "Server total size is " << list_Servers.size() << std::endl;
+				std::cout << i + 1 << ": server name is " << list_Servers[i].getServerName() << std::endl;
                 std::cout << std::endl;
             }
         }
@@ -72,11 +56,8 @@ int  main(int argc, char *argv[])
 		// with this function, listening sockets are set in the list servers in config class
 		config.setKqServers(kq);
 
-		// std::cout<<"Listening socket: "<<list_Servers[1].getSocketListen()[0].getSocketListen()<<std::endl;
-		// KqueueLoop	mainloop(&list_Servers, kq);
-
-		KqueueLoop	mainloop(config.getServers(), kq);	// we must use the list of servers in the Config class
-		mainloop.startLoop();
+		KqueueLoop	mainloop(config.getServers(), kq);
+		mainloop.startLoop(env);
 	}
 	catch(std::exception &e) // in this moment, any error calls exit. 
 	{

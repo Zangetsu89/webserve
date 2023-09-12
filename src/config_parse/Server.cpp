@@ -6,15 +6,21 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/03 12:08:06 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/08/05 13:18:59 by keika         ########   odam.nl         */
+/*   Updated: 2023/09/09 15:34:25 by kito          ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/Server.hpp"
+#include "../../include/SocketListen.hpp"
+#include "../../include/DirSettings.hpp"
 
 Server::Server()
 {
 }
+
+// CHECK later
+// the _rootDir must have "/" at the end (if not, add "/" at the end)
+// the _rootDir must start with "./"
 
 Server::Server(std::string settings)
 {

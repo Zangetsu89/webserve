@@ -2,10 +2,15 @@
 // Socket for Connection
 //
 
-#include "../../include/Request.hpp"
-#include "../../include/SocketConnect.hpp"
+// #include "../../include/Request.hpp"
 
-SocketConnect::SocketConnect(int socket, int kq, std::vector<Server> *servers): _servers(servers)
+#include "../../include/SocketConnect.hpp"
+#include "../../include/Request.hpp"
+#include "../../include/Response.hpp"
+
+SocketConnect::SocketConnect():_numSocket(0), _errorNum(0), _statusNum(0){}
+
+SocketConnect::SocketConnect(int socket, int kq, std::vector<Server> *servers): _servers(servers), _errorNum(0), _statusNum(0)
 {
 	_numSocket = accept(socket, (struct sockaddr *) &_clientSockaddr, &_clientSockaddrLen);
 	if (_numSocket < 3)
@@ -40,10 +45,10 @@ SocketConnect& SocketConnect::operator=(const SocketConnect &source)
 		_clientKevent = source._clientKevent;
 		_servers = source._servers;
 		_clientRequest = source._clientRequest;
-		// _clientResponse = source._clientResponse;
+		_clientResponse = source._clientResponse;
 		_errorNum = source._errorNum;
+		_statusNum = source._statusNum;
 		_redirectURL = source._redirectURL;
-		// _errorInfo = source._errorInfo;
 		_timeout = source._timeout;
 	}
 	return (*this);
@@ -52,6 +57,11 @@ SocketConnect& SocketConnect::operator=(const SocketConnect &source)
 SocketConnect::SocketConnect(const SocketConnect &source)
 {
 	*this = source;
+}
+
+int SocketConnect::getNumSocket()
+{
+    return (_numSocket);
 }
 
 // getter
@@ -66,20 +76,45 @@ Request		*SocketConnect::getClientRequest()
 	return (&_clientRequest);
 }
 
+Response		*SocketConnect::getClientResponse()
+{
+	return (&_clientResponse);
+}
+
 int	SocketConnect::getErrorNum()
 {
 	return (_errorNum);
 }
 
+int	SocketConnect::getStatusNum()
+{
+	return (_statusNum);
+}
+
 
 // setter and others
 
-int SocketConnect::setRequest(std::vector<Server> *list_server)
+int SocketConnect::readRequest()
 {
-	_errorNum = _clientRequest.setRequest(list_server, this);
-	if (_errorNum != 0)
-		return (_errorNum);
+	char	buff[BUFFSIZE];
+	int		bytesRead = 1;
+
+	while (bytesRead > 0)
+	{
+		bytesRead = recv(_numSocket, buff, BUFFSIZE, 0);
+		if (bytesRead == 0)
+			break ;
+		for (int i = 0; i < bytesRead; i++)
+			_clientRequest.addDataR(buff[i]);
+	}
+	if (_clientRequest.getSizeR() == 0)
+		throw std::invalid_argument("Request is empty");
 	return (0);
+}
+
+void	SocketConnect::setRequest(std::vector<Server> *list_server)
+{
+	_clientRequest.setRequest(list_server, this);
 }
 
 void	SocketConnect::setError(int err)
@@ -87,33 +122,19 @@ void	SocketConnect::setError(int err)
 	_errorNum = err;
 }
 
+void	SocketConnect::setStatus(int status)
+{
+	_statusNum = status;
+}
+
 void	SocketConnect::setRedirect(std::string url)
 {
 	_redirectURL = url;
 }
 
-
-// writing function : not done yet...
-int SocketConnect::sendResponse()
+std::string	SocketConnect::getRedirectURL()
 {
-	// dummy response, if it is not redirect, send dummy 403 error
-	// const char *dummydata = "HTTP/1.1 403 Forbidden\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n<!DOCTYPE html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"><title>Error 403</title><link href=\"css.css\" rel=\"stylesheet\"></head><body>Error 403</body></html>";
-	if (_redirectURL != "")
-	{
-		const char *dummydata = "HTTP/1.1 302 Found\r\nLocation: ";
-		const char *redirecturl = _redirectURL.c_str();
-		write(_numSocket, dummydata, strlen(dummydata)); // dummy response
-		write(_numSocket, redirecturl, strlen(redirecturl)); // dummy response
-	}
-	else
-	{
-		const char *dummydata = "HTTP/1.1 403 Forbidden\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n<!DOCTYPE html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"><title>Error 403</title><link href=\"css.css\" rel=\"stylesheet\"></head><body>Error 403</body></html>";
-		write(_numSocket, dummydata, strlen(dummydata)); // dummy response
-	}
-
-	
-
-	return (0);
+    return (_redirectURL);
 }
 
 // exception

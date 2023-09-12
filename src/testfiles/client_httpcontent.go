@@ -59,12 +59,12 @@ func main() {
     // data += fmt.Sprintf("hello hello 123456")
     go func() {
       defer wg.Done()
-      data := "GET /ico.png HTTP/1.1\n" + "Host: localhost:5555\n" + "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:109.0) Gecko/20100101 Firefox/114.0\n"
-      data += "Accept: image/avif,image/webp,*/*\n"
-      data +=  "Content-Type: multipart/form-data\n"
-      data +=  "Content-Length: 258\n"
-      data +=  "\n"
-      data += "body data data data\n"
+      data := "GET /ico.png HTTP/1.1\n" + "Host: localhost:5555\r\n" + "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:109.0) Gecko/20100101 Firefox/114.0\r\n"
+      data += "Accept: image/avif,image/webp,*/*\r\n"
+      data +=  "Content-Type: multipart/form-data\r\n"
+      data +=  "Content-Length: 258\r\n"
+      data +=  "\r\n"
+      data += "body data data data\r\n"
       data += "hello hello 12345"
   
 

@@ -2,6 +2,8 @@
 # define SOCKETCONNECT_HPP
 # include <vector>
 # include <iostream>
+# include <fstream>
+# include <sstream>
 # include <sys/socket.h>
 # include <sys/types.h>
 # include <sys/event.h>
@@ -11,11 +13,14 @@
 # include <netdb.h>
 # include <signal.h>
 # include <fcntl.h>
+# include "Response.hpp"
 # include "Server.hpp"
 # include "Request.hpp"
 
+
 class Server;
 class Request;
+class Response;
 class SocketConnect
 {
 
@@ -26,10 +31,10 @@ class SocketConnect
 	struct kevent		_clientKevent;
 	std::vector<Server>	*_servers;
     Request				_clientRequest;
-	// Response			_clientResponse;
+	Response			_clientResponse;
 	int					_errorNum;
+	int					_statusNum;
 	std::string			_redirectURL;
-	// Error				_errorInfo;
 	struct timeval		_timeout;
 
 	public:
@@ -43,16 +48,19 @@ class SocketConnect
 	// getter
 	int 				getSocketConnect();
 	Request				*getClientRequest();
-	// Response			*getClientResponse();
+	Response			*getClientResponse();
 	int					getErrorNum();
-	// Error				*getErrorInfo();
+	int					getStatusNum();
+    int                 getNumSocket();
+    std::string         getRedirectURL();
 
 
 	// setter and others
-	int					setRequest(std::vector<Server> *list_server);
+	int					readRequest();
+	void                setRequest(std::vector<Server> *list_server);
 	void				setError(int err);
+	void				setStatus(int status);
 	void				setRedirect(std::string url);
-	int					sendResponse();
 
 	// exception
 	public : class ERR_SocketConnect : public std::exception

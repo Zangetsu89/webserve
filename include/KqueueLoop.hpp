@@ -13,6 +13,7 @@
 #include <fcntl.h>
 #include "Server.hpp"
 #include "macro.hpp"
+#include <array>
 
 class Server;
 class KqueueLoop
@@ -24,19 +25,17 @@ class KqueueLoop
 	std::vector<int>	_listListeningSocketInt;
 	std::vector<Server>	*_servers;
 
-	// base public member function
 	protected:
-	KqueueLoop(); // do not use : KqueueLoop must be created with socket number
+	KqueueLoop();
 
 	public:
 	KqueueLoop(std::vector<Server> *servers, int kq);
 	~KqueueLoop();
-	KqueueLoop &operator=(const KqueueLoop &source);
-	KqueueLoop(const KqueueLoop &source);
-
+	KqueueLoop &operator=(const KqueueLoop &source) = delete;	// copy prohibited
+	KqueueLoop(const KqueueLoop &source) = delete;				// copy prohibited
 
 	int		checkListeningSocket(int sock);
-	int 	startLoop();
+	int 	startLoop(char **env);
 	int 	getKqMain();
 
 	// exception : after calling this exception -> exit

@@ -6,6 +6,11 @@
 
 // for main
 # define TOTAL_KEV 128
-# define BUFFSIZE 600
+# define BUFFSIZE 128
+
+// for Response
+# define ISFILE 1
+# define SHOWLIST 2
+# define NOTFOUND 3
 
 #endif //MACRO_H

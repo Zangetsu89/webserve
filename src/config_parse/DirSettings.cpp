@@ -6,21 +6,21 @@
 /*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/03 12:24:03 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/09/01 10:30:20 by kito          ########   odam.nl         */
+/*   Updated: 2023/09/10 19:00:04 by kito          ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/DirSettings.hpp"
 #include "../../include/util.hpp"
 
-bool	DirSettings::checkCGI(std::string location)
-{
-	if (location.find("CGI") != (size_t)(-1) || location.find("cgi") != (size_t)(-1))
-		return (1);
-	return(0);
-}
+// bool	DirSettings::checkCGI(std::string location)
+// {
+// 	if (location.find("CGI") != (size_t)(-1) || location.find("cgi") != (size_t)(-1))
+// 		return (1);
+// 	return(0);
+// }
 
-DirSettings::DirSettings()
+DirSettings::DirSettings():_cgiBool(0)
 {
 }
 
@@ -34,6 +34,9 @@ DirSettings::DirSettings(DirSettings const &another)
 	this->_dirPermission = another._dirPermission;
 	this->_redirect = another._redirect;
 	this->_maxBodySize = another._maxBodySize;
+	this->_cgiBool = another._cgiBool;
+	this->_cgiExtension = another._cgiExtension;
+	this->_cgiDir = another._cgiDir;
 }
 
 DirSettings::~DirSettings()
@@ -50,10 +53,13 @@ DirSettings &DirSettings::operator=(DirSettings const &another)
 	this->_dirPermission = another._dirPermission;
 	this->_redirect = another._redirect;
 	this->_maxBodySize = another._maxBodySize;
+	this->_cgiBool = another._cgiBool;
+	this->_cgiExtension = another._cgiExtension;
+	this->_cgiDir = another._cgiDir;
 	return (*this);
 }
 
-DirSettings::DirSettings(std::string settings)
+DirSettings::DirSettings(std::string settings):_cgiBool(0)
 {
 	std::string					location;
 	std::string					index;
@@ -83,15 +89,8 @@ DirSettings::DirSettings(std::string settings)
 		{
 			location = removeWhitespace(location);
 			setLocation(this->_location, location);
-			
-			if (this->checkCGI(location) != 0)
-			{
-				this->_type = CGI;
-			}
-			else
-			{
-				this->_type = OPTIONAL;
-			}
+			this->_type = OPTIONAL;
+			setCgiElements(settings);
 		}
 	}
 	if (this->_location.length() < 1)
@@ -134,6 +133,7 @@ DirSettings::DirSettings(std::string settings)
 		this->_redirect.insert(this->_redirect.end(), std::pair<int, std::string>(atoi(redirect[0].c_str()), redirect[1]));
 		start_pos = start_pos + 7;
 	}
+	std::cout << "!! _cgiExtension, _cgiDir is " << _cgiExtension << " "<< _cgiDir << std::endl;
 }
 
 std::string	DirSettings::getLocation() const
@@ -175,6 +175,24 @@ size_t	DirSettings::getMaxBodySize() const
 {
 	return (this->_maxBodySize);
 }
+
+bool	DirSettings::getCgiBool() const
+{
+	return (this->_cgiBool);
+}
+
+std::string	DirSettings::getCgiExtension() const
+{
+	return (this->_cgiExtension);
+}
+
+
+std::string	DirSettings::getCgiDir() const
+{
+	return (this->_cgiDir);
+}
+
+
 
 void	DirSettings::setLocation(std::string root, std::string location)
 {
@@ -227,6 +245,49 @@ void	DirSettings::setMaxBodySize(size_t size)
 	this->_maxBodySize = size;
 }
 
+void	DirSettings::setCgiBool(bool cgi)
+{
+	this->_cgiBool = cgi;
+}
+
+void	DirSettings::setCgiExtension(std::string text)
+{
+	this->_cgiExtension = text;
+}
+
+void	DirSettings::setCgiDir(std::string dir)
+{
+	this->_cgiDir = dir;
+}
+
+
+void	DirSettings::setCgiElements(std::string settings)
+{
+	std::string cgi = getValue(settings, "cgi ", 0);
+	std::cout << "cgi  is " << cgi << std::endl;
+	if (cgi.size() == 0)
+		return;
+	try
+	{
+		std::string slice = splitString(&cgi, " ");
+		splitString(&slice, ".");
+		_cgiExtension = slice; // extension without dot
+		_cgiDir = removeWhitespace(cgi);
+		_cgiBool = 1;
+		this->_type = CGI;
+		std::cout << "_cgiExtension, _cgiDir is " << _cgiExtension << " "<< _cgiDir << std::endl;
+
+		if (_cgiExtension != "py" && _cgiExtension != "php")
+			throw(std::invalid_argument("This server handles only .py or .php"));
+	}
+	catch(const std::exception& e)
+	{
+		std::cerr << "CGI format is not correct" << '\n';
+		exit(1);
+	}
+	
+}
+
 
 void	addDirSettingData(DirSettings &Target, DirSettings &toAdd)
 {
@@ -246,6 +307,9 @@ void	addDirSettingData(DirSettings &Target, DirSettings &toAdd)
 		Target.setRedirect(toAdd.getRedirect());
 	if (toAdd.getMaxBodySize() != std::numeric_limits<size_t>::max())
 		Target.setMaxBodySize(toAdd.getMaxBodySize());
+	Target.setCgiBool(toAdd.getCgiBool());
+	Target.setCgiExtension(toAdd.getCgiExtension());
+	Target.setCgiDir(toAdd.getCgiDir());
 }
 
 void	DirSettings::printAllDirSettings()
@@ -263,5 +327,17 @@ void	DirSettings::printAllDirSettings()
 	for (auto it = _redirect.begin(); it != _redirect.end(); it++)
 		std::cout << "redirect is " << it->first << " " << it->second << std::endl;
 	std::cout << "max body is " << _maxBodySize << std::endl;
+	std::cout << "_cgi is " << _cgiBool << std::endl;
+	std::cout << "_cgiExtension is " << _cgiExtension<< std::endl;
+	std::cout << "_cgiDir is " << _cgiDir<< std::endl;
 
 }
+
+// std::string		DirSettings::getCgiExtension() const
+// {
+// 	return(this->_cgiExtension);
+// }
+// std::string		DirSettings::getCgiDir() const
+// {
+// 	return(this->_cgiDir);
+// }

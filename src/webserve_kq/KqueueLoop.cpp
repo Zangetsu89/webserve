@@ -3,7 +3,10 @@
 //
 
 #include "../../include/KqueueLoop.hpp"
+#include "../../include/CgiHandler.hpp"
 #include "../../include/SocketConnect.hpp"
+#include "../../include/SocketListen.hpp"
+#include "../../include/Response.hpp"
 
 KqueueLoop::KqueueLoop(std::vector<Server> *servers, int kq): _kq_main(kq), _n_ev(0), _servers(servers)
 {
@@ -21,7 +24,8 @@ KqueueLoop::KqueueLoop(std::vector<Server> *servers, int kq): _kq_main(kq), _n_e
 		for (int i = 0; i < (int)tempsocketlist->size(); i++)
 		{
 			std::vector<SocketListen>::iterator itr = tempsocketlist->begin() + i;
-			_listListeningSocketInt.push_back(itr->getNumSocket());		}
+			_listListeningSocketInt.push_back(itr->getNumSocket());
+		}
 	}
 }
 
@@ -30,23 +34,6 @@ KqueueLoop::~KqueueLoop()
 
 }
 
-KqueueLoop& KqueueLoop::operator=(const KqueueLoop &source)	
-{
-	if (this != &source)
-	{
-		_kq_main = source._kq_main;
-		// _kev_catch[TOTAL_KEV] = source._kev_catch[TOTAL_KEV]; // can't copy
-		_n_ev = source._n_ev;
-		_listListeningSocketInt = source._listListeningSocketInt;
-		_servers = source._servers;
-	}
-	return (*this);
-}
-
-KqueueLoop::KqueueLoop(const KqueueLoop &source)
-{
-	*this = source;
-}
 
 int KqueueLoop::checkListeningSocket(int sock)
 {
@@ -70,10 +57,19 @@ static int getEventIndexFromSocketsList(std::vector<SocketConnect*> socketConnec
     return -1;
 }
 
-int KqueueLoop::startLoop()
+void    addKqFilter(int kqMain, int filter, int flags, int eventFd)
+{
+    struct kevent		_kev_catch;
+
+    EV_SET(&_kev_catch, eventFd, filter, flags, 0, 0, nullptr);
+    kevent(kqMain, &_kev_catch, 1, nullptr, 0, nullptr);
+}
+
+int KqueueLoop::startLoop(char **env)
 {
 	std::cout << "Kqueue start" << std::endl;
 	std::vector<SocketConnect*> socketConnects;
+	(void)env;
 
 	while(1)
 	{
@@ -82,22 +78,13 @@ int KqueueLoop::startLoop()
 		{
 			try
 			{
-				// check if the socket is closed by client (or error happens on the socket)
 				if (_kev_catch[i].flags & EV_ERROR)
-				{
-					std::cout << "error on a socket" << _kev_catch[i].ident << std::endl;
-					delete ((SocketConnect *)_kev_catch[i].udata);
-					close(_kev_catch[i].ident);
-					continue;
-				}
-				std::cout << "_kev_catch[i].ident is " << _kev_catch[i].ident << std::endl;
+					throw std::invalid_argument("error flag on a socket");
 
-				int if_socket_listen = checkListeningSocket(_kev_catch[i].ident);
-				if (if_socket_listen > 2)
+				int socket_num = checkListeningSocket(_kev_catch[i].ident);
+				if (socket_num > 2)
 				{
-					// make new connection socket, connect the new socket to udata of kevent
-					std::cout << std::endl << "[Event on listenning socket] " << if_socket_listen << std::endl;
-					// _kev_catch[i].udata = new SocketConnect((int)_kev_catch[i].ident, _kq_main, _servers);
+					std::cout << std::endl << "[Event on listenning socket] " << socket_num << std::endl;
 					SocketConnect *newSocket = new SocketConnect((int)_kev_catch[i].ident, _kq_main, _servers);
 					if (newSocket == NULL)
 						throw std::invalid_argument("error on accepting new socket");
@@ -105,96 +92,50 @@ int KqueueLoop::startLoop()
 					continue;
 				}
 
-				// the socket is a connection socket
 				int	where_socket = getEventIndexFromSocketsList(socketConnects, (int)_kev_catch[i].ident);
 				if (where_socket < 0)
 					throw std::invalid_argument("Socket not found");
 				SocketConnect	*currentsocket = socketConnects[where_socket];
-				if (_kev_catch[i].filter == EVFILT_READ) // check if the socket is to read
+				if (_kev_catch[i].filter == EVFILT_READ)
 				{
-					// read and store data, make response data(not added yet), change kevent filter and set this to kev_catch
-					std::cout << std::endl << "[READ Event on connection socket(EVFILT_READ)] " << _kev_catch[i].ident << std::endl;
-					char	    buff[BUFFSIZE];
-					ssize_t 	bytesRead = 1;
-
-                    bytesRead = read(currentsocket->getSocketConnect(), buff, BUFFSIZE);
-					if (bytesRead < 0) // if an error happens during reading, close the connection
-					{
-						EV_SET(&_kev_catch[i], _kev_catch[i].ident, 0,0 , EV_ERROR, 0, _kev_catch[i].udata);
-						kevent(_kq_main, &_kev_catch[i], 1, NULL, 0, NULL);
-					}
-					else if (bytesRead < BUFFSIZE)
-					{
-						for (int i = 0; i < bytesRead; i++)
-							currentsocket->getClientRequest()->addDataR(buff[i]);
-						currentsocket->setRequest(_servers);
-						EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_READ, EV_DELETE, 0, 0, _kev_catch[i].udata);
-						EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_WRITE, EV_ADD, 0, 0, _kev_catch[i].udata);
-						kevent(_kq_main, &_kev_catch[i], 1, NULL, 0, NULL);			
-						// to print the request
-						currentsocket->getClientRequest()->printDataR();
-
-					}
-					else // reading is not finished
-					{
-						for (int i = 0; i < bytesRead; i++)
-							currentsocket->getClientRequest()->addDataR(buff[i]);
-						EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_READ, EV_ADD, 0, 0, _kev_catch[i].udata);
-						kevent(_kq_main, &_kev_catch[i], 1, NULL, 0, NULL);
-
-					}
+					std::cout << std::endl << "[READ Event on connection socket(EVFILT_READ)] " << _kev_catch[i].ident << std::endl;	
+					currentsocket->readRequest();
+					currentsocket->setRequest(_servers);
+					currentsocket->getClientResponse()->makeResponse(currentsocket->getClientRequest(), currentsocket);
+					EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_READ, EV_DELETE, 0, 0, 0);
+					EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_WRITE, EV_ADD, 0, 0, 0);
+					kevent(_kq_main, &_kev_catch[i], 1, NULL, 0, NULL);
 				}
 				else if (_kev_catch[i].filter == EVFILT_WRITE) // check if the socket is to write
-				{
-					std::cout << std::endl << "[WRITE Event on connection socket(EVFILT_WRITE)] " << currentsocket->getSocketConnect() << std::endl;
-					std::cout << std::endl << "getRequestFilePath() is " << currentsocket->getClientRequest()->getRequestFilePath() << std::endl;
-
-					if (currentsocket->getErrorNum() != 0 && currentsocket->getClientRequest()->getSizeR())
-					{
-						// if _error is set, send error file
-						std::cout << "Error in getting Request data! " << currentsocket->getErrorNum() << std::endl;
-						currentsocket->sendResponse();
-					}
-					else if (currentsocket->getClientRequest()->getSizeR()) // if the request is no content, ignore this
-					{
-						// send response data, clean and close socket
-						std::cout << "currentsocket->getClientRequest()->getRequestDirSetting()->getLocation() is " << currentsocket->getClientRequest()->getRequestDirSetting()->getLocation() << std::endl;
-						if (currentsocket->getClientRequest()->getRequestDirSetting()->getDirType() == 2)
+                {
+					if (currentsocket->getRedirectURL() != "")
 						{
-							std::cout << "CGI directory! " << std::endl;
-							char *argv[4];
-							argv[0] = (char*)"php";
-							argv[1] = (char*)"./www/server80/cgi-bin/index.php&say=Hi&to=you";
-							argv[2] = (char*)"say=Hi&to=you";
-							argv[3] = NULL;
-							char *env[3];
-							env[0] = (char*)"QUERY_STRINGsay=Hi";
-							env[1] = (char*)"to=you";
-							env[2] = NULL;
-							int	pid = fork();
-							int	err;
-							if (pid == 0)
-							{
-								execve("/usr/bin/php", argv, env);
-								std::cout << "Execve failed! " << std::endl;
-							}
-							else
-							{
-								waitpid(pid, &err, 0);
-							}
-							// checkt the extension and if it matches to the CGI type, call CGI function
+							std::cout << "Redirect is set " << currentsocket->getRedirectURL() << std::endl;
+							const char *dummydata = "HTTP/1.1 302 Found\r\nLocation: ";
+							std::string str_url = currentsocket->getRedirectURL();
+							const char *redirecturl = str_url.c_str();
+							socketConnects.erase(socketConnects.begin() + where_socket);
+							write(currentsocket->getNumSocket(), dummydata, strlen(dummydata)); // dummy response
+							write(currentsocket->getNumSocket(), redirecturl, strlen(redirecturl)); // dummy response
+							delete (currentsocket);
+							close(_kev_catch[i].ident);
+							continue;
 						}
-						std::cout << "send response! " << std::endl;
-						currentsocket->sendResponse();
-					}
-					delete(currentsocket);
+                    std::cout << std::endl << "[WRITE Event on connection socket(EVFILT_WRITE)] " << currentsocket->getSocketConnect() << std::endl;
+					currentsocket->getClientResponse()->sendResponseHeader(currentsocket->getNumSocket());
+					currentsocket->getClientResponse()->sendResponseBody(currentsocket->getNumSocket());
 					socketConnects.erase(socketConnects.begin() + where_socket);
+					delete (currentsocket);
 					close(_kev_catch[i].ident);
-				}
+                }
 			}
 			catch (std::exception &e) // we must leave the error without using exit (otherwise the server stops for one error on a stream)
 			{
 				std::cout << e.what() << std::endl;
+				int	num_socket_registered = getEventIndexFromSocketsList(socketConnects, _kev_catch[i].ident);
+				if (num_socket_registered >= 0)
+					socketConnects.erase(socketConnects.begin() + num_socket_registered);
+				close(_kev_catch[i].ident);
 			}
 		}
 	}

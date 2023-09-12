@@ -11,7 +11,6 @@
 # include <netdb.h>
 # include <signal.h>
 # include <fcntl.h>
-# include "Server.hpp"
 
 class Server;
 class SocketListen

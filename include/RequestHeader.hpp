@@ -10,7 +10,6 @@
 # include <sys/time.h>
 # include <stdlib.h>
 # include "macro.hpp"
-# include "Server.hpp"
 
 class Server;
 class SocketConnect;
@@ -18,13 +17,12 @@ class DirSettings;
 class RequestHeader
 {
 	private:
-	std::string _requestMethod;	  // GET, POST, DELETE
-	std::string _requestLocation; // the whole location string (ex: "/hello/world/filename" )
-	std::string _requestHTTPprotocol;
-	std::string _requestHost;
-	std::string _requestPort;
-	std::string _requestContentType;
-	int			_requestContentLength;
+	std::string _requestHeaderMethod;	  // GET, POST, DELETE
+	std::string _requestHeaderLocation; // the whole location string (ex: "/hello/world/filename" )
+	std::string _requestHeaderLocationParametor; // Information by Get method
+	std::string _requestHeaderHTTPprotocol;
+	std::string _requestHeaderHost;
+	std::string _requestHeaderPort;
 	std::map<std::string, std::string> _requestHeaderOthers;
 
 	SocketConnect			*_requestSocket;
@@ -39,6 +37,7 @@ class RequestHeader
 	// getter
 	std::string		getRequestMethod();
 	std::string		getRequestLocation();
+	std::string		getRequestLocationParametor();
 	std::string		getHTTPProtocol();
 	std::string		getRequestHost();
 	std::string		getRequestPort();
@@ -48,6 +47,7 @@ class RequestHeader
 	void			displayHeaderAll();
 
 	// setter
+	void			checkLocationParametor();
 	int				setMethodLocationProtocol(std::vector<char> *dataR);
 	int				setHeaderOthers(std::vector<char> *dataR);
 	int				setHostPort();

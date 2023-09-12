@@ -75,15 +75,31 @@ std::pair<std::string, std::string>	getLabelItem(std::string *line, std::string 
 	return (labeldata);
 }
 
-bool	checkMethodAllowed(std::string request_method, DirSettings *setting)
+void	addString_toVectorChar(std::vector<char> *vect, std::string str)
 {
-	std::vector<std::string> allowedmethod = setting->getMethods();
-	for (std::vector<std::string>::iterator it = allowedmethod.begin(); it != allowedmethod.end(); it++)
+	for (size_t i = 0; i < str.size(); i++)
+		vect->push_back(str[i]);
+}
+
+std::vector<std::string>	makeStrVector(std::string param, std::string delim)
+{
+	std::vector<std::string>	strVector;
+	size_t pos = 0;
+	std::string	slicepart;
+	
+	while (1)
 	{
-		if (request_method == *it)
-			return (1);
+		pos = param.find(delim);
+		slicepart = param.substr(0, pos);
+        if (slicepart.size())
+		    strVector.push_back(slicepart);
+		if (pos == std::string::npos)
+			break;
+		param = param.substr(pos + delim.size(), param.size());
+		if (param.size() == 0)
+			break;
 	}
-	return (0);
+	return (strVector);
 }
 
 

@@ -4,6 +4,7 @@
 
 #include "../../include/RequestHeader.hpp"
 #include "../../include/util.hpp"
+#include "../../include/Server.hpp"
 
 RequestHeader::RequestHeader()
 {
@@ -19,11 +20,12 @@ RequestHeader& RequestHeader::operator=(const RequestHeader &source)
 {
 	if (this != &source)
 	{
-		_requestMethod = source._requestMethod;
-		_requestLocation = source._requestLocation;
-		_requestHTTPprotocol = source._requestHTTPprotocol;
-		_requestHost = source._requestHost;
-		_requestPort = source._requestPort;
+		_requestHeaderMethod = source._requestHeaderMethod;
+		_requestHeaderLocation = source._requestHeaderLocation;
+		_requestHeaderLocationParametor = source._requestHeaderLocationParametor;
+		_requestHeaderHTTPprotocol = source._requestHeaderHTTPprotocol;
+		_requestHeaderHost = source._requestHeaderHost;
+		_requestHeaderPort = source._requestHeaderPort;
 		_requestHeaderOthers = source._requestHeaderOthers;
 
 		_requestSocket = source._requestSocket;
@@ -41,27 +43,32 @@ RequestHeader::RequestHeader(const RequestHeader &source)
 
 std::string	RequestHeader::getRequestMethod()
 {
-	return (_requestMethod);
+	return (_requestHeaderMethod);
 }
 
 std::string		RequestHeader::getRequestLocation()
 {
-	return (_requestLocation);
+	return (_requestHeaderLocation);
+}
+
+std::string		RequestHeader::getRequestLocationParametor()
+{
+	return (_requestHeaderLocationParametor);
 }
 
 std::string RequestHeader::getHTTPProtocol()
 {
-	return (_requestHTTPprotocol);
+	return (_requestHeaderHTTPprotocol);
 }
 
 std::string		RequestHeader::getRequestHost()
 {
-	return (_requestHost);
+	return (_requestHeaderHost);
 }
 
 std::string		RequestHeader::getRequestPort()
 {
-	return (_requestPort);
+	return (_requestHeaderPort);
 }
 
 std::map<std::string, std::string> *RequestHeader::getHeaderOthers()
@@ -80,11 +87,29 @@ void	RequestHeader::displayHeaderOthers()
 
 void	RequestHeader::displayHeaderAll()
 {
-	std::cout << std::endl << "RequestHeader method is " << _requestMethod << std::endl;
-	std::cout << "RequestHeader location is " << _requestLocation << std::endl;
-	std::cout << "RequestHeader HTTPprotocol is " << _requestHTTPprotocol << std::endl;
-	std::cout << "RequestHeader host is " << _requestHost << ", port is " << _requestPort << std::endl;
+	std::cout << std::endl << "RequestHeader method is " << _requestHeaderMethod << std::endl;
+	std::cout << "RequestHeader location is " << _requestHeaderLocation << std::endl;
+	std::cout << "RequestHeader location parametor is " << _requestHeaderLocationParametor<< std::endl;
+	std::cout << "RequestHeader HTTPprotocol is " << _requestHeaderHTTPprotocol << std::endl;
+	std::cout << "RequestHeader host is " << _requestHeaderHost << ", port is " << _requestHeaderPort << std::endl;
 	std::cout << std::endl;
+}
+
+void	RequestHeader::checkLocationParametor()
+{
+	std::string locationtemp = _requestHeaderLocation;
+	std::string slicepart;
+	try
+	{
+		slicepart = splitString(&locationtemp, "?");
+		std::cout << "slicepart is " << slicepart << std::endl;
+		_requestHeaderLocation = slicepart;
+		_requestHeaderLocationParametor = locationtemp;
+		std::cout << "parametor is " << _requestHeaderLocationParametor << std::endl;
+	}
+	catch(const std::exception& e)
+	{
+	}
 }
 
 int	RequestHeader::setMethodLocationProtocol(std::vector<char> *dataR)
@@ -94,16 +119,17 @@ int	RequestHeader::setMethodLocationProtocol(std::vector<char> *dataR)
 	try
 	{
 		slicepart = splitString(&str_read, " ");
-		_requestMethod = slicepart;
-		if (_requestMethod != "GET" && _requestMethod != "POST" && _requestMethod != "DELETE")
+		_requestHeaderMethod = slicepart;
+		if (_requestHeaderMethod != "GET" && _requestHeaderMethod != "POST" && _requestHeaderMethod != "DELETE")
 			return (400); // bad request
 		slicepart = splitString(&str_read, " ");
-		_requestLocation = slicepart;
-		if (_requestLocation[0] != '/') // request location must start by "/""
+		_requestHeaderLocation = slicepart;
+		if (_requestHeaderLocation[0] != '/') // request location must start by "/""
 			return (400);
-		slicepart = splitString(&str_read, "\n");
-		_requestHTTPprotocol = slicepart;
-		if (_requestHTTPprotocol != "HTTP/1.1")
+		checkLocationParametor();
+		slicepart = splitString(&str_read, "\r\n");
+		_requestHeaderHTTPprotocol = slicepart;
+		if (_requestHeaderHTTPprotocol != "HTTP/1.1")
 			return (400);
 	}
 	catch(const std::exception& e)
@@ -121,7 +147,7 @@ int	RequestHeader::setHeaderOthers(std::vector<char> *dataR)
 
 	try
 	{
-		splitString(&str_read, "\n"); // delete the first line
+		splitString(&str_read, "\r\n"); // delete the first line
 	}
 	catch(const std::exception& e)
 	{
@@ -133,7 +159,7 @@ int	RequestHeader::setHeaderOthers(std::vector<char> *dataR)
 	{
 		try
 		{
-			slicepart = splitString(&str_read, "\n");
+			slicepart = splitString(&str_read, "\r\n");
 			std::pair<std::string, std::string> datapair = getLabelItem(&slicepart, ": ");
 			_requestHeaderOthers.insert(datapair);
 		}
@@ -157,13 +183,13 @@ int	RequestHeader::setHostPort()
 	it_str = hostPort.find(":");
 	if (it_str == std::string::npos)
 	{
-		_requestHost = hostPort;
-		_requestPort = "80";
+		_requestHeaderHost = removeWhitespace(hostPort);
+		_requestHeaderPort = "80";
 	}
 	else
 	{
-		_requestHost = splitString(&hostPort, ":");
-		_requestPort = removeWhitespace(hostPort);
+		_requestHeaderHost = splitString(&hostPort, ":");
+		_requestHeaderPort = removeWhitespace(hostPort);
 	}
 	return (0);
 }
