@@ -7,6 +7,7 @@
 #include "../../include/SocketConnect.hpp"
 #include "../../include/Request.hpp"
 #include "../../include/Response.hpp"
+#include "../../include/status.hpp"
 
 SocketConnect::SocketConnect():_numSocket(0), _errorNum(0), _statusNum(0){}
 
@@ -21,11 +22,11 @@ SocketConnect::SocketConnect(int socket, int kq, std::vector<Server> *servers): 
 	_clientSockaddrLen = sizeof(_clientSockaddr);
 	_timeout.tv_sec = 10; // set 10 second to max waiting time for data transfer 
 	_timeout.tv_usec = 0;
-	if (setsockopt(_numSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&_timeout, sizeof(_timeout)) < 0)
-		throw ERR_SocketConnect("setsockopt for timeout failed");
 	if (fcntl(_numSocket, F_SETFL, O_NONBLOCK) < 0)
 		throw ERR_SocketConnect("fcntl failed");
-	EV_SET(&_clientKevent, _numSocket, EVFILT_READ, EV_ENABLE | EV_ADD, 0, 0, this);
+	if (setsockopt(_numSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&_timeout, sizeof(_timeout)) < 0)
+		throw ERR_SocketConnect("setsockopt for timeout failed");
+	EV_SET(&_clientKevent, _numSocket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, this);
 	if (kevent(kq, &_clientKevent, 1, NULL, 0, NULL) < 0)
 		throw ERR_SocketConnect("kevent for socket failed");
 }
@@ -48,7 +49,7 @@ SocketConnect& SocketConnect::operator=(const SocketConnect &source)
 		_clientResponse = source._clientResponse;
 		_errorNum = source._errorNum;
 		_statusNum = source._statusNum;
-		_redirectURL = source._redirectURL;
+		// _redirectURL = source._redirectURL;
 		_timeout = source._timeout;
 	}
 	return (*this);
@@ -99,17 +100,11 @@ int SocketConnect::readRequest()
 	char	buff[BUFFSIZE];
 	int		bytesRead = 1;
 
-	while (bytesRead > 0)
-	{
-		bytesRead = recv(_numSocket, buff, BUFFSIZE, 0);
-		if (bytesRead == 0)
-			break ;
-		for (int i = 0; i < bytesRead; i++)
-			_clientRequest.addDataR(buff[i]);
-	}
-	if (_clientRequest.getSizeR() == 0)
-		throw std::invalid_argument("Request is empty");
-	return (0);
+	bytesRead = recv(_numSocket, buff, BUFFSIZE, 0);
+	for (int i = 0; i < bytesRead; i++)
+		_clientRequest.addDataR(buff[i]);
+
+	return (bytesRead);
 }
 
 void	SocketConnect::setRequest(std::vector<Server> *list_server)
@@ -127,16 +122,42 @@ void	SocketConnect::setStatus(int status)
 	_statusNum = status;
 }
 
-void	SocketConnect::setRedirect(std::string url)
-{
-	_redirectURL = url;
-}
 
-std::string	SocketConnect::getRedirectURL()
-{
-    return (_redirectURL);
-}
+// void	SocketConnect::setRedirect(std::string url)
+// {
+// 	_redirectURL = url;
+// }
 
+// std::string	SocketConnect::getRedirectURL()
+// {
+//     return (_redirectURL);
+// }
+
+bool	SocketConnect::doRedirect(std::vector<SocketConnect*> socketConnects, int where)
+{
+	if (getClientRequest()->getRequestDirSettings()->getRedirect().size() == 0)
+		return (0);
+	else
+	{
+		int	redirect_status = getClientRequest()->getRequestDirSettings()->getRedirect().begin()->first;
+		std::string	redirect_url = getClientRequest()->getRequestDirSettings()->getRedirect().begin()->second;
+		std::cout << "Redirect is set " << redirect_url << std::endl;
+
+		const char *redirect_res_1 = "HTTP/1.1 ";
+		const char *redirect_res_2 = (std::to_string(redirect_status) + " ").c_str();
+		const char *redirect_res_3 = set_Status(redirect_status).c_str();
+		const char *redirect_res_4 = "\r\nLocation: ";
+		const char *redirect_res_5 = redirect_url.c_str();
+		
+		socketConnects.erase(socketConnects.begin() + where);
+		write(getNumSocket(), redirect_res_1, strlen(redirect_res_1));
+		write(getNumSocket(), redirect_res_2, strlen(redirect_res_2));
+		write(getNumSocket(), redirect_res_3, strlen(redirect_res_3));
+		write(getNumSocket(), redirect_res_4, strlen(redirect_res_4));
+		write(getNumSocket(), redirect_res_5, strlen(redirect_res_5));
+	}
+	return (1);
+}
 // exception
 SocketConnect::ERR_SocketConnect::ERR_SocketConnect():_error_msg("SocketConnect setting failed"){}
 SocketConnect::ERR_SocketConnect::ERR_SocketConnect(const char *error_msg):_error_msg(error_msg){}

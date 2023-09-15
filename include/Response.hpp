@@ -20,7 +20,10 @@ class Response
 	std::string		_responseContentType;
 	int				_responseContentLength;
 	std::vector<char>	_responseBody;
-	std::string		_responseHeader;
+	std::vector<char>	_responseHeader;
+	std::vector<char>	_responseFullData;
+	int					_responseSize;
+	int					_responseSent;
 
 	public:
 	Response();
@@ -29,9 +32,11 @@ class Response
 	virtual ~Response();
 	Response &operator=(Response const &rhs);
 
+	int			getResponseSize();
 	std::string	getResponseFilePath();
 	void		addCtoResponseBody(char c);
 	void		addResponseContentLength(int i);
+	int			getResponseContentLength();
 	void		makeResponse(Request *request, SocketConnect *socket);
 	void		makeResponseHeader();
 	int			checkResponseStatus();
@@ -39,8 +44,10 @@ class Response
 	void		generateDirectoryListing();
 	void		generateErrorBody();
 	void		makeResponseBody();
-	void		sendResponseHeader(int socket);
-	void		sendResponseBody(int socket);
+	void		makeResponseFullData();
+	int			sendResponse(int socket);
+	// void		sendResponseHeader(int socket);
+	// void		sendResponseBody(int socket);
 	std::string filterContentType(std::string filePath);
 };
 

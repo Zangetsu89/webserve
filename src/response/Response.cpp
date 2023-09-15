@@ -8,13 +8,15 @@
 #include "../../include/util.hpp"
 #include "../../include/status.hpp"
 
-Response::Response():_responseStatusCode(0), _responseContentLength(0) {}
+Response::Response():_responseStatusCode(0), _responseContentLength(0),_responseSize(0),_responseSent(0){}
 
-Response::Response(Request *request) {
+Response::Response(Request *request)
+{
     this->_request = request;
 }
 
-Response::Response(Response const &src) {
+Response::Response(Response const &src)
+{
     *this = src;
 }
 
@@ -31,8 +33,16 @@ Response &Response::operator=(Response const &rhs) {
         this->_responseContentLength = rhs._responseContentLength;
         this->_responseBody = rhs._responseBody;
         this->_responseHeader = rhs._responseHeader;
+        this->_responseFullData = rhs._responseFullData;
+        this->_responseSize = rhs._responseSize;
+        this->_responseSent = rhs._responseSent;
     }
     return *this;
+}
+
+int				Response::getResponseSize()
+{
+	return (_responseSize);
 }
 
 std::string		Response::getResponseFilePath()
@@ -50,12 +60,18 @@ void	Response::addResponseContentLength(int i)
 	_responseContentLength += i;
 }
 
+int			Response::getResponseContentLength()
+{
+	return (_responseContentLength);
+}
+
 void    Response::makeResponse(Request *request, SocketConnect *socket)
 {
     this->_request = request;
     this->_responseSocket = socket;
     makeResponseBody();
     makeResponseHeader();
+	makeResponseFullData();
 }
 
 void    Response::makeResponseHeader()
@@ -63,25 +79,66 @@ void    Response::makeResponseHeader()
 	int	err = _responseSocket->getErrorNum();
 	int	status = _responseSocket->getStatusNum();
 	std::string	message;
+	std::string	responseHeader_str;
 	_responseContentType = "text/html";
 
 	if (err)
 	{
 		message = set_ErrorStatus(err);
-		_responseHeader = "HTTP/1.1 " + std::to_string(err) + " " + message + "\r\n";
-		_responseHeader = _responseHeader + "Content-Type: text/html; charset=UTF-8\r\n\r\n";
+		responseHeader_str= "HTTP/1.1 " + std::to_string(err) + " " + message + "\r\n";
+		responseHeader_str = responseHeader_str + "Content-Type: text/html; charset=UTF-8\r\n\r\n";
 	}
 	else
 	{
 		if (!_request->checkCGI())
 			_responseContentType = get_MIMETypes(_responseFilePath);
 		message = set_Status(status);
-		_responseHeader = "HTTP/1.1 " + std::to_string(status) + " " + message + "\r\n";
-		_responseHeader = _responseHeader + "Content-Type: " + _responseContentType + "\r\n\r\n" ;
+		responseHeader_str = "HTTP/1.1 " + std::to_string(status) + " " + message + "\r\n";
+		responseHeader_str = responseHeader_str + "Content-Type: " + _responseContentType + "\r\n\r\n" ;
 	}
-	std::cout << "---!!Print response header " << std::endl;
-	std::cout << _responseHeader << std::endl;
-	std::cout << "---!! End Print response header " << std::endl;
+
+	for (size_t i = 0; i < responseHeader_str.size(); i++)
+	{
+		_responseHeader.push_back(responseHeader_str[i]);
+	}
+}
+
+void    Response::makeResponseBody() 
+{
+	int	err = _responseSocket->getErrorNum();
+
+	if (err)
+	{
+		generateErrorBody();
+		return ;
+	}
+
+	switch(checkResponseStatus())
+	{
+	case ISFILE:
+	    if (_request->checkCGI())
+		{
+			CgiHandler cgidata(_responseSocket);
+			if (cgidata.prepareResponse())
+				generateErrorBody();
+		}
+		else
+			readResponseFile();
+		break;
+	case NOTFOUND:
+		generateErrorBody();
+		break;
+	case SHOWLIST:
+		generateDirectoryListing();
+		break;
+	}
+}
+
+void    Response::makeResponseFullData()
+{
+	_responseHeader.insert(_responseHeader.end(),_responseBody.begin(), _responseBody.end());
+	_responseFullData = _responseHeader;
+	_responseSize = _responseFullData.size();
 }
 
 int     Response::checkResponseStatus()
@@ -93,10 +150,10 @@ int     Response::checkResponseStatus()
     std::string requestPath = _request->getRequestServer()->getRootDir() + requestlocation;
     if (requestPath.back() == '/') // request is directory
     {
-        std::cout << "requestPath is a directory : " << requestPath << std::endl;
+		// std::cout << "requestPath is a directory : " << requestPath << std::endl;
 		std::string requestDir = requestPath;
         requestPath = requestPath + _request->getRequestDirSettings()->getIndexPage();
-        std::cout << "new requestPath (with index) is : " << requestPath << std::endl;
+		// std::cout << "new requestPath (with index) is : " << requestPath << std::endl;
         struct stat	status;
 		if (stat(requestPath.c_str(), &status) == 0)
 		{
@@ -117,7 +174,7 @@ int     Response::checkResponseStatus()
         struct stat	status;
         if (stat(requestPath.c_str(), &status) == 0)
         {
-            std::cout << "requestPath file is found : " << requestPath << std::endl;
+            // std::cout << "requestPath file is found : " << requestPath << std::endl;
             if ((status.st_mode & S_IFMT) == S_IFDIR)
             {
                 std::cout << "requestPath is a directory : " << requestPath << std::endl;
@@ -162,9 +219,8 @@ void	Response::readResponseFile()
         int length = file.tellg();
         file.seekg (0, file.beg);
         _responseContentLength = length;
-		std::cout << "File length is " << length << std::endl;
-		std::cout << "ERR code is " <<  _responseSocket->getErrorNum()<< std::endl;
         char    c;
+
         for (int i = 0; i < length; i++)
         {
             file.read (&c, 1);
@@ -188,7 +244,6 @@ void	Response::generateDirectoryListing()
 
     if ((dir = opendir(_responseFilePath.c_str())) != nullptr) 
 	{
-		std::cout << "Now List making..." << std::endl;
         while ((diread = readdir(dir)) != nullptr)
             files.push_back(diread->d_name);
         closedir (dir);
@@ -233,7 +288,7 @@ void	Response::generateErrorBody()
 	}
 	std::string	message = set_ErrorStatus(err);
 	std::string errbody = "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>";
-	errbody = errbody + std::to_string(err) + " " + message + "</title></head><body>" + std::to_string(err) + " " + message + "<br><br>HAHAHA</body></html>";
+	errbody = errbody + std::to_string(err) + " " + message + "</title></head><body>" + std::to_string(err) + " " + message + "<br><br>HAHAHA, this is default error page!</body></html>";
 	std::cout << "Error body is made " << std::endl;
 	for (size_t i = 0; i < errbody.size(); i++)
 	{
@@ -243,52 +298,16 @@ void	Response::generateErrorBody()
 	_responseContentLength = _responseBody.size();
 }
 
-void    Response::makeResponseBody() 
+int    Response::sendResponse(int socket)
 {
-	int	err = _responseSocket->getErrorNum();
-
-	if (err)
-	{
-		generateErrorBody();
-		return ;
-	}
-
-	switch(checkResponseStatus())
-	{
-	case ISFILE:
-	    if (_request->checkCGI())
-		{
-			std::cout << "This is CGI request" << std::endl;
-			CgiHandler cgidata(_responseSocket);
-			if (cgidata.prepareResponse())
-				generateErrorBody();
-		}
-		else
-			readResponseFile();
-		break;
-	case NOTFOUND:
-		generateErrorBody();
-		break;
-	case SHOWLIST:
-		generateDirectoryListing();
-		break;
-	}
-}
-
-void    Response::sendResponseHeader(int socket)
-{
-	std::cout << "Response header is sent" << std::endl;
-	send(socket, _responseHeader.c_str(), _responseHeader.length(), 0);
-}
-
-void    Response::sendResponseBody(int socket)
-{
-	int i;
-	for (i = 0; i < _responseContentLength; i++)
-	{
-		if (send(socket, &_responseBody[i], 1, 0) != 1)
-			throw std::invalid_argument("failed to send file");
-	}
-	std::cout << "Response body is sent, size is " << i << std::endl;
-
+	int	sent;
+	int	sendBUFF = BUFFSIZE;
+	if (_responseSize < BUFFSIZE)
+		sendBUFF = _responseSize;
+	sent = send(socket, &_responseFullData[_responseSent], sendBUFF, 0);
+	if (sent < 0)
+		throw std::invalid_argument("failed to send file");
+	_responseSize -= sent;
+	_responseSent += sent;
+	return (_responseSize);
 }

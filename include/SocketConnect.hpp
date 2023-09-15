@@ -34,7 +34,6 @@ class SocketConnect
 	Response			_clientResponse;
 	int					_errorNum;
 	int					_statusNum;
-	std::string			_redirectURL;
 	struct timeval		_timeout;
 
 	public:
@@ -46,21 +45,21 @@ class SocketConnect
 	
 
 	// getter
-	int 				getSocketConnect();
-	Request				*getClientRequest();
-	Response			*getClientResponse();
-	int					getErrorNum();
-	int					getStatusNum();
-    int                 getNumSocket();
-    std::string         getRedirectURL();
+	int 			getSocketConnect();
+	Request			*getClientRequest();
+	Response		*getClientResponse();
+	int				getErrorNum();
+	int				getStatusNum();
+    int				getNumSocket();
+	bool			doRedirect();
 
 
 	// setter and others
-	int					readRequest();
-	void                setRequest(std::vector<Server> *list_server);
-	void				setError(int err);
-	void				setStatus(int status);
-	void				setRedirect(std::string url);
+	int				readRequest();
+	void			setRequest(std::vector<Server> *list_server);
+	void			setError(int err);
+	void			setStatus(int status);
+	bool			doRedirect(std::vector<SocketConnect*> socketConnects, int where);
 
 	// exception
 	public : class ERR_SocketConnect : public std::exception

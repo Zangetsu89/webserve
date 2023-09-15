@@ -9,7 +9,8 @@
 
 class Server;
 
-std::string		            toString(std::vector<char> *data);
+int							returnError(int err, std::string message);
+std::string		            vectorToString(std::vector<char> *data);
 std::string		            removeWhitespace(std::string str);
 std::string		            splitString(std::string *data, std::string delimita);
 void		                deleteStringEnd(std::string *data, std::string delimita);

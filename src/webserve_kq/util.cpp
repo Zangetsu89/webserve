@@ -5,8 +5,13 @@
 #include "../../include/util.hpp"
 
 
-// change data from vector<char> to std::string
-std::string		toString(std::vector<char> *data)
+int		returnError(int err, std::string message)
+{
+	std::cout << message << std::endl;
+	return(err);
+}
+
+std::string		vectorToString(std::vector<char> *data)
 {
 	std::string string(data->begin(), data->end());
 	return (string);

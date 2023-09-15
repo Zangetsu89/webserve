@@ -3,20 +3,23 @@
 #include "include/DirSettings.hpp"
 #include "include/KqueueLoop.hpp"
 #include "include/Config.hpp"
+#include "include/macro.hpp"
+#include "include/util.hpp"
+#include <vector>
+#include <signal.h>
 
-int  main(int argc, char *argv[], char **env) 
+
+int  main(int argc, char *argv[]) 
 {
-	WebservCli 				WebservCli;
+	WebservCli 		WebservCli;
 	std::vector<Server>		list_Servers;
-	int						kq;
+	int						kq = 0;
+
+	if (argc < 2)
+		returnError(1, "Please define config_file.");
 
 	// check os and config file
-	if (argc < 2)
-	{
-		std::cout << "Usage: ./webserv [config_file]" << std::endl;
-		return 1;
-	}
-    try 
+	try 
 	{
         WebservCli.check_os();
     }
@@ -25,12 +28,10 @@ int  main(int argc, char *argv[], char **env)
         std::cout << "Error: " << e.what() << std::endl;
         return 1;
     }
-    (void)argv;
 
-	kq = kqueue();
-	if (kq < 0)
-		exit(1);
-
+	if ((kq = kqueue()) < 0)
+		returnError(1, "Kq failed.");
+	
 	// set server information
 	try
 	{
@@ -38,10 +39,7 @@ int  main(int argc, char *argv[], char **env)
 		Config      config(file_path);
 		list_Servers = *config.getServers();
         if (list_Servers.size() == 0)
-        {
-            std::cout << "Error: no server information" << std::endl;
-            exit (1);
-        }
+			exit(returnError(1, "Error: no server information."));
 		else  // print server info to check
 		{
             for (size_t i = 0; i < list_Servers.size(); i++)
@@ -52,16 +50,14 @@ int  main(int argc, char *argv[], char **env)
                 std::cout << std::endl;
             }
         }
-
-		// with this function, listening sockets are set in the list servers in config class
 		config.setKqServers(kq);
 
 		KqueueLoop	mainloop(config.getServers(), kq);
-		mainloop.startLoop(env);
+		mainloop.startLoop();
 	}
 	catch(std::exception &e) // in this moment, any error calls exit. 
 	{
-		std::cout << e.what() << std::endl;
+		std::cout << "Error: " << e.what() << std::endl;
 		exit(1);
 	}
 

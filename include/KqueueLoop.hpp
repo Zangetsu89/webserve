@@ -35,7 +35,7 @@ class KqueueLoop
 	KqueueLoop(const KqueueLoop &source) = delete;				// copy prohibited
 
 	int		checkListeningSocket(int sock);
-	int 	startLoop(char **env);
+	int 	startLoop();
 	int 	getKqMain();
 
 	// exception : after calling this exception -> exit

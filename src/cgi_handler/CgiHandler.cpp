@@ -63,10 +63,22 @@ static char **stringCharArray(std::vector<std::string> strVector)
 	Array = (char **)malloc(sizeof (char *)* strVector.size() + 1);
 	for (unsigned int i = 0; i < strVector.size(); i++)
 	{
-		Array[i] = (char *)strVector[i].c_str();
+		char *InsideArray =(char *)malloc(strVector[i].size() + 1);
+		// strVector[i].copy(InsideArray, strVector[i].size());
+		strcpy(InsideArray, strVector[i].c_str());
+		InsideArray[strVector[i].size()] = '\0';	
+		Array[i] = InsideArray;
+		// Array[i] = (char *)strVector[i].c_str();
 	}
 	Array[strVector.size()] = NULL;
 	return((char **)Array);
+}
+
+void	cleanStringCharArray(char **Array)
+{
+	for (size_t i = 0; Array[i] ; i++)
+		delete(Array[i]);
+	delete(Array);
 }
 
 
@@ -74,12 +86,18 @@ void	CgiHandler::makeCgiEnv()
 {
 	RequestHeader *Header = _request->getRequestHeader();
 
+	_cgiEnv.push_back("REQUEST_METHOD=" + Header->getRequestMethod());
+	_cgiEnv.push_back("SERVER_NAME=" + _request->getRequestServer()->getServerName());
+	_cgiEnv.push_back("SERVER_PROTOCOL=HTTP/1.1");
 	if (_request->getRequestBodyLength())
 		_cgiEnv.push_back("CONTENT_LENGTH=" + std::to_string(_request->getRequestBodyLength()));
 	if (_request->getRequestContentType().size())
 		_cgiEnv.push_back("CONTENT_TYPE=" + _request->getRequestContentType());
 	if (Header->getRequestLocationParametor().size())
 		_cgiEnv.push_back("QUERY_STRING=" + Header->getRequestLocationParametor());
+	_cgiEnv.push_back("SCRIPT_FILENAME=" + _response->getResponseFilePath());
+	_cgiEnv.push_back("SCRIPT_NAME=" + Header->getRequestLocation());
+	
 	
 }
 
@@ -87,7 +105,7 @@ void	CgiHandler::makeCgiArgv()
 {
 	std::string cgiExtension = _request->getRequestDirSettings()->getCgiExtension();
 
-	std::cout << "cgiExtension is  "<< cgiExtension << std::endl;
+	// std::cout << "cgiExtension is  "<< cgiExtension << std::endl;
 	if (cgiExtension == "py")
 		_cgiArgv.push_back("python3");
 	else if (cgiExtension == "php")
@@ -102,8 +120,8 @@ int    CgiHandler::prepareResponse()
 	std::string method = _request->getRequestHeader()->getRequestMethod();
 
     int err;
-	std::cout << "Prepare Response function started."<<std::endl;
-	std::cout << "Method is" << method << std::endl;
+	// std::cout << "Prepare Response function started."<<std::endl;
+	// std::cout << "Method is" << method << std::endl;
 	int fd_exe[2];	// for executing
 	int fd_post[2];	// only used for POST method (pass the Response body to the CGI through STDIN)
 
@@ -120,8 +138,8 @@ int    CgiHandler::prepareResponse()
 			if (method == "POST")
 			{
 				dup2(fd_post[0], 0);
-				dup2(fd_exe[1], 1);
 				close(fd_post[1]);
+				dup2(fd_exe[1], 1);
 				close(fd_exe[0]);
 			}
 			else
@@ -131,7 +149,12 @@ int    CgiHandler::prepareResponse()
 				close(fd_post[0]);
 				close(fd_post[1]);
 			}
-			execve(_cgiDir.c_str(), stringCharArray(_cgiArgv), stringCharArray(_cgiEnv));
+			static char	**cgiArray = stringCharArray(_cgiArgv);
+			static char	**cgiEnvArray = stringCharArray(_cgiEnv);
+			execve(_cgiDir.c_str(), cgiArray, cgiEnvArray);
+			std::cout << "execve failed"  << std::endl;
+			cleanStringCharArray(cgiArray);
+			cleanStringCharArray(cgiEnvArray);
 			exit(1);
 		}
 		else
@@ -144,13 +167,9 @@ int    CgiHandler::prepareResponse()
 				close(fd_post[0]);
 				close(fd_exe[1]);
 
-				char	c;
-				for (int i = 0; i < length; i++)
-				{
-					c = (char)postdata[i];
-					if (write(fd_post[1], &c, 1) < 0)
-						throw ERR_CgiHandler("cgi data generate failed", 500);
-				}
+				char	*posting = reinterpret_cast<char*>(postdata.data());
+				if (write(fd_post[1], posting, length) < 0)
+					throw ERR_CgiHandler("cgi data generate failed!", 500);
 				close(fd_post[1]);
 			}
 			else
@@ -159,9 +178,6 @@ int    CgiHandler::prepareResponse()
 				close(fd_post[1]);
 				close(fd_exe[1]);
 			}
-			waitpid(pid, &err, 0);
-			if (err != 0)
-				throw ERR_CgiHandler("wait failed", 500);
 
 			int	r = 1;
 			char    c;
@@ -171,10 +187,16 @@ int    CgiHandler::prepareResponse()
 				if (r < 0)
 					throw ERR_CgiHandler("cgi data generate failed", 500);
 				_response->addCtoResponseBody(c);
-				_response->addResponseContentLength(1);
+				_response->addResponseContentLength(r);
 			}
+			// std::cout << "Request content size is " << _request->getRequestBodyLength() << std::endl;
+			// std::cout << "Response body size is " << _response->getResponseContentLength() << std::endl;
+			waitpid(pid, &err, 0);
+			if (err != 0)
+				throw ERR_CgiHandler("wait failed", 500);
 			close(fd_exe[0]);
 		}
+		_socket->setStatus(200);
 		return (0);
 	}
 	catch(ERR_CgiHandler& e)

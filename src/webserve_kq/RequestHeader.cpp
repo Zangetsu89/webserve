@@ -114,7 +114,7 @@ void	RequestHeader::checkLocationParametor()
 
 int	RequestHeader::setMethodLocationProtocol(std::vector<char> *dataR)
 {
-	std::string	str_read = toString(dataR);
+	std::string	str_read = vectorToString(dataR);
 	std::string	slicepart;
 	try
 	{
@@ -142,7 +142,7 @@ int	RequestHeader::setMethodLocationProtocol(std::vector<char> *dataR)
 
 int	RequestHeader::setHeaderOthers(std::vector<char> *dataR)
 {
-	std::string	str_read = toString(dataR);
+	std::string	str_read = vectorToString(dataR);
 	std::string	slicepart;
 
 	try

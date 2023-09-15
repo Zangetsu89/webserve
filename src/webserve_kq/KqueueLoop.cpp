@@ -7,6 +7,7 @@
 #include "../../include/SocketConnect.hpp"
 #include "../../include/SocketListen.hpp"
 #include "../../include/Response.hpp"
+#include "../../include/macro.hpp"
 
 KqueueLoop::KqueueLoop(std::vector<Server> *servers, int kq): _kq_main(kq), _n_ev(0), _servers(servers)
 {
@@ -47,10 +48,11 @@ int KqueueLoop::checkListeningSocket(int sock)
 
 static int getEventIndexFromSocketsList(std::vector<SocketConnect*> socketConnects, int eventFd)
 {
-	std::cout << "socketConnects.size() is " << socketConnects.size() << std::endl;
-    for (int i = 0; i < (int)socketConnects.size(); i++) {
-		std::cout << "socketConnects[i]->getSocketConnect() is " << socketConnects[i]->getSocketConnect() << std::endl;
-        if (socketConnects[i]->getSocketConnect() == eventFd) {
+	// std::cout << "socketConnects.size() is " << socketConnects.size() << std::endl;
+    for (int i = 0; i < (int)socketConnects.size(); i++) 
+	{
+        if (socketConnects[i]->getSocketConnect() == eventFd) 
+		{
             return i;
         }
     }
@@ -65,11 +67,10 @@ void    addKqFilter(int kqMain, int filter, int flags, int eventFd)
     kevent(kqMain, &_kev_catch, 1, nullptr, 0, nullptr);
 }
 
-int KqueueLoop::startLoop(char **env)
+int KqueueLoop::startLoop()
 {
 	std::cout << "Kqueue start" << std::endl;
 	std::vector<SocketConnect*> socketConnects;
-	(void)env;
 
 	while(1)
 	{
@@ -84,7 +85,7 @@ int KqueueLoop::startLoop(char **env)
 				int socket_num = checkListeningSocket(_kev_catch[i].ident);
 				if (socket_num > 2)
 				{
-					std::cout << std::endl << "[Event on listenning socket] " << socket_num << std::endl;
+					// std::cout << std::endl << "[Event on listenning socket] " << socket_num << std::endl;
 					SocketConnect *newSocket = new SocketConnect((int)_kev_catch[i].ident, _kq_main, _servers);
 					if (newSocket == NULL)
 						throw std::invalid_argument("error on accepting new socket");
@@ -98,32 +99,35 @@ int KqueueLoop::startLoop(char **env)
 				SocketConnect	*currentsocket = socketConnects[where_socket];
 				if (_kev_catch[i].filter == EVFILT_READ)
 				{
-					std::cout << std::endl << "[READ Event on connection socket(EVFILT_READ)] " << _kev_catch[i].ident << std::endl;	
-					currentsocket->readRequest();
+					// std::cout << std::endl << "[READ Event on connection socket(EVFILT_READ)] " << _kev_catch[i].ident << std::endl;	
+					if (currentsocket->readRequest() == BUFFSIZE)
+					{
+						EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, 0);
+						kevent(_kq_main, &_kev_catch[i], 1, NULL, 0, NULL);
+						continue;
+					}
+						
+					if (currentsocket->getClientRequest()->getSizeR() == 0)
+						throw std::invalid_argument("Request is empty");
 					currentsocket->setRequest(_servers);
 					currentsocket->getClientResponse()->makeResponse(currentsocket->getClientRequest(), currentsocket);
 					EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_READ, EV_DELETE, 0, 0, 0);
-					EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_WRITE, EV_ADD, 0, 0, 0);
+					EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);
 					kevent(_kq_main, &_kev_catch[i], 1, NULL, 0, NULL);
 				}
 				else if (_kev_catch[i].filter == EVFILT_WRITE) // check if the socket is to write
                 {
-					if (currentsocket->getRedirectURL() != "")
-						{
-							std::cout << "Redirect is set " << currentsocket->getRedirectURL() << std::endl;
-							const char *dummydata = "HTTP/1.1 302 Found\r\nLocation: ";
-							std::string str_url = currentsocket->getRedirectURL();
-							const char *redirecturl = str_url.c_str();
-							socketConnects.erase(socketConnects.begin() + where_socket);
-							write(currentsocket->getNumSocket(), dummydata, strlen(dummydata)); // dummy response
-							write(currentsocket->getNumSocket(), redirecturl, strlen(redirecturl)); // dummy response
-							delete (currentsocket);
-							close(_kev_catch[i].ident);
-							continue;
-						}
-                    std::cout << std::endl << "[WRITE Event on connection socket(EVFILT_WRITE)] " << currentsocket->getSocketConnect() << std::endl;
-					currentsocket->getClientResponse()->sendResponseHeader(currentsocket->getNumSocket());
-					currentsocket->getClientResponse()->sendResponseBody(currentsocket->getNumSocket());
+					if (currentsocket->doRedirect(socketConnects, where_socket))
+					{
+						
+						throw std::invalid_argument("Redirect is done");
+					}
+					if (currentsocket->getClientResponse()->sendResponse(currentsocket->getNumSocket()))
+					{
+						EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);
+						kevent(_kq_main, &_kev_catch[i], 1, NULL, 0, NULL);
+						continue;
+					}
 					socketConnects.erase(socketConnects.begin() + where_socket);
 					delete (currentsocket);
 					close(_kev_catch[i].ident);
@@ -131,10 +135,13 @@ int KqueueLoop::startLoop(char **env)
 			}
 			catch (std::exception &e) // we must leave the error without using exit (otherwise the server stops for one error on a stream)
 			{
-				std::cout << e.what() << std::endl;
+				std::cout << e.what() << std::endl;	
 				int	num_socket_registered = getEventIndexFromSocketsList(socketConnects, _kev_catch[i].ident);
 				if (num_socket_registered >= 0)
+				{
+					delete(socketConnects[num_socket_registered]);
 					socketConnects.erase(socketConnects.begin() + num_socket_registered);
+				}
 				close(_kev_catch[i].ident);
 			}
 		}

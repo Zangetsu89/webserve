@@ -183,14 +183,14 @@ std::string	get_MIMETypes(std::string file)
 	if (pos_slice == std::string::npos)
 		return ("text/html");
 	extension = filename.substr(pos_slice, filename.size());
-	std::cout << "extension is " << extension << std::endl;
+	// std::cout << "extension is " << extension << std::endl;
 	if (extension.front() == '.')
 		extension.erase(0, 1);
 	std::map<std::string, std::string>::iterator it;
 	it = MIMETypes.find(extension);
 	if (it != MIMETypes.end())
 	{
-		std::cout << "MIMEType is " << it->second << std::endl;
+		// std::cout << "MIMEType is " << it->second << std::endl;
 		return (it->second);
 	}
 	return ("application/octet-stream");

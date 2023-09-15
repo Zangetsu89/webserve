@@ -6,13 +6,14 @@
 
 SocketListen::SocketListen(int port, int kq)
 {
+
+	memset(&_listenSockaddr, 0, sizeof(_listenSockaddr));
 	if ((_numSocket = socket(AF_INET, SOCK_STREAM, 0)) <= 0)
 	{
 		std::cout << "listening socket making failed  " << std::endl;
 		throw ERR_SocketListen("listening socket making failed");
 	}
 		
-
 	_listenSockaddr.sin_family = AF_INET;
 	_listenSockaddr.sin_addr.s_addr = htonl(INADDR_ANY);   // INADDR_ANY is used when we don't know the IP address of our machine
 	_listenSockaddr.sin_port = htons(port); 			// The htons() function converts the unsigned short integer hostshort from host byte order to network byte order.
@@ -30,7 +31,7 @@ SocketListen::SocketListen(int port, int kq)
 
 	if (fcntl(_numSocket, F_SETFL, O_NONBLOCK) < 0)
 		throw ERR_SocketListen("fcntl failed on listening socket");
-	EV_SET(&_listenKevent, _numSocket, EVFILT_READ, EV_ENABLE | EV_ADD, 0, 0, NULL);
+	EV_SET(&_listenKevent, _numSocket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
 
 	if (kevent(kq, &_listenKevent, 1, NULL, 0, NULL) < 0)
 		throw ERR_SocketListen("kevent failed");
