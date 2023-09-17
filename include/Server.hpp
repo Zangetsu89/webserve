@@ -1,30 +1,7 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        ::::::::            */
-/*   Server.hpp                                         :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: lizhang <lizhang@student.codam.nl>           +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2023/07/11 17:51:43 by lizhang       #+#    #+#                 */
-/*   Updated: 2023/07/27 15:15:37 by lizhang       ########   odam.nl         */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef SERVER_HPP
 # define SERVER_HPP
-# include <vector>
 # include <iostream>
-# include <sys/socket.h>
-# include <sys/types.h>
-# include <sys/event.h>
-# include <sys/time.h>
-# include <stdlib.h>
-# include <unistd.h>
-# include <netdb.h>
-# include <signal.h>
-# include <string>
-# include "ConfigMacros.hpp"
-# include "SocketListen.hpp"
+# include <vector>
 # include "DirSettings.hpp"
 
 class SocketListen;
