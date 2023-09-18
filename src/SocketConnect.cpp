@@ -42,7 +42,6 @@ SocketConnect &SocketConnect::operator=(const SocketConnect &source)
 		_clientResponse = source._clientResponse;
 		_errorNum = source._errorNum;
 		_statusNum = source._statusNum;
-		// _redirectURL = source._redirectURL;
 		_timeout = source._timeout;
 	}
 	return (*this);
@@ -53,17 +52,11 @@ SocketConnect::SocketConnect(const SocketConnect &source)
 	*this = source;
 }
 
-int SocketConnect::getNumSocket()
+int SocketConnect::getNumSocket() const
 {
 	return (_numSocket);
 }
 
-// getter
-
-int SocketConnect::getSocketConnect()
-{
-	return (_numSocket);
-}
 
 Request *SocketConnect::getClientRequest()
 {
@@ -75,17 +68,25 @@ Response *SocketConnect::getClientResponse()
 	return (&_clientResponse);
 }
 
-int SocketConnect::getErrorNum()
+int SocketConnect::getErrorNum() const
 {
 	return (_errorNum);
 }
 
-int SocketConnect::getStatusNum()
+int SocketConnect::getStatusNum() const
 {
 	return (_statusNum);
 }
 
-// setter and others
+void SocketConnect::setError(int err)
+{
+	_errorNum = err;
+}
+
+void SocketConnect::setStatus(int status)
+{
+	_statusNum = status;
+}
 
 int SocketConnect::readRequest()
 {
@@ -102,16 +103,6 @@ int SocketConnect::readRequest()
 void SocketConnect::setRequest(std::vector<Server> *list_server)
 {
 	_clientRequest.setRequest(list_server, this);
-}
-
-void SocketConnect::setError(int err)
-{
-	_errorNum = err;
-}
-
-void SocketConnect::setStatus(int status)
-{
-	_statusNum = status;
 }
 
 bool SocketConnect::doRedirect(std::vector<SocketConnect *> socketConnects, int where)

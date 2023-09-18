@@ -42,14 +42,19 @@ Response &Response::operator=(Response const &rhs)
 	return *this;
 }
 
-int Response::getResponseSize()
+int Response::getResponseSize() const
 {
 	return (_responseSize);
 }
 
-std::string Response::getResponseFilePath()
+std::string Response::getResponseFilePath() const
 {
 	return (_responseFilePath);
+}
+
+int Response::getResponseContentLength() const
+{
+	return (_responseContentLength);
 }
 
 void Response::addCtoResponseBody(char c)
@@ -62,10 +67,6 @@ void Response::addResponseContentLength(int i)
 	_responseContentLength += i;
 }
 
-int Response::getResponseContentLength()
-{
-	return (_responseContentLength);
-}
 
 void Response::makeResponse(Request *request, SocketConnect *socket)
 {
@@ -74,35 +75,6 @@ void Response::makeResponse(Request *request, SocketConnect *socket)
 	makeResponseBody();
 	makeResponseHeader();
 	makeResponseFullData();
-}
-
-void Response::makeResponseHeader()
-{
-	int err = _responseSocket->getErrorNum();
-	int status = _responseSocket->getStatusNum();
-	std::string message;
-	std::string responseHeader_str;
-	_responseContentType = "text/html";
-
-	if (err)
-	{
-		message = set_ErrorStatus(err);
-		responseHeader_str = "HTTP/1.1 " + std::to_string(err) + " " + message + "\r\n";
-		responseHeader_str = responseHeader_str + "Content-Type: text/html; charset=UTF-8\r\n\r\n";
-	}
-	else
-	{
-		if (!_request->checkCGI())
-			_responseContentType = get_MIMETypes(_responseFilePath);
-		message = set_Status(status);
-		responseHeader_str = "HTTP/1.1 " + std::to_string(status) + " " + message + "\r\n";
-		responseHeader_str = responseHeader_str + "Content-Type: " + _responseContentType + "\r\n\r\n";
-	}
-
-	for (size_t i = 0; i < responseHeader_str.size(); i++)
-	{
-		_responseHeader.push_back(responseHeader_str[i]);
-	}
 }
 
 void Response::makeResponseBody()
@@ -133,6 +105,35 @@ void Response::makeResponseBody()
 	case SHOWLIST:
 		generateDirectoryListing();
 		break;
+	}
+}
+
+void Response::makeResponseHeader()
+{
+	int err = _responseSocket->getErrorNum();
+	int status = _responseSocket->getStatusNum();
+	std::string message;
+	std::string responseHeader_str;
+	_responseContentType = "text/html";
+
+	if (err)
+	{
+		message = set_ErrorStatus(err);
+		responseHeader_str = "HTTP/1.1 " + std::to_string(err) + " " + message + "\r\n";
+		responseHeader_str = responseHeader_str + "Content-Type: text/html; charset=UTF-8\r\n\r\n";
+	}
+	else
+	{
+		if (!_request->checkCGI())
+			_responseContentType = get_MIMETypes(_responseFilePath);
+		message = set_Status(status);
+		responseHeader_str = "HTTP/1.1 " + std::to_string(status) + " " + message + "\r\n";
+		responseHeader_str = responseHeader_str + "Content-Type: " + _responseContentType + "\r\n\r\n";
+	}
+
+	for (size_t i = 0; i < responseHeader_str.size(); i++)
+	{
+		_responseHeader.push_back(responseHeader_str[i]);
 	}
 }
 

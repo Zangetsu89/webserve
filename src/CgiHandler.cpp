@@ -55,11 +55,9 @@ static char **stringCharArray(std::vector<std::string> strVector)
 	for (unsigned int i = 0; i < strVector.size(); i++)
 	{
 		char *InsideArray = (char *)malloc(strVector[i].size() + 1);
-		// strVector[i].copy(InsideArray, strVector[i].size());
 		strcpy(InsideArray, strVector[i].c_str());
 		InsideArray[strVector[i].size()] = '\0';
 		Array[i] = InsideArray;
-		// Array[i] = (char *)strVector[i].c_str();
 	}
 	Array[strVector.size()] = NULL;
 	return ((char **)Array);
@@ -93,7 +91,6 @@ void CgiHandler::makeCgiArgv()
 {
 	std::string cgiExtension = _request->getRequestDirSettings()->getCgiExtension();
 
-	// std::cout << "cgiExtension is  "<< cgiExtension << std::endl;
 	if (cgiExtension == "py")
 		_cgiArgv.push_back("python3");
 	else if (cgiExtension == "php")
@@ -108,8 +105,6 @@ int CgiHandler::prepareResponse()
 	std::string method = _request->getRequestHeader()->getRequestMethod();
 
 	int err;
-	// std::cout << "Prepare Response function started."<<std::endl;
-	// std::cout << "Method is" << method << std::endl;
 	int fd_exe[2];	// for executing
 	int fd_post[2]; // only used for POST method (pass the Response body to the CGI through STDIN)
 
@@ -177,8 +172,6 @@ int CgiHandler::prepareResponse()
 				_response->addCtoResponseBody(c);
 				_response->addResponseContentLength(r);
 			}
-			// std::cout << "Request content size is " << _request->getRequestBodyLength() << std::endl;
-			// std::cout << "Response body size is " << _response->getResponseContentLength() << std::endl;
 			waitpid(pid, &err, 0);
 			if (err != 0)
 				throw ERR_CgiHandler("wait failed", 500);

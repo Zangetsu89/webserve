@@ -10,31 +10,28 @@
 class SocketConnect;
 class Request;
 class Response;
-class CgiHandler {
-
+class CgiHandler 
+{
     private:
-    SocketConnect               *_socket;
-    Request                     *_request;
-    Response                    *_response;
-    std::string                 _cgiDir;
-    std::string                 _cgiProgram;
-    std::vector<std::string>    _cgiEnv;
-    std::vector<std::string>    _cgiArgv;
+    	SocketConnect               *_socket;
+    	Request                     *_request;
+    	Response                    *_response;
+    	std::string                 _cgiDir;
+    	std::string                 _cgiProgram;
+    	std::vector<std::string>    _cgiEnv;
+    	std::vector<std::string>    _cgiArgv;
 
     public:
-    CgiHandler(SocketConnect *socket);
-    CgiHandler(CgiHandler const &source);
-    ~CgiHandler();
-    CgiHandler &operator=(CgiHandler const &source);
+    	CgiHandler(SocketConnect *socket);
+    	CgiHandler(CgiHandler const &source);
+    	~CgiHandler();
+    	CgiHandler &operator=(CgiHandler const &source);
 
-    void	makeCgiEnv();
-    void	makeCgiArgv();
-    void    responseGenerate();
-    int    prepareResponse();
-//    void    postRequest(Request R, char **env);
+    	void	makeCgiEnv();
+    	void	makeCgiArgv();
+    	void    responseGenerate();
+    	int    prepareResponse();
 
-
-    // exception
     class ERR_CgiHandler : public std::exception
     {
         private:
@@ -44,10 +41,9 @@ class CgiHandler {
             int _error_num;
             ERR_CgiHandler();
             ERR_CgiHandler(const char *error_msg, int err);
-            const char *what() const _NOEXCEPT; // _NOEXCEPT is needed since C++11
+            const char *what() const _NOEXCEPT;
     };
 };
-
 
 
 #endif

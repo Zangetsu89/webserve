@@ -9,15 +9,13 @@
 #include <signal.h>
 
 
-void	initialCheck(int *kq, int argc)
+void	initialCheck(int argc)
 {
 	WebservCli 		WebservCli;
-	WebservCli.check_os();
 
+	WebservCli.check_os();
 	if (argc < 2)
-		throw "Please define config_file.";
-	if ((*kq = kqueue()) < 0)
-		throw "Kq failed.";
+		throw std::invalid_argument("Please define config_file.");
 }
 
 void	printServerInfo(bool print, std::vector<Server> list_Servers)
@@ -34,40 +32,29 @@ void	printServerInfo(bool print, std::vector<Server> list_Servers)
 void	continuePipe(int i)
 {
 	(void)i;
-	std::cout << "Pipe is broken, maybe because of too much requests. just don't stop the server" << std::endl;
+	std::cout << "SIGPIPE is sent, but the server must go on" << std::endl;
 }
 
 int  main(int argc, char *argv[]) 
 {
-	std::vector<Server>		list_Servers;
-	int						kq = 0;
+	int	kq = 0;
 
 	signal(SIGPIPE, continuePipe);
-
 	try
 	{
-		initialCheck(&kq, argc);
-		Config      config(argv[1]);
-		list_Servers = *config.getServers();
-        if (list_Servers.size() == 0)
-			throw "Error: no server information.";
-		printServerInfo(TRUE, list_Servers);
+		initialCheck(argc);
+		Config	config(argv[1]);
+		printServerInfo(TRUE, *config.getServers()); // TRUE -> print server info
+		if ((kq = kqueue()) < 0)
+			throw std::invalid_argument("Kq failed.");
 		config.setKqServers(kq);
-
 		KqueueLoop	mainloop(config.getServers(), kq);
 		mainloop.startLoop();
-	}
-	catch(char const *text)
-	{
-		std::cout << "Error: " << text << std::endl;
-		exit(1);
 	}
 	catch(std::exception &e)
 	{
 		std::cout << "Error: " << e.what() << std::endl;
 		exit(1);
 	}
-
 	return (0);
 }
-

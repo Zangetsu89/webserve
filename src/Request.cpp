@@ -1,7 +1,6 @@
 #include "../include/Request.hpp"
 #include "../include/SocketConnect.hpp"
 #include "../include/util.hpp"
-#include <sys/stat.h>
 
 Request::Request() : _sizeR(0), _requestBodyLength(0), _requestShowList(0), _requestCGI(0)
 {
@@ -37,24 +36,39 @@ Request::Request(const Request &source)
 	*this = source;
 }
 
-std::string Request::getRequestContentType()
+int Request::getSizeR() const
 {
-	return (_requestContentType);
-}
-
-int Request::getRequestBodyLength()
-{
-	return (_requestBodyLength);
-}
-
-std::string Request::getRequestBody()
-{
-	return (_requestBody);
+	return (_sizeR);
 }
 
 RequestHeader *Request::getRequestHeader()
 {
 	return (&_requestHeader);
+}
+
+std::string Request::getRequestContentType() const
+{
+	return (_requestContentType);
+}
+
+int Request::getRequestBodyLength() const
+{
+	return (_requestBodyLength);
+}
+
+std::string Request::getRequestBody() const
+{
+	return (_requestBody);
+}
+
+Server *Request::getRequestServer()
+{
+	return (_requestServer);
+}
+
+DirSettings *Request::getRequestDirSettings()
+{
+	return (_requestDirSetting);
 }
 
 void Request::printDataR()
@@ -91,10 +105,6 @@ bool Request::getRequestShowList()
 	return (_requestShowList);
 }
 
-int Request::getSizeR()
-{
-	return (_sizeR);
-}
 
 void Request::addDataR(char c)
 {
@@ -102,15 +112,6 @@ void Request::addDataR(char c)
 	_sizeR++;
 }
 
-DirSettings *Request::getRequestDirSettings()
-{
-	return (_requestDirSetting);
-}
-
-Server *Request::getRequestServer()
-{
-	return (_requestServer);
-}
 
 void Request::setRequest(std::vector<Server> *list_server, SocketConnect *socket)
 {
@@ -167,37 +168,6 @@ int Request::setRequestContentType() // Content-Type may not exist, depends on t
 	return (0);
 }
 
-int Request::setRequestBodyLength() // body length may not exist, depends on the request.
-{
-	std::map<std::string, std::string>::iterator it;
-
-	it = _requestHeader.getHeaderOthers()->find("Content-Length");
-	if (it != _requestHeader.getHeaderOthers()->end())
-		_requestBodyLength = stoi(it->second);
-	// std::cout << "!!!_requestBodyLength is " << _requestBodyLength << std::endl;
-	if (_requestBodyLength > _requestDirSetting->getMaxBodySize())
-		throw Exception_Request("Content-Length is too much", 413, 0);
-	return (0);
-}
-
-int Request::setRequestBody() // request body may not exist, depends on the request.
-{
-	std::string str_read = vectorToString(&_dataR);
-	std::string slicepart;
-
-	try
-	{
-		slicepart = splitString(&str_read, "\r\n\r\n");
-		_requestBody = str_read;
-	}
-	catch (const std::exception &e)
-	{
-		// this case, there is no request body (only header)
-	}
-	if (_requestBody.size() > _requestDirSetting->getMaxBodySize())
-		throw Exception_Request("Content-Length is too much", 413, 0);
-	return (0);
-}
 
 bool Request::checkPort(std::vector<Server>::iterator it, int port)
 {
@@ -280,6 +250,48 @@ int Request::checkRedirect()
 	return (0);
 }
 
+int Request::checkProtocol()
+{
+	if (_requestHeader.getHTTPProtocol() != "HTTP/1.1")
+	{
+		throw Exception_Request("Protocol not allowed", 400, 0);
+	}
+	return (0);
+}
+
+int Request::setRequestBodyLength() // body length may not exist, depends on the request.
+{
+	std::map<std::string, std::string>::iterator it;
+
+	it = _requestHeader.getHeaderOthers()->find("Content-Length");
+	if (it != _requestHeader.getHeaderOthers()->end())
+		_requestBodyLength = stoi(it->second);
+	// std::cout << "!!!_requestBodyLength is " << _requestBodyLength << std::endl;
+	if (_requestBodyLength > _requestDirSetting->getMaxBodySize())
+		throw Exception_Request("Content-Length is too much", 413, 0);
+	return (0);
+}
+
+int Request::setRequestBody() // request body may not exist, depends on the request.
+{
+	std::string str_read = vectorToString(&_dataR);
+	std::string slicepart;
+
+	try
+	{
+		slicepart = splitString(&str_read, "\r\n\r\n");
+		_requestBody = str_read;
+	}
+	catch (const std::exception &e)
+	{
+		// this case, there is no request body (only header)
+	}
+	if (_requestBody.size() > _requestDirSetting->getMaxBodySize())
+		throw Exception_Request("Content-Length is too much", 413, 0);
+	return (0);
+}
+
+
 int Request::checkMethod()
 {
 	std::vector<std::string> allowedmethod = _requestDirSetting->getMethods();
@@ -292,14 +304,6 @@ int Request::checkMethod()
 	throw Exception_Request("Method not allowed", 405, 0);
 }
 
-int Request::checkProtocol()
-{
-	if (_requestHeader.getHTTPProtocol() != "HTTP/1.1")
-	{
-		throw Exception_Request("Protocol not allowed", 400, 0);
-	}
-	return (0);
-}
 
 bool Request::checkCGI()
 {

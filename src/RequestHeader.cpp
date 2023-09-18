@@ -33,34 +33,33 @@ RequestHeader::RequestHeader(const RequestHeader &source)
 	*this = source;
 }
 
-// getter
 
-std::string RequestHeader::getRequestMethod()
+std::string RequestHeader::getRequestMethod() const
 {
 	return (_requestHeaderMethod);
 }
 
-std::string RequestHeader::getRequestLocation()
+std::string RequestHeader::getRequestLocation() const
 {
 	return (_requestHeaderLocation);
 }
 
-std::string RequestHeader::getRequestLocationParametor()
+std::string RequestHeader::getRequestLocationParametor() const
 {
 	return (_requestHeaderLocationParametor);
 }
 
-std::string RequestHeader::getHTTPProtocol()
+std::string RequestHeader::getHTTPProtocol() const
 {
 	return (_requestHeaderHTTPprotocol);
 }
 
-std::string RequestHeader::getRequestHost()
+std::string RequestHeader::getRequestHost() const
 {
 	return (_requestHeaderHost);
 }
 
-std::string RequestHeader::getRequestPort()
+std::string RequestHeader::getRequestPort() const
 {
 	return (_requestHeaderPort);
 }

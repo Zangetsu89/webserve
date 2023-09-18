@@ -45,7 +45,7 @@ static int getEventIndexFromSocketsList(std::vector<SocketConnect *> socketConne
 	// std::cout << "socketConnects.size() is " << socketConnects.size() << std::endl;
 	for (int i = 0; i < (int)socketConnects.size(); i++)
 	{
-		if (socketConnects[i]->getSocketConnect() == eventFd)
+		if (socketConnects[i]->getNumSocket() == eventFd)
 		{
 			return i;
 		}
