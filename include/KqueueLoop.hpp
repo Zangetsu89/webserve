@@ -1,18 +1,12 @@
 #ifndef KqueueLoop_HPP
-#define KqueueLoop_HPP
-#include <vector>
-#include <iostream>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <sys/event.h>
-#include <sys/time.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <netdb.h>
-#include <signal.h>
-#include <fcntl.h>
-#include "Server.hpp"
-#include "macro.hpp"
+# define KqueueLoop_HPP
+# include <iostream>
+# include <vector>
+# include <sys/socket.h>
+# include <sys/event.h>
+# include <fcntl.h>
+# include "Server.hpp"
+# include "macro.hpp"
 
 class Server;
 class KqueueLoop
@@ -24,16 +18,14 @@ class KqueueLoop
 	std::vector<int>	_listListeningSocketInt;
 	std::vector<Server>	*_servers;
 
-	// base public member function
 	protected:
-	KqueueLoop(); // do not use : KqueueLoop must be created with socket number
+	KqueueLoop();
 
 	public:
 	KqueueLoop(std::vector<Server> *servers, int kq);
 	~KqueueLoop();
-	KqueueLoop &operator=(const KqueueLoop &source);
-	KqueueLoop(const KqueueLoop &source);
-
+	KqueueLoop &operator=(const KqueueLoop &source) = delete;	// copy prohibited
+	KqueueLoop(const KqueueLoop &source) = delete;				// copy prohibited
 
 	int		checkListeningSocket(int sock);
 	int 	startLoop();
