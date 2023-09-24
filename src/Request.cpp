@@ -2,7 +2,7 @@
 #include "../include/SocketConnect.hpp"
 #include "../include/util.hpp"
 
-Request::Request() : _sizeR(0), _requestBodyLength(0), _requestShowList(0), _requestCGI(0)
+Request::Request() : _sizeR(0), _requestBodyLength(0)
 {
 }
 
@@ -20,7 +20,6 @@ Request &Request::operator=(const Request &source)
 		_requestContentType = source._requestContentType;
 		_requestBodyLength = source._requestBodyLength;
 		_requestBody = source._requestBody;
-		_requestShowList = source._requestShowList;
 		_requestCGI = source._requestCGI;
 
 		_requestSocket = source._requestSocket;
@@ -71,6 +70,11 @@ DirSettings *Request::getRequestDirSettings()
 	return (_requestDirSetting);
 }
 
+std::pair<std::string, std::string> Request::getRequestCGI() const
+{
+	return (_requestCGI);
+}
+
 void Request::printDataR()
 {
 	std::cout << std::endl
@@ -100,12 +104,6 @@ void Request::printRequestParsedData()
 			  << std::endl;
 }
 
-bool Request::getRequestShowList()
-{
-	return (_requestShowList);
-}
-
-
 void Request::addDataR(char c)
 {
 	_dataR.push_back(c);
@@ -123,7 +121,7 @@ void Request::setRequest(std::vector<Server> *list_server, SocketConnect *socket
 		setRequestHeader();
 		setRequestContentType();
 		findServer();
-		findDirSetting_checkCGI();
+		findDirSettings();
 		checkRedirect();
 		checkProtocol();
 		setRequestBodyLength();
@@ -184,68 +182,58 @@ bool Request::checkPort(std::vector<Server>::iterator it, int port)
 int Request::findServer() // the server must be found, otherwise, send error message (normally it never happens)
 {
 	std::vector<Server>::iterator it;
-	// std::cout << "_requestHeader.getRequestHost() is " << _requestHeader.getRequestHost() << std::endl;
 	for (it = _servers->begin(); it != _servers->end(); it++)
 	{
 		if (_requestHeader.getRequestHost() == it->getServerName() && checkPort(it, stoi(_requestHeader.getRequestPort())))
 		{
 			_requestServer = &(*it);
-			// std::cout << "_requestServer is " << _requestServer->getServerName() << std::endl;
 			return (0);
 		}
 	}
-	// std::cout << "_requestServer is " << _requestServer << std::endl;
-	throw Exception_Request("server(host) is not found", 400, 0);
+	throw std::invalid_argument("Request not match to this server"); // must close this socket
 }
 
-int Request::findDirSetting_checkCGI()
+int Request::findDirSettings()
 {
 	std::string requestLocation;
+	std::string rootPath = _requestServer->getRootPath();
 	std::vector<DirSettings> *list_dirsetting = _requestServer->getOptDirSettings();
-	std::vector<DirSettings> *list_CGIdirsetting = _requestServer->getCGIDirSettings();
 
 	requestLocation = _requestHeader.getRequestLocation();
-	if (requestLocation.back() == '/')
+	if (requestLocation.back() != '/') // it might be a file, let's check
+	{
+		// check if this file exists -> yes  -> delete this file -> go to directory check
+		// check if this file exists -> no -> maybe this is a directory -> go to directory check
+		struct stat status;
+		if (stat((rootPath + requestLocation ).c_str(), &status) == 0)
+			deleteStringEnd(&requestLocation, "/");
+	}
+	else
 		requestLocation.pop_back();
 
 	for (; requestLocation != ""; deleteStringEnd(&requestLocation, "/"))
 	{
-		std::string path_dir = _requestServer->getRootDir();
-		path_dir.pop_back();
+		std::string path_dir = _requestServer->getRootPath();
 		path_dir += requestLocation;
 		for (std::vector<DirSettings>::iterator it = list_dirsetting->begin(); it != list_dirsetting->end(); it++)
 		{
 
 			if (path_dir == it->getLocation())
 			{
-				// std::cout << "!! requestDir found in _optDirSettings -> " << path_dir << std::endl;
 				_requestDirSetting = &(*it);
-				return (0);
-			}
-		}
-		for (std::vector<DirSettings>::iterator it = list_CGIdirsetting->begin(); it != list_CGIdirsetting->end(); it++)
-		{
-			if (path_dir == it->getLocation())
-			{
-				// std::cout << "!! requestDir found, in _cgiDirSettings -> " << path_dir << std::endl;
-				_requestDirSetting = &(*it);
-				_requestCGI = 1;
 				return (0);
 			}
 		}
 	}
-	// std::cout << "!!! requestDir is _rootDirSettings  " << _requestServer->getRootDirSettings()->getLocation() << std::endl;
 	_requestDirSetting = _requestServer->getRootDirSettings();
 	return (0);
 }
 
 int Request::checkRedirect()
 {
-	if (_requestDirSetting->getRedirect().size() != 0)
+	if (!_requestDirSetting->getRedirect().second.empty())
 	{
-		// std::cout << "!!!! redirect is set " << _requestDirSetting->getRedirect().begin()->first << " " << _requestDirSetting->getRedirect().begin()->second << std::endl;
-		// _requestSocket->setRedirect(_requestDirSetting->getRedirect().begin()->second);
-		throw Exception_Request("Redirect is set", 0, _requestDirSetting->getRedirect().begin()->first);
+		throw Exception_Request("Redirect is set", 0, _requestDirSetting->getRedirect().first);
 	}
 	return (0);
 }
@@ -266,9 +254,8 @@ int Request::setRequestBodyLength() // body length may not exist, depends on the
 	it = _requestHeader.getHeaderOthers()->find("Content-Length");
 	if (it != _requestHeader.getHeaderOthers()->end())
 		_requestBodyLength = stoi(it->second);
-	// std::cout << "!!!_requestBodyLength is " << _requestBodyLength << std::endl;
 	if (_requestBodyLength > _requestDirSetting->getMaxBodySize())
-		throw Exception_Request("Content-Length is too much", 413, 0);
+		throw Exception_Request("Content-Length is too much!", 413, 0);
 	return (0);
 }
 
@@ -277,15 +264,9 @@ int Request::setRequestBody() // request body may not exist, depends on the requ
 	std::string str_read = vectorToString(&_dataR);
 	std::string slicepart;
 
-	try
-	{
-		slicepart = splitString(&str_read, "\r\n\r\n");
-		_requestBody = str_read;
-	}
-	catch (const std::exception &e)
-	{
-		// this case, there is no request body (only header)
-	}
+	slicepart = splitString(&str_read, "\r\n\r\n");
+	_requestBody = str_read;
+
 	if (_requestBody.size() > _requestDirSetting->getMaxBodySize())
 		throw Exception_Request("Content-Length is too much", 413, 0);
 	return (0);
@@ -295,7 +276,6 @@ int Request::setRequestBody() // request body may not exist, depends on the requ
 int Request::checkMethod()
 {
 	std::vector<std::string> allowedmethod = _requestDirSetting->getMethods();
-	// std::cout << "!!!! Dir is " <<  _requestDirSetting->getLocation() << std::endl;
 	for (std::vector<std::string>::iterator it = allowedmethod.begin(); it != allowedmethod.end(); it++)
 	{
 		if (_requestHeader.getRequestMethod() == *it)
@@ -307,8 +287,21 @@ int Request::checkMethod()
 
 bool Request::checkCGI()
 {
-	if (_requestCGI)
-		return (1);
+	std::map<std::string, std::string> cgiList = _requestDirSetting->getCgiSetting();
+	if (cgiList.size() == 0)
+		return (FALSE);
+
+	std::string filename = _requestServer->getRootPath() + _requestHeader.getRequestLocation();
+	// check if the file name is cgi
+	std::map<std::string, std::string>::iterator it = cgiList.begin();
+	for (; it != cgiList.end(); it++)
+	{	
+		if (filename.compare( filename.size() - it->first.size(),it->first.size() ,it->first) == 0)
+		{
+			_requestCGI = std::pair<std::string, std::string>(it->first, it->second);
+			return (TRUE);
+		}
+	}
 	return (0);
 }
 

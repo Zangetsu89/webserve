@@ -15,7 +15,7 @@ std::string set_Status(int num)
 	case 103:
 		return "Early Hints";
 
-	// 2xx successful
+	// 2xx success
 	case 200:
 		return "OK";
 	case 201:

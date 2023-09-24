@@ -5,21 +5,17 @@
 #include "../include/Response.hpp"
 #include "../include/util.hpp"
 
-// The respons generate function should see if the path is a directory or
-// file. If directory, check if there is an index file, if yes, return the index
-// file, if not, see the directory permission. If the permission is true,
-// read the directory and give back the list of content.
-// If not a directory, check if plain text or a file: actually python handles this allready
-// all plain text POST get saved in html/user directory?
-// if GET searches for a plain file, look for the file in html/user directory?
-// the POST method should contain plain text message?
-
 CgiHandler::CgiHandler(SocketConnect *socket)
 {
 	this->_socket = socket;
 	this->_request = _socket->getClientRequest();
 	this->_response = _socket->getClientResponse();
-	this->_cgiDir = _request->getRequestDirSettings()->getCgiDir();
+	this->_cgiDir = _request->getRequestCGI().second;
+	this->_cgiProgram = _request->getRequestCGI().first;
+	if (_cgiProgram == ".py")
+		_cgiProgram = "python3";
+	else
+		_cgiProgram.erase(0,1); // delete . from extention
 	makeCgiEnv();
 	makeCgiArgv();
 }
@@ -89,13 +85,7 @@ void CgiHandler::makeCgiEnv()
 
 void CgiHandler::makeCgiArgv()
 {
-	std::string cgiExtension = _request->getRequestDirSettings()->getCgiExtension();
-
-	if (cgiExtension == "py")
-		_cgiArgv.push_back("python3");
-	else if (cgiExtension == "php")
-		_cgiArgv.push_back("php");
-
+	_cgiArgv.push_back(_cgiProgram);
 	std::string filepath = _response->getResponseFilePath();
 	_cgiArgv.push_back(filepath);
 }
@@ -135,7 +125,6 @@ int CgiHandler::prepareResponse()
 			static char **cgiArray = stringCharArray(_cgiArgv);
 			static char **cgiEnvArray = stringCharArray(_cgiEnv);
 			execve(_cgiDir.c_str(), cgiArray, cgiEnvArray);
-			std::cout << "execve failed" << std::endl;
 			cleanStringCharArray(cgiArray);
 			cleanStringCharArray(cgiEnvArray);
 			exit(1);
@@ -161,7 +150,6 @@ int CgiHandler::prepareResponse()
 				close(fd_post[1]);
 				close(fd_exe[1]);
 			}
-
 			int r = 1;
 			char c;
 			while (r == 1)
@@ -174,7 +162,10 @@ int CgiHandler::prepareResponse()
 			}
 			waitpid(pid, &err, 0);
 			if (err != 0)
+			{
+				close(fd_exe[0]);
 				throw ERR_CgiHandler("wait failed", 500);
+			}
 			close(fd_exe[0]);
 		}
 		_socket->setStatus(200);

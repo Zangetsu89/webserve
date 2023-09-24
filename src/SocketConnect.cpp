@@ -1,4 +1,5 @@
 #include "../include/SocketConnect.hpp"
+#include "../include/KqueueLoop.hpp"
 #include "../include/Request.hpp"
 #include "../include/Response.hpp"
 #include "../include/status.hpp"
@@ -94,6 +95,8 @@ int SocketConnect::readRequest()
 	int bytesRead = 1;
 
 	bytesRead = recv(_numSocket, buff, BUFFSIZE, 0);
+	if (bytesRead < 0)
+		throw KqueueLoop::Exception_CloseSocket("recv failed");
 	for (int i = 0; i < bytesRead; i++)
 		_clientRequest.addDataR(buff[i]);
 
@@ -107,12 +110,12 @@ void SocketConnect::setRequest(std::vector<Server> *list_server)
 
 bool SocketConnect::doRedirect(std::vector<SocketConnect *> socketConnects, int where)
 {
-	if (getClientRequest()->getRequestDirSettings()->getRedirect().size() == 0)
+	if (getClientRequest()->getRequestDirSettings()->getRedirect().second.empty())
 		return (0);
 	else
 	{
-		int redirect_status = getClientRequest()->getRequestDirSettings()->getRedirect().begin()->first;
-		std::string redirect_url = getClientRequest()->getRequestDirSettings()->getRedirect().begin()->second;
+		int redirect_status = getClientRequest()->getRequestDirSettings()->getRedirect().first;
+		std::string redirect_url = getClientRequest()->getRequestDirSettings()->getRedirect().second;
 		std::string redirect_status_str = std::to_string(redirect_status);
 		std::string redirect_message = set_Status(redirect_status);
 		std::cout << "Redirect is set " << redirect_url << std::endl;

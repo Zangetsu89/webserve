@@ -7,42 +7,16 @@
 
 KqueueLoop::KqueueLoop(std::vector<Server> *servers, int kq) : _kq_main(kq), _n_ev(0), _servers(servers)
 {
-	// clean the kevent to catch the event
 	for (int i = 0; i < TOTAL_KEV; i++)
 		EV_SET(&_kev_catch[i], -1, EVFILT_READ, EV_DISABLE, 0, 0, NULL);
-
-	// set _listListeningSocketInt (list to check the listening socket number)
-	for (int i = 0; i < (int)_servers->size(); i++)
-	{
-		std::vector<Server> &temp = *_servers;
-		Server &tempserver = temp[i];
-		std::vector<SocketListen> *tempsocketlist = tempserver.getSocketListen();
-
-		for (int i = 0; i < (int)tempsocketlist->size(); i++)
-		{
-			std::vector<SocketListen>::iterator itr = tempsocketlist->begin() + i;
-			_listListeningSocketInt.push_back(itr->getNumSocket());
-		}
-	}
 }
 
 KqueueLoop::~KqueueLoop()
 {
 }
 
-int KqueueLoop::checkListeningSocket(int sock)
-{
-	for (int i = 0; i < (int)_listListeningSocketInt.size(); i++)
-	{
-		if (_listListeningSocketInt[i] == sock)
-			return (sock);
-	}
-	return (-1);
-}
-
 static int getEventIndexFromSocketsList(std::vector<SocketConnect *> socketConnects, int eventFd)
 {
-	// std::cout << "socketConnects.size() is " << socketConnects.size() << std::endl;
 	for (int i = 0; i < (int)socketConnects.size(); i++)
 	{
 		if (socketConnects[i]->getNumSocket() == eventFd)
@@ -74,26 +48,20 @@ int KqueueLoop::startLoop()
 			try
 			{
 				if (_kev_catch[i].flags & EV_EOF || _kev_catch[i].flags & EV_ERROR)
-				{
-					std::cout << "closed!" << std::endl;
-					throw std::invalid_argument("error flag on a socket");
-				}
-				int socket_num = checkListeningSocket(_kev_catch[i].ident);
-				if (socket_num > 2)
+					throw Exception_CloseSocket("error flag on a socket");
+
+				int where_socket = getEventIndexFromSocketsList(socketConnects, (int)_kev_catch[i].ident);
+				if (where_socket < 0)
 				{
 					// std::cout << std::endl << "[Event on listenning socket] " << socket_num << std::endl;
 					SocketConnect *newSocket = new SocketConnect((int)_kev_catch[i].ident, _kq_main, _servers);
 					if (newSocket == NULL)
-						throw std::invalid_argument("error on accepting new socket");
+						throw Exception_CloseSocket("error on accepting new socket");
 					socketConnects.push_back(newSocket);
 					continue;
 				}
-
-				int where_socket = getEventIndexFromSocketsList(socketConnects, (int)_kev_catch[i].ident);
-				if (where_socket < 0)
-					throw std::invalid_argument("Socket not found");
 				SocketConnect *currentsocket = socketConnects[where_socket];
-				if (_kev_catch[i].filter == EVFILT_READ && !(_kev_catch[i].flags & EV_ERROR))
+				if (_kev_catch[i].filter == EVFILT_READ)
 				{
 					// std::cout << std::endl << "[READ Event on connection socket(EVFILT_READ)] " << _kev_catch[i].ident << std::endl;
 					if (currentsocket->readRequest() == BUFFSIZE)
@@ -103,20 +71,17 @@ int KqueueLoop::startLoop()
 						continue;
 					}
 					if (currentsocket->getClientRequest()->getSizeR() == 0)
-						throw std::invalid_argument("Request is empty");
+						throw Exception_CloseSocket("Request is empty");
 					currentsocket->setRequest(_servers);
 					currentsocket->getClientResponse()->makeResponse(currentsocket->getClientRequest(), currentsocket);
 					EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_READ, EV_DELETE, 0, 0, 0);
 					EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);
 					kevent(_kq_main, &_kev_catch[i], 1, NULL, 0, NULL);
 				}
-				else if (_kev_catch[i].filter == EVFILT_WRITE && !(_kev_catch[i].flags & EV_ERROR)) // check if the socket is to write
+				else if (_kev_catch[i].filter == EVFILT_WRITE) // check if the socket is to write
 				{
 					if (currentsocket->doRedirect(socketConnects, where_socket))
-					{
-
-						throw std::invalid_argument("Redirect is done");
-					}
+						throw Exception_CloseSocket("Redirect is done");
 					if (currentsocket->getClientResponse()->sendResponse(currentsocket->getNumSocket()))
 					{
 						EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);
@@ -144,18 +109,11 @@ int KqueueLoop::startLoop()
 	return (0);
 }
 
-// getter
-
-int KqueueLoop::getKqMain()
-{
-	return (_kq_main);
-}
-
 // exception
-KqueueLoop::ERR_KqueueLoop::ERR_KqueueLoop() : _error_msg("KqueueLoop setting failed") {}
-KqueueLoop::ERR_KqueueLoop::ERR_KqueueLoop(const char *error_msg) : _error_msg(error_msg) {}
+KqueueLoop::Exception_CloseSocket::Exception_CloseSocket() : _error_msg("KqueueLoop setting failed") {}
+KqueueLoop::Exception_CloseSocket::Exception_CloseSocket(const char *error_msg) : _error_msg(error_msg) {}
 
-const char *KqueueLoop::ERR_KqueueLoop::what() const _NOEXCEPT
+const char *KqueueLoop::Exception_CloseSocket::what() const _NOEXCEPT
 {
 	return (_error_msg);
 }
