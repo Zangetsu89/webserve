@@ -173,7 +173,7 @@ int CgiHandler::prepareResponse()
 	}
 	catch (ERR_CgiHandler &e)
 	{
-		std::cerr << e.what() << '\n';
+		std::cerr << e._error_msg << '\n';
 		_socket->setError(e._error_num);
 		return (e._error_num);
 	}

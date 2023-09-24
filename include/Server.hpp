@@ -15,7 +15,6 @@ class Server
 		std::string						_rootPath;
 		DirSettings						_rootDirSettings;
 		std::vector<DirSettings>		_optDirSettings;
-		// std::vector<DirSettings>		_cgiDirSettings;
 		std::vector<SocketListen>		_listSocketListen;
 
 	public:
@@ -30,7 +29,6 @@ class Server
 		std::string					getRootPath() const;
 		DirSettings					*getRootDirSettings();
 		std::vector<DirSettings>	*getOptDirSettings();
-		// std::vector<DirSettings>	*getCGIDirSettings();
 		std::vector<SocketListen>	*getSocketListen();
 
 		void						setServerName(std::string *settings, std::string title);

@@ -7,31 +7,40 @@
 <body>
 <?php
 
-// This works only for Chrome!
-// get all data from STDIN
-
+// don't print notice
 error_reporting(E_ALL & ~E_NOTICE);
 
+// read data from STDIN(POST data)
 $postData = '';
 while ($line = fgets(STDIN)) {
     $postData .= $line;
 }
 
-$_POST['posted_filename'] = '';
+if (substr($postData, -2) === "--") {
+	$postData = substr($postData, 0, -2);
+}
 
-// echo "SERVER ";
-// var_dump($_SERVER);
-
-// echo "\ ENV ";
-// var_dump($_ENV);
-
+// not necessary - print STDIN data
 // print_r("<br><p><H1>---Got all data!---</H1></p><br><br>");
 // print_r($postData);
 // print_r("<p>---Data end!---</p><br><br>");
 
-// Parse the CONTENT_TYPE to get the boundary
+$_POST['posted_filename'] = '';
+
+// not necessary - print SERVER array data
+// echo "SERVER ";
+// var_dump($_SERVER);
+
+// not necessary - print ENV array data
+// echo "\ ENV ";
+// var_dump($_ENV);
+
+
+
+// get the CONTENT_TYPE to get the boundary
 $boundary = str_replace('boundary=', '', $_ENV['CONTENT_TYPE']);
 $boundarys = explode(' ', $boundary);
+$boundarys[1] = '--'.$boundarys[1];
 
 
 // Split the data into individual fields
@@ -45,7 +54,7 @@ foreach ($fields as $field) {
 	list($headers, $value) = explode("\r\n\r\n", $field, 2);
 
 	// Parse the headers to get the field name (and possibly filename)
-	// Handle the field value (e.g., store it in $_POST)
+	// and get the field value (e.g., store it in $_POST)
 	if (preg_match('/name="([^"]+)"/', $headers, $matches))
 	{
 		$fieldName = $matches[1];		
@@ -58,56 +67,12 @@ foreach ($fields as $field) {
 	}
 }
 
-
-foreach ($_POST as $key => $value) 
-{
-	if (substr($value, -3) === "\n--") {
-	    $value = substr($value, 0, -3);
-	} else {
-	    $value = $value;
-	}
-	if (substr($value, -4) === "\r\n--") {
-	    $value = substr($value, 0, -4);
-	} else {
-	    $value = $value;
-	}
-	// print_r("!!".$key."!! = !!".$value."!!<br>" );
-}
-
-if (substr($_POST['uploading_'], -2) === "--") {
+// delete unnecessary newline
+if (substr($_POST['uploading_'], -2) === "\r\n") {
 	$_POST['uploading_'] = substr($_POST['uploading_'], 0, -2);
 }
 
-
-$input_data = $_POST['uploading_'];
-// print_r($_POST['uploading_']."<br>");
-
-
-// echo "<br>HAHAHA<br>";
-// print_r($_POST['posted_filename']."<br>");
-
-// echo "HAHAHA<br>";
-
-// print_r("Uploaded File name is ");
-// print_r($_FILES["file"]["name"]."<br>");
-// print_r("REQUEST_METHOD is ");
-// print_r($_ENV['REQUEST_METHOD']."<br>");
-// print_r("SERVER_PROTOCOL is ");
-// print_r($_ENV['SERVER_PROTOCOL']."<br>");
-// print_r("CONTENT_LENGTH is ");
-// print_r($_ENV['CONTENT_LENGTH']."<br>");
-// print_r("CONTENT_TYPE is ");
-// print_r($_ENV['CONTENT_TYPE']."<br>");
-// print_r("QUERY_STRING is ");
-// print_r($_ENV['QUERY_STRING']."<br>");
-// print_r("SCRIPT_FILENAME is ");
-// print_r($_ENV['SCRIPT_FILENAME']."<br>");
-// print_r("SCRIPT_NAME is ");
-// print_r($_ENV['SCRIPT_NAME']."<br>");
-// print_r("SERVER_NAME is ");
-// print_r($_ENV['SERVER_NAME']."<br>");
-
-
+// difine upload directory
 $uploadpath = __DIR__."/../upload/";
 
 $filename = $_POST['posted_filename'];
@@ -115,8 +80,7 @@ $filename = $_POST['posted_filename'];
 if ($_POST['posted_filename'])
 {
 	$uploadfilepath = $uploadpath.$_POST['posted_filename'];
-	// print_r($uploadfilepath."<br>");
-	$myfile = fopen($uploadfilepath, "w");
+	$myfile = fopen($uploadfilepath, "wb");
 	if ($myfile > 0)
 	{
 		fwrite($myfile, $_POST['uploading_']);

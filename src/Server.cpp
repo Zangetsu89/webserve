@@ -57,7 +57,6 @@ Server::Server(Server const &source)
 	this->_rootPath = source._rootPath;
 	this->_rootDirSettings = source._rootDirSettings;
 	this->_optDirSettings = source._optDirSettings;
-	// this->_cgiDirSettings = source._cgiDirSettings;
 	this->_listSocketListen = source._listSocketListen;
 }
 
@@ -72,7 +71,6 @@ Server &Server::operator=(Server const &source)
 	this->_rootPath = source._rootPath;
 	this->_rootDirSettings = source._rootDirSettings;
 	this->_optDirSettings = source._optDirSettings;
-	// this->_cgiDirSettings = source._cgiDirSettings;
 	this->_listSocketListen = source._listSocketListen;
 	return (*this);
 }
@@ -102,16 +100,10 @@ std::vector<DirSettings> *Server::getOptDirSettings()
 	return (&_optDirSettings);
 }
 
-// std::vector<DirSettings> *Server::getCGIDirSettings()
-// {
-// 	return (&_cgiDirSettings);
-// }
-
 std::vector<SocketListen> *Server::getSocketListen()
 {
 	return (&_listSocketListen);
 }
-
 
 void	Server::setServerName(std::string *settings, std::string title)
 {
