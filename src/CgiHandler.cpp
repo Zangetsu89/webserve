@@ -4,6 +4,7 @@
 #include "../include/DirSettings.hpp"
 #include "../include/Response.hpp"
 #include "../include/util.hpp"
+#include <signal.h>
 
 CgiHandler::CgiHandler(SocketConnect *socket)
 {
@@ -141,7 +142,12 @@ int CgiHandler::prepareResponse()
 
 				char *posting = reinterpret_cast<char *>(postdata.data());
 				if (write(fd_post[1], posting, length) < 0)
+				{
+					close(fd_post[1]);
+					close(fd_exe[0]);
+					kill (pid, SIGKILL);
 					throw ERR_CgiHandler("cgi data generate failed!", 500);
+				}
 				close(fd_post[1]);
 			}
 			else
@@ -156,7 +162,10 @@ int CgiHandler::prepareResponse()
 			{
 				r = read(fd_exe[0], &c, 1);
 				if (r < 0)
+				{
+					close(fd_exe[0]);
 					throw ERR_CgiHandler("cgi data generate failed", 500);
+				}
 				_response->addCtoResponseBody(c);
 				_response->addResponseContentLength(r);
 			}
@@ -173,9 +182,10 @@ int CgiHandler::prepareResponse()
 	}
 	catch (ERR_CgiHandler &e)
 	{
-		std::cerr << e._error_msg << '\n';
+		std::cerr << e._error_msg << " error num is " << e._error_num << '\n';
 		_socket->setError(e._error_num);
 		return (e._error_num);
+		// throw ERR_CgiHandler("Exception : cgi data generate failed", 500);
 	}
 }
 
@@ -184,7 +194,7 @@ CgiHandler::ERR_CgiHandler::ERR_CgiHandler(const char *error_msg, int err) : _er
 {
 }
 
-const char *CgiHandler::ERR_CgiHandler::what() const _NOEXCEPT
+const char *CgiHandler::ERR_CgiHandler::what() const noexcept
 {
 	std::cout << "Error : in CgiHandler : ";
 	return (_error_msg);

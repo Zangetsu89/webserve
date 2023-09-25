@@ -37,7 +37,7 @@ class KqueueLoop
 		public:
 		Exception_CloseSocket();
 		Exception_CloseSocket(const char *error_msg);
-		const char *what() const _NOEXCEPT; // _NOEXCEPT is needed since C++11
+		const char *what() const noexcept; // noexcept is needed since C++11
 	};
 };
 

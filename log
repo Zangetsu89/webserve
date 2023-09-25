@@ -1,0 +1,90 @@
+- - - - - - - - - - - - 
+
+0: server name is localhost
+root path is ./www/server80
+port: 80
+
+[Rootdir] 
+location is ./www/server80
+type is GET
+index is index.html
+errorpage is 403 /error/403.html
+errorpage is 404 /error/404.html
+errorpage is 405 /error/405.html
+dir permission is TRUE
+redirect setting is 0 
+max body is 50000000
+
+[Optdir 0]
+location is ./www/server80/redirect
+type is GET
+index is index.html
+errorpage is 403 /error/403.html
+errorpage is 404 /error/404.html
+errorpage is 405 /error/405.html
+dir permission is TRUE
+redirect setting is 307 https://en.wikipedia.org/wiki/42_(number)
+max body is 50000000
+
+[Optdir 1]
+location is ./www/server80/cgi-bin/python
+type is GET
+type is POST
+index is index.py
+errorpage is 403 /error/403.html
+errorpage is 404 /error/404.html
+errorpage is 405 /error/405.html
+dir permission is TRUE
+redirect setting is 0 
+max body is 50000000
+Cgi is .py /Users/kito/.brew/bin/python3
+
+[Optdir 2]
+location is ./www/server80/cgi-bin/php
+type is GET
+type is POST
+type is DELETE
+index is index.php
+errorpage is 403 /error/403.html
+errorpage is 404 /error/404.html
+errorpage is 405 /error/405.html
+dir permission is TRUE
+redirect setting is 0 
+max body is 50000000
+Cgi is .php /usr/bin/php
+
+- - - - - - - - - - - - 
+
+1: server name is localhost
+root path is ./www/server6060/
+port: 6060
+
+[Rootdir] 
+location is ./www/server6060/
+type is GET
+type is POST
+type is DELETE
+index is index.html
+dir permission is FALSE
+redirect setting is 0 
+max body is 50000000
+
+- - - - - - - - - - - - 
+
+2: server name is 127.0.0.1
+root path is ./www/server5050/
+port: 5050
+
+[Rootdir] 
+location is ./www/server5050/
+type is GET
+type is POST
+type is DELETE
+index is index.html
+dir permission is FALSE
+redirect setting is 307 https://http.cat/
+max body is 50000000
+
+- - - - - - - - - - - - 
+
+Kqueue start

@@ -96,7 +96,7 @@ int KqueueLoop::startLoop()
 			catch (std::exception &e) // we must leave the error without using exit (otherwise the server stops for one error on a stream)
 			{
 				close(_kev_catch[i].ident);
-				std::cout << e.what() << std::endl;
+				std::cout << e.what() << " !!!" << std::endl;
 				int num_socket_registered = getEventIndexFromSocketsList(socketConnects, _kev_catch[i].ident);
 				if (num_socket_registered >= 0)
 				{
@@ -113,7 +113,7 @@ int KqueueLoop::startLoop()
 KqueueLoop::Exception_CloseSocket::Exception_CloseSocket() : _error_msg("KqueueLoop setting failed") {}
 KqueueLoop::Exception_CloseSocket::Exception_CloseSocket(const char *error_msg) : _error_msg(error_msg) {}
 
-const char *KqueueLoop::Exception_CloseSocket::what() const _NOEXCEPT
+const char *KqueueLoop::Exception_CloseSocket::what() const noexcept
 {
 	return (_error_msg);
 }

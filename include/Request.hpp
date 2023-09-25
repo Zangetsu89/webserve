@@ -73,7 +73,7 @@ class Request
 			int _status_num;
 		    Exception_Request();
 		    Exception_Request(const char *exception_msg, int err, int status);
-		    const char *what() const _NOEXCEPT;
+		    const char *what() const noexcept;
 	};
 };
 

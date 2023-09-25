@@ -39,7 +39,7 @@ class CgiHandler
             int _error_num;
             ERR_CgiHandler();
             ERR_CgiHandler(const char *error_msg, int err);
-            const char *what() const _NOEXCEPT;
+            const char *what() const noexcept;
     };
 };
 

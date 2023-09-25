@@ -18,7 +18,7 @@ void	WebservCli::check_os(void) {
 WebservCli::WrongOsException::WrongOsException(const char *error_msg): _error_msg(error_msg)
 {}
 
-const char *WebservCli::WrongOsException::what() const _NOEXCEPT 
+const char *WebservCli::WrongOsException::what() const noexcept 
 {
 	return (_error_msg);
 }

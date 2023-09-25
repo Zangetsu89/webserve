@@ -17,6 +17,7 @@ class SocketListen
 		struct sockaddr_in	_listenSockaddr;
 		socklen_t 			_listenSockaddrLen;
 		struct kevent		_listenKevent;
+		struct timeval		_timeout;
 
 	public:
 		SocketListen(int port, int kq);
@@ -35,7 +36,7 @@ class SocketListen
 			public:
 				ERR_SocketListen();
 				ERR_SocketListen(const char *error_msg);
-				const char *what() const _NOEXCEPT;
+				const char *what() const noexcept;
 		};
 };
 

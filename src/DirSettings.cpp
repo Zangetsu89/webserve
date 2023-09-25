@@ -10,7 +10,7 @@ DirSettings::DirSettings()
 	_location = "/";
 	_index.push_back("index.html");
 	_dirPermission = FALSE;
-	_maxBodySize = std::numeric_limits<size_t>::max();
+	_maxBodySize = MAXWRITE;
 }
 
 DirSettings::DirSettings(DirSettings const &another)

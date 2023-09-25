@@ -170,7 +170,7 @@ std::string	returnValueByLine(std::string line, std::string title)
 Exception_StopServer::Exception_StopServer() : _error_msg("Fatal error") {}
 Exception_StopServer::Exception_StopServer(const char *error_msg) : _error_msg(error_msg) {}
 
-const char *Exception_StopServer::what() const _NOEXCEPT
+const char *Exception_StopServer::what() const noexcept
 {
 	return (_error_msg);
 }

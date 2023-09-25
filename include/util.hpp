@@ -32,7 +32,7 @@ class Exception_StopServer: public std::exception
 		public:
 		Exception_StopServer();
 		Exception_StopServer(const char *error_msg);
-		const char *what() const _NOEXCEPT; // _NOEXCEPT is needed since C++11
+		const char *what() const noexcept; // noexcept is needed since C++11
 };
 
 #endif //UTIL_H

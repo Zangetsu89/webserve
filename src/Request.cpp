@@ -311,7 +311,7 @@ Request::Exception_Request::Exception_Request(const char *error_msg, int err, in
 {
 }
 
-const char *Request::Exception_Request::what() const _NOEXCEPT
+const char *Request::Exception_Request::what() const noexcept
 {
 	std::cout << "Error : in Request : ";
 	return (_error_msg);
