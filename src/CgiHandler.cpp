@@ -97,7 +97,7 @@ int CgiHandler::prepareResponse()
 
 	int err;
 	int fd_exe[2];	// for executing
-	int fd_post[2]; // only used for POST method (pass the Response body to the CGI through STDIN)
+	int fd_post[2]; // only used for POST method (to pass the Response body to the CGI through STDIN)
 
 	try
 	{
@@ -132,21 +132,43 @@ int CgiHandler::prepareResponse()
 		}
 		else
 		{
-			int length = _request->getRequestBodyLength();
-			std::string postdata = _request->getRequestBody();
-
 			if (method == "POST")
 			{
 				close(fd_post[0]);
 				close(fd_exe[1]);
 
-				char *posting = reinterpret_cast<char *>(postdata.data());
-				if (write(fd_post[1], posting, length) < 0)
+				std::string postdata = _request->getRequestBody();
+				std::cout << "POST body data length is " << postdata.size() << std::endl;
+				char	buff[1024];
+				size_t copied = 0;
+
+				while (postdata.size() > 0)
 				{
-					close(fd_post[1]);
-					close(fd_exe[0]);
-					kill (pid, SIGKILL);
-					throw ERR_CgiHandler("cgi data generate failed!", 500);
+					if (postdata.size() > 1024)
+					{
+						copied = postdata.copy(buff, 1024, 0);
+						if (copied <= 0)
+							std::cout << "ERROR!! r" << std::endl;
+						if (write(fd_post[1], buff, copied) < 0)
+						{
+							close(fd_post[1]);
+							close(fd_exe[0]);
+							kill (pid, SIGKILL);
+							throw ERR_CgiHandler("cgi data generate failed!", 500);
+						}
+						postdata = postdata.erase(0, copied);
+					}
+					else{
+						if (write(fd_post[1], postdata.c_str(), postdata.size()) < 0)
+						{
+							close(fd_post[1]);
+							close(fd_exe[0]);
+							kill (pid, SIGKILL);
+							throw ERR_CgiHandler("cgi data generate failed!", 500);
+						}
+						postdata = "";
+						break;
+					}
 				}
 				close(fd_post[1]);
 			}
@@ -156,6 +178,8 @@ int CgiHandler::prepareResponse()
 				close(fd_post[1]);
 				close(fd_exe[1]);
 			}
+
+			// read the excuted data or child process
 			int r = 1;
 			char c;
 			while (r == 1)
@@ -185,7 +209,6 @@ int CgiHandler::prepareResponse()
 		std::cerr << e._error_msg << " error num is " << e._error_num << '\n';
 		_socket->setError(e._error_num);
 		return (e._error_num);
-		// throw ERR_CgiHandler("Exception : cgi data generate failed", 500);
 	}
 }
 

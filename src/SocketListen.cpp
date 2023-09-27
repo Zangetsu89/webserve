@@ -18,7 +18,7 @@ SocketListen::SocketListen(int port, int kq)
 	if ((setsockopt(_numSocket, SOL_SOCKET, SO_REUSEADDR, &reuseport, sizeof(reuseport))) < 0)
 		throw ERR_SocketListen("setsockopt for reuse port failed");
 
-	_timeout.tv_sec = 10; // set 10 second to max waiting time for data transfer
+	_timeout.tv_sec = 20; // set 20 second to max waiting time for data transfer
 	_timeout.tv_usec = 0;
 	if (setsockopt(_numSocket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&_timeout, sizeof(_timeout)) < 0)
 		throw ERR_SocketListen("setsockopt for timeout failed");

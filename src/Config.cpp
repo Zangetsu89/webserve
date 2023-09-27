@@ -14,8 +14,6 @@ std::string Config::_readConfigFile(std::string name)
 	if (file_content.size() == 0)
 		throw Exception_StopServer("Config format is wrong");
 	file.close();
-	// std::cout << "Check done!\n" << std::endl;
-	// std::cout << file_content << std::endl;
 	return (file_content);
 }
 
@@ -73,13 +71,6 @@ void	Config::printConfigFile()
 			advance(itr, j);
 			itr->printAllDirSettings();
 		}
-		// for (size_t j = 0; j < _servers[i].getCGIDirSettings()->size(); j++)
-		// {
-		// 	std::cout << std::endl << "[CGIdir " << j << "]\n";
-		// 	std::vector<DirSettings>::iterator itr = _servers[i].getCGIDirSettings()->begin();
-		// 	advance(itr, j);
-		// 	itr->printAllDirSettings();
-		// }
 		std::cout << std::endl << "- - - - - - - - - - - - " << std::endl << std::endl;
 	}
 

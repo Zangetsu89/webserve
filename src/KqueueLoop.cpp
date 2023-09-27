@@ -64,15 +64,20 @@ int KqueueLoop::startLoop()
 				if (_kev_catch[i].filter == EVFILT_READ)
 				{
 					// std::cout << std::endl << "[READ Event on connection socket(EVFILT_READ)] " << _kev_catch[i].ident << std::endl;
-					if (currentsocket->readRequest() == BUFFSIZE)
+					if (currentsocket->readRequest() == BUFFSIZE || currentsocket->getClientRequest()->getSizeR() == 0)
 					{
 						EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, 0);
 						kevent(_kq_main, &_kev_catch[i], 1, NULL, 0, NULL);
 						continue;
 					}
-					if (currentsocket->getClientRequest()->getSizeR() == 0)
-						throw Exception_CloseSocket("Request is empty");
-					currentsocket->setRequest(_servers);
+					if (currentsocket->getClientRequest()->getRequestBody().size() == 0)
+						currentsocket->setRequest(_servers);
+					if ( (currentsocket->getClientRequest()->getRequestBodyLength() && currentsocket->getClientRequest()->getRequestBodyLength() > (currentsocket->getClientRequest()->getRequestBody()).size()))
+					{
+						EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, 0);
+						kevent(_kq_main, &_kev_catch[i], 1, NULL, 0, NULL);
+						continue;
+					}
 					currentsocket->getClientResponse()->makeResponse(currentsocket->getClientRequest(), currentsocket);
 					EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_READ, EV_DELETE, 0, 0, 0);
 					EV_SET(&_kev_catch[i], _kev_catch[i].ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);

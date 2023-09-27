@@ -50,7 +50,7 @@ std::string Request::getRequestContentType() const
 	return (_requestContentType);
 }
 
-int Request::getRequestBodyLength() const
+size_t Request::getRequestBodyLength() const
 {
 	return (_requestBodyLength);
 }

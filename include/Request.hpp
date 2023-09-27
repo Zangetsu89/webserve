@@ -37,7 +37,7 @@ class Request
 		int				getSizeR() const;
 		RequestHeader	*getRequestHeader();
 		std::string		getRequestContentType() const;
-		int				getRequestBodyLength() const;
+		size_t			getRequestBodyLength() const;
 		std::string		getRequestBody() const;
 		Server			*getRequestServer();
 		DirSettings		*getRequestDirSettings();

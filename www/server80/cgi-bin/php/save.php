@@ -10,11 +10,41 @@
 // don't print notice
 error_reporting(E_ALL & ~E_NOTICE);
 
-// read data from STDIN(POST data)
+// not necessary - print SERVER array data
+// echo "SERVER ";
+// var_dump($_SERVER);
+
+// not necessary - print ENV array data
+// echo "\ ENV ";
+// var_dump($_ENV);
+
+$contentsize = intval($_ENV['CONTENT_LENGTH']);
+
+
+// read data from STDIN(POST data) new!
 $postData = '';
-while ($line = fgets(STDIN)) {
-    $postData .= $line;
+$stdin = fopen('php://stdin', 'r');
+while ($contentsize > 0){
+	if ($contentsize > 1024){
+		$postData .=fread($stdin, 1024);
+		fflush($stdin);
+		$contentsize = $contentsize - 1024;
+	}
+	else{
+		$postData .=fread($stdin, $contentsize);
+		fflush($stdin);
+		$contentsize = 0;
+	}	
 }
+fclose($stdin);
+
+
+
+// read data from STDIN(POST data)
+// $postData = '';
+// while ($line = fgets(STDIN)) {
+//     $postData .= $line;
+// }
 
 if (substr($postData, -2) === "--") {
 	$postData = substr($postData, 0, -2);
@@ -25,15 +55,8 @@ if (substr($postData, -2) === "--") {
 // print_r($postData);
 // print_r("<p>---Data end!---</p><br><br>");
 
-$_POST['posted_filename'] = '';
+// $_POST['posted_filename'] = '';
 
-// not necessary - print SERVER array data
-// echo "SERVER ";
-// var_dump($_SERVER);
-
-// not necessary - print ENV array data
-// echo "\ ENV ";
-// var_dump($_ENV);
 
 
 
@@ -77,6 +100,7 @@ $uploadpath = __DIR__."/../upload/";
 
 $filename = $_POST['posted_filename'];
 
+
 if ($_POST['posted_filename'])
 {
 	$uploadfilepath = $uploadpath.$_POST['posted_filename'];
@@ -84,6 +108,7 @@ if ($_POST['posted_filename'])
 	if ($myfile > 0)
 	{
 		fwrite($myfile, $_POST['uploading_']);
+		fflush($myfile);
 		fclose($myfile);
 	}
 	echo "<H1>File save DONE!!!</H1>";
