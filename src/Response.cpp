@@ -124,8 +124,10 @@ void Response::makeResponseHeader()
 	}
 	else
 	{
-		if (!_request->checkCGI())
+		if (_request->getRequestCGI().second.empty())
 			_responseContentType = get_MIMETypes(_responseFilePath);
+		else
+			_responseContentType = "text/html";
 		message = set_Status(status);
 		responseHeader_str = "HTTP/1.1 " + std::to_string(status) + " " + message + "\r\n";
 		responseHeader_str = responseHeader_str + "Content-Type: " + _responseContentType + "\r\n\r\n";
@@ -147,70 +149,57 @@ void Response::makeResponseFullData()
 int Response::checkResponseStatus()
 {
 	std::string requestlocation = this->_request->getRequestHeader()->getRequestLocation();
-	if (requestlocation.front() == '/')
-		requestlocation.erase(0, 1);
+	std::string requestPath = _request->getRequestServer()->getRootPath() + requestlocation;
 
-	std::string requestPath = _request->getRequestServer()->getRootDir() + requestlocation;
-	if (requestPath.back() == '/') // request is directory
+	if (requestPath.back() != '/')
 	{
-		// std::cout << "requestPath is a directory : " << requestPath << std::endl;
-		std::string requestDir = requestPath;
-		requestPath = requestPath + _request->getRequestDirSettings()->getIndexPage();
-		// std::cout << "new requestPath (with index) is : " << requestPath << std::endl;
+		// check if it is a file 
 		struct stat status;
 		if (stat(requestPath.c_str(), &status) == 0)
 		{
-			_responseFilePath = requestPath;
-			return (ISFILE);
-		}
-		if (_request->getRequestDirSettings()->getDirPermission())
-		{
-			_responseFilePath = requestDir;
-			return (SHOWLIST);
-		}
-		std::cout << "requestPath is not found and showing list is not allowed : " << requestPath << std::endl;
-		_responseSocket->setError(403);
-		return (NOTFOUND);
-	}
-	else
-	{
-		struct stat status;
-		if (stat(requestPath.c_str(), &status) == 0)
-		{
-			// std::cout << "requestPath file is found : " << requestPath << std::endl;
 			if ((status.st_mode & S_IFMT) == S_IFDIR)
 			{
-				// std::cout << "requestPath is a directory : " << requestPath << std::endl;
 				std::string requestDir = requestPath;
-				requestPath = requestPath + _request->getRequestDirSettings()->getIndexPage();
-				// std::cout << "new requestPath2 (with index) is : " << requestPath << std::endl;
-				struct stat status;
-				if (stat(requestPath.c_str(), &status) == 0)
+				std::vector<std::string> indexlist = _request->getRequestDirSettings()->getIndexPage();
+				for (size_t i = 0; i < indexlist.size() ; i++)
 				{
-					_responseFilePath = requestPath;
-					return (ISFILE);
+					_responseFilePath = requestDir + "/" + indexlist[i];
+					if (stat(_responseFilePath.c_str(), &status) == 0)			
+						return (ISFILE);
 				}
 				if (_request->getRequestDirSettings()->getDirPermission())
 				{
 					_responseFilePath = requestDir;
 					return (SHOWLIST);
 				}
-
-				// std::cout << "requestPath file2 is not found : " << requestPath << std::endl;
-				_responseSocket->setError(404);
+				_responseSocket->setError(403);
 				return (NOTFOUND);
 			}
 			_responseFilePath = requestPath;
 			return (ISFILE);
 		}
-		else
-		{
-			// std::cout << "requestPath file2 is not found : " << requestPath << std::endl;
-			_responseSocket->setError(404);
-			return (NOTFOUND);
-		}
+		_responseSocket->setError(404);
+		return (NOTFOUND);
 	}
-	return (NOTFOUND);
+	else		// request is directory
+	{
+		std::string requestDir = requestPath;
+		std::vector<std::string> indexlist = _request->getRequestDirSettings()->getIndexPage();
+		struct stat status;
+		for (size_t i = 0; i < indexlist.size() ; i++)
+		{
+			_responseFilePath = requestDir + "/" + indexlist[i];
+			if (stat(_responseFilePath.c_str(), &status) == 0)			
+				return (ISFILE);
+		}
+		if (_request->getRequestDirSettings()->getDirPermission())
+		{
+			_responseFilePath = requestDir;
+			return (SHOWLIST);
+		}
+		_responseSocket->setError(403);
+		return (NOTFOUND);
+	}
 }
 
 void Response::readResponseFile()
@@ -263,10 +252,6 @@ void Response::generateDirectoryListing()
 		addString_toVectorChar(&_responseBody, file);
 	}
 	addString_toVectorChar(&_responseBody, "</ul></body></html>");
-	// std::cout << "List is made! " << _responseFilePath.c_str() << std::endl;
-	// for (int i = 0; i < (int)_responseBody.size(); i++)
-	// 	std::cout << _responseBody[i];
-	// std::cout << std::endl;
 	_responseContentLength = _responseBody.size();
 	_responseSocket->setStatus(200);
 }
@@ -274,29 +259,25 @@ void Response::generateDirectoryListing()
 void Response::generateErrorBody()
 {
 	int err = _responseSocket->getErrorNum();
-	std::string filetype = "Content-Type: text/html; charset=UTF-8\r\n\r\n";
-	std::string rootPath = _request->getRequestServer()->getRootDir();
-	rootPath.pop_back();
-
+	std::string rootPath = _request->getRequestServer()->getRootPath();
 	std::map<int, std::string> err_map = _request->getRequestDirSettings()->getErrorPage();
 	std::map<int, std::string>::iterator it;
+
 	it = err_map.find(err);
 	if (it != err_map.end())
 	{
-		// std::cout << "Error file is " << it->second << std::endl;
 		_responseFilePath = rootPath + it->second;
-		// std::cout << "Error file path is " << _responseFilePath << std::endl;
 		readResponseFile();
 		return;
 	}
 	std::string message = set_ErrorStatus(err);
 	std::string errbody = "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>";
 	errbody = errbody + std::to_string(err) + " " + message + "</title></head><body>" + std::to_string(err) + " " + message + "<br><br>HAHAHA, this is default error page!</body></html>";
-	// std::cout << "Error body is made " << std::endl;
+
 	for (size_t i = 0; i < errbody.size(); i++)
 	{
 		_responseBody.push_back(errbody[i]);
-		std::cout << _responseBody[i];
+		// std::cout << _responseBody[i];
 	}
 	_responseContentLength = _responseBody.size();
 }

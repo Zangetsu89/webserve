@@ -1,0 +1,123 @@
+Root directory: ./www/server80/
+!! _cgiExtension, _cgiDir is  
+cgi  is 
+!! _cgiExtension, _cgiDir is  
+cgi  is .py /usr/local/bin/python3
+_cgiExtension, _cgiDir is py /usr/local/bin/python3
+!! _cgiExtension, _cgiDir is py /usr/local/bin/python3
+cgi  is .php /usr/bin/php
+_cgiExtension, _cgiDir is php /usr/bin/php
+!! _cgiExtension, _cgiDir is php /usr/bin/php
+Root directory: ./www/server6060/
+!! _cgiExtension, _cgiDir is  
+Root directory: ./www/server5050/
+!! _cgiExtension, _cgiDir is  
+
+0: server name is localhost
+rootdir is ./www/server80/
+port: 80
+location is ./www/server80/
+type is 0
+type is GET
+index is index.html
+errorpage is 403 /error/403.html
+errorpage is 404 /error/404.html
+errorpage is 405 /error/405.html
+dir permission is 1
+redirect setting is 0
+max body is 18446744073709551615
+_cgi is 0
+_cgiExtension is 
+_cgiDir is 
+
+[optdir 0]
+location is ./www/server80/redirect
+type is 1
+type is GET
+index is index.html
+errorpage is 403 /error/403.html
+errorpage is 404 /error/404.html
+errorpage is 405 /error/405.html
+dir permission is 0
+redirect setting is 1
+redirect is 307 https://en.wikipedia.org/wiki/42_(number)
+max body is 18446744073709551615
+_cgi is 0
+_cgiExtension is 
+_cgiDir is 
+
+[CGIdir 0]
+location is ./www/server80/cgi-bin/python
+type is 2
+type is GET
+type is POST
+index is index.py
+errorpage is 403 /error/403.html
+errorpage is 404 /error/404.html
+errorpage is 405 /error/405.html
+dir permission is 0
+redirect setting is 0
+max body is 18446744073709551615
+_cgi is 1
+_cgiExtension is py
+_cgiDir is /usr/local/bin/python3
+
+[CGIdir 1]
+location is ./www/server80/cgi-bin/php
+type is 2
+type is GET
+type is POST
+type is DELETE
+index is index.php
+errorpage is 403 /error/403.html
+errorpage is 404 /error/404.html
+errorpage is 405 /error/405.html
+dir permission is 0
+redirect setting is 0
+max body is 18446744073709551615
+_cgi is 1
+_cgiExtension is php
+_cgiDir is /usr/bin/php
+
+1: server name is localhost
+rootdir is ./www/server6060/
+port: 6060
+location is ./www/server6060/
+type is 0
+type is GET
+type is POST
+type is DELETE
+index is index.html
+dir permission is 0
+redirect setting is 0
+max body is 18446744073709551615
+_cgi is 0
+_cgiExtension is 
+_cgiDir is 
+
+2: server name is 127.0.0.1
+rootdir is ./www/server5050/
+port: 5050
+location is ./www/server5050/
+type is 0
+type is GET
+type is POST
+type is DELETE
+index is index.html
+dir permission is 0
+redirect setting is 1
+redirect is 307 https://http.cat/
+max body is 18446744073709551615
+_cgi is 0
+_cgiExtension is 
+_cgiDir is 
+1: server name is localhost
+
+2: server name is localhost
+
+3: server name is 127.0.0.1
+
+setting listening port is 80
+setting listening port is 6060
+setting listening port is 5050
+Kqueue start

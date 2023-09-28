@@ -2,6 +2,7 @@
 # define SERVER_HPP
 # include <iostream>
 # include <vector>
+# include <string>
 # include "DirSettings.hpp"
 
 class SocketListen;
@@ -11,10 +12,9 @@ class Server
 	private:
 		std::string						_serverName;
 		std::vector<int>				_ports;
-		std::string						_rootDir;
+		std::string						_rootPath;
 		DirSettings						_rootDirSettings;
 		std::vector<DirSettings>		_optDirSettings;
-		std::vector<DirSettings>		_cgiDirSettings;
 		std::vector<SocketListen>		_listSocketListen;
 
 	public:
@@ -26,26 +26,17 @@ class Server
 
 		std::string					getServerName() const;
 		std::vector<int>			getPorts() const;
-    	std::string					getRootDir() const;
+		std::string					getRootPath() const;
 		DirSettings					*getRootDirSettings();
 		std::vector<DirSettings>	*getOptDirSettings();
-		std::vector<DirSettings>	*getCGIDirSettings();
 		std::vector<SocketListen>	*getSocketListen();
 
+		void						setServerName(std::string *settings, std::string title);
+		void						setRootPath(std::string *settings, std::string title);
+		void						setPorts(std::string *settings, std::string title);
+		bool						checkServerInfo();
 		void						setSocketListen(int kq);
     	bool                        isNumeric(std::string str);
-
-	//exception
-	public:
-	class	ERR_Server : public std::exception
-	{
-		private:
-			const char	*_error_msg;
-		public:
-			ERR_Server();
-			ERR_Server(const char *error_msg);
-			const char *what() const _NOEXCEPT;
-	};
 };
 
 

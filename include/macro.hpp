@@ -17,4 +17,6 @@
 # define SHOWLIST 2
 # define NOTFOUND 3
 
+# define MAXWRITE 50000000
+
 #endif //MACRO_H

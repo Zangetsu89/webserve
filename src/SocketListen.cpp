@@ -18,6 +18,11 @@ SocketListen::SocketListen(int port, int kq)
 	if ((setsockopt(_numSocket, SOL_SOCKET, SO_REUSEADDR, &reuseport, sizeof(reuseport))) < 0)
 		throw ERR_SocketListen("setsockopt for reuse port failed");
 
+	_timeout.tv_sec = 20; // set 20 second to max waiting time for data transfer
+	_timeout.tv_usec = 0;
+	if (setsockopt(_numSocket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&_timeout, sizeof(_timeout)) < 0)
+		throw ERR_SocketListen("setsockopt for timeout failed");
+	
 	if (bind(_numSocket, (struct sockaddr *)&_listenSockaddr, sizeof(_listenSockaddr)) < 0)
 	{
 		// if the same port is already opened by other server, stop.
@@ -48,6 +53,7 @@ SocketListen &SocketListen::operator=(const SocketListen &source)
 		_listenSockaddr = source._listenSockaddr;
 		_listenSockaddrLen = source._listenSockaddrLen;
 		_listenKevent = source._listenKevent;
+		_timeout = source._timeout;
 	}
 	return (*this);
 }
@@ -72,7 +78,7 @@ struct kevent *SocketListen::getKevent()
 SocketListen::ERR_SocketListen::ERR_SocketListen() : _error_msg("SocketListen setting failed") {}
 SocketListen::ERR_SocketListen::ERR_SocketListen(const char *error_msg) : _error_msg(error_msg) {}
 
-const char *SocketListen::ERR_SocketListen::what() const _NOEXCEPT
+const char *SocketListen::ERR_SocketListen::what() const noexcept
 {
 	std::cout << "Error : in SocketListen : ";
 	return (_error_msg);

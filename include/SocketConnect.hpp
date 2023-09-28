@@ -31,7 +31,6 @@ class SocketConnect
 		Response			_clientResponse;
 		int					_errorNum;
 		int					_statusNum;
-		struct timeval		_timeout;
 
 	public:
 		SocketConnect();
@@ -60,7 +59,7 @@ class SocketConnect
 		public:
 			ERR_SocketConnect();
 			ERR_SocketConnect(const char *error_msg);
-			const char *what() const _NOEXCEPT;
+			const char *what() const noexcept;
 	};
 };
 

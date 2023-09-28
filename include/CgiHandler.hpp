@@ -34,14 +34,12 @@ class CgiHandler
 
     class ERR_CgiHandler : public std::exception
     {
-        private:
-            const char *_error_msg;
-
         public:
+			const char *_error_msg;
             int _error_num;
             ERR_CgiHandler();
             ERR_CgiHandler(const char *error_msg, int err);
-            const char *what() const _NOEXCEPT;
+            const char *what() const noexcept;
     };
 };
 
