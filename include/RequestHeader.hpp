@@ -15,8 +15,8 @@ class RequestHeader
 	private:
 		std::string _requestHeaderMethod;			// GET, POST, DELETE
 		std::string _requestHeaderLocation; 		// the whole location string (ex: "/hello/world/filename" )
-		std::string _requestHeaderLocationParametor; // Information by Get method
-		std::string _requestHeaderHTTPprotocol;
+		std::string _requestHeaderLocationParameter; // Information by Get method
+		std::string _requestHeaderHTTP_Protocol;
 		std::string _requestHeaderHost;
 		std::string _requestHeaderPort;
 		std::map<std::string, std::string> _requestHeaderOthers;
@@ -45,8 +45,6 @@ class RequestHeader
 		int				setMethodLocationProtocol(std::vector<char> *dataR);
 		int				setHeaderOthers(std::vector<char> *dataR);
 		int				setHostPort();
-		int				setContentType();
-		int				setRequestContentLength();
 
 };
 

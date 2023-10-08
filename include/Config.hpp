@@ -10,7 +10,6 @@ class Config
 	private:
 		std::vector<Server>		_servers;
 		std::string				_readConfigFile(std::string name);
-		void					_printConfigFile();
 
 	public:
 			
@@ -22,6 +21,7 @@ class Config
 
 		std::vector<Server>		*getServers();
 		void					setKqServers(int kq);
+		void					printConfigFile();
 };
 
 #endif

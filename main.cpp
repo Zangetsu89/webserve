@@ -15,18 +15,14 @@ void	initialCheck(int argc)
 
 	WebservCli.check_os();
 	if (argc < 2)
-		throw std::invalid_argument("Please define config_file.");
+		throw Exception_StopServer("Please define config_file.");
 }
 
-void	printServerInfo(bool print, std::vector<Server> list_Servers)
+void	printServerInfo(bool print, Config *config)
 {
 	if (!print)
 		return ;
-	for (size_t i = 0; i < list_Servers.size(); i++)
-	{
-		std::cout << i + 1 << ": server name is " << list_Servers[i].getServerName() << std::endl;
-		std::cout << std::endl;
-	}
+	config->printConfigFile();
 }
 
 void	continuePipe(int i)
@@ -44,12 +40,13 @@ int  main(int argc, char *argv[])
 	{
 		initialCheck(argc);
 		Config	config(argv[1]);
-		printServerInfo(TRUE, *config.getServers()); // TRUE -> print server info
+		printServerInfo(TRUE, &config); // TRUE -> print server info
 		if ((kq = kqueue()) < 0)
-			throw std::invalid_argument("Kq failed.");
+			throw Exception_StopServer("Kq failed.");
 		config.setKqServers(kq);
 		KqueueLoop	mainloop(config.getServers(), kq);
 		mainloop.startLoop();
+		
 	}
 	catch(std::exception &e)
 	{

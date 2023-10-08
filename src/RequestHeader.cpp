@@ -1,4 +1,5 @@
 #include "../include/RequestHeader.hpp"
+#include "../include/Request.hpp"
 #include "../include/util.hpp"
 #include "../include/Server.hpp"
 
@@ -16,8 +17,8 @@ RequestHeader &RequestHeader::operator=(const RequestHeader &source)
 	{
 		_requestHeaderMethod = source._requestHeaderMethod;
 		_requestHeaderLocation = source._requestHeaderLocation;
-		_requestHeaderLocationParametor = source._requestHeaderLocationParametor;
-		_requestHeaderHTTPprotocol = source._requestHeaderHTTPprotocol;
+		_requestHeaderLocationParameter = source._requestHeaderLocationParameter;
+		_requestHeaderHTTP_Protocol = source._requestHeaderHTTP_Protocol;
 		_requestHeaderHost = source._requestHeaderHost;
 		_requestHeaderPort = source._requestHeaderPort;
 		_requestHeaderOthers = source._requestHeaderOthers;
@@ -46,12 +47,12 @@ std::string RequestHeader::getRequestLocation() const
 
 std::string RequestHeader::getRequestLocationParametor() const
 {
-	return (_requestHeaderLocationParametor);
+	return (_requestHeaderLocationParameter);
 }
 
 std::string RequestHeader::getHTTPProtocol() const
 {
-	return (_requestHeaderHTTPprotocol);
+	return (_requestHeaderHTTP_Protocol);
 }
 
 std::string RequestHeader::getRequestHost() const
@@ -83,8 +84,8 @@ void RequestHeader::displayHeaderAll()
 	std::cout << std::endl
 			  << "RequestHeader method is " << _requestHeaderMethod << std::endl;
 	std::cout << "RequestHeader location is " << _requestHeaderLocation << std::endl;
-	std::cout << "RequestHeader location parametor is " << _requestHeaderLocationParametor << std::endl;
-	std::cout << "RequestHeader HTTPprotocol is " << _requestHeaderHTTPprotocol << std::endl;
+	std::cout << "RequestHeader location parametor is " << _requestHeaderLocationParameter << std::endl;
+	std::cout << "RequestHeader HTTPprotocol is " << _requestHeaderHTTP_Protocol << std::endl;
 	std::cout << "RequestHeader host is " << _requestHeaderHost << ", port is " << _requestHeaderPort << std::endl;
 	std::cout << std::endl;
 }
@@ -93,44 +94,35 @@ void RequestHeader::checkLocationParametor()
 {
 	std::string locationtemp = _requestHeaderLocation;
 	std::string slicepart;
-	try
-	{
-		slicepart = splitString(&locationtemp, "?");
-		std::cout << "slicepart is " << slicepart << std::endl;
-		_requestHeaderLocation = slicepart;
-		_requestHeaderLocationParametor = locationtemp;
-		std::cout << "parametor is " << _requestHeaderLocationParametor << std::endl;
-	}
-	catch (const std::exception &e)
-	{
-	}
+
+	slicepart = splitString(&locationtemp, "?");
+	_requestHeaderLocation = slicepart;
+	_requestHeaderLocationParameter = locationtemp;
+
 }
 
 int RequestHeader::setMethodLocationProtocol(std::vector<char> *dataR)
 {
 	std::string str_read = vectorToString(dataR);
 	std::string slicepart;
-	try
-	{
-		slicepart = splitString(&str_read, " ");
-		_requestHeaderMethod = slicepart;
-		if (_requestHeaderMethod != "GET" && _requestHeaderMethod != "POST" && _requestHeaderMethod != "DELETE")
-			return (400); // bad request
-		slicepart = splitString(&str_read, " ");
-		_requestHeaderLocation = slicepart;
-		if (_requestHeaderLocation[0] != '/') // request location must start by "/""
-			return (400);
-		checkLocationParametor();
-		slicepart = splitString(&str_read, "\r\n");
-		_requestHeaderHTTPprotocol = slicepart;
-		if (_requestHeaderHTTPprotocol != "HTTP/1.1")
-			return (400);
-	}
-	catch (const std::exception &e)
-	{
-		std::cerr << "Bad request" << '\n';
-		return (400);
-	}
+
+	slicepart = splitString(&str_read, " ");
+	if (str_read.empty())
+		throw Request::Exception_Request("The Request is wrong (Method wrong)", 400, 0);
+	_requestHeaderMethod = slicepart;
+	if (_requestHeaderMethod != "GET" && _requestHeaderMethod != "POST" && _requestHeaderMethod != "DELETE")
+		throw Request::Exception_Request("Bad request", 400, 0);
+	slicepart = splitString(&str_read, " ");
+	if (str_read.empty())
+		throw Request::Exception_Request("The Request is wrong (no space)", 400, 0);
+	_requestHeaderLocation = slicepart;
+	if (_requestHeaderLocation[0] != '/') // request location must start by "/""
+		throw Request::Exception_Request("The Request is wrong (no /)", 400, 0);
+	checkLocationParametor();
+	slicepart = splitString(&str_read, "\r\n");
+	_requestHeaderHTTP_Protocol = slicepart;
+	if (_requestHeaderHTTP_Protocol != "HTTP/1.1")
+		throw Request::Exception_Request("HTTP is wrong", 400, 0);
 	return (0);
 }
 
@@ -139,28 +131,19 @@ int RequestHeader::setHeaderOthers(std::vector<char> *dataR)
 	std::string str_read = vectorToString(dataR);
 	std::string slicepart;
 
-	try
+	splitString(&str_read, "\r\n"); // delete the first line (Method part)
+
+	while (str_read.size())
 	{
-		splitString(&str_read, "\r\n"); // delete the first line
-	}
-	catch (const std::exception &e)
-	{
-		std::cout << "no line" << std::endl;
-		return (400); // if no line in the data, return bad request
-	}
-	// store other elements of the request to _requestHeaderOthers, and get content body
-	while (str_read.size() != 0)
-	{
-		try
+		size_t pos;
+		slicepart = splitString(&str_read, "\r\n");
+		pos = slicepart.find(": ");
+		if (pos != std::string::npos)
 		{
-			slicepart = splitString(&str_read, "\r\n");
 			std::pair<std::string, std::string> datapair = getLabelItem(&slicepart, ": ");
 			_requestHeaderOthers.insert(datapair);
 		}
-		catch (const std::exception &e) // this case, the line is empty new line or doesn't contain ": "
-		{
-			break;
-		}
+
 	}
 	return (0);
 }
@@ -182,7 +165,7 @@ int RequestHeader::setHostPort()
 	}
 	else
 	{
-		_requestHeaderHost = splitString(&hostPort, ":");
+		_requestHeaderHost = splitString(&hostPort, ":"); 
 		_requestHeaderPort = removeWhitespace(hostPort);
 	}
 	return (0);

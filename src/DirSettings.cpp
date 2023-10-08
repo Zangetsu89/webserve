@@ -1,32 +1,21 @@
 #include "../include/DirSettings.hpp"
 #include "../include/util.hpp"
 #include "../include/ConfigMacros.hpp"
+#include "../include/macro.hpp"
+#include "../include/util.hpp"
 #include <limits>
 
-// bool	DirSettings::checkCGI(std::string location)
-// {
-// 	if (location.find("CGI") != (size_t)(-1) || location.find("cgi") != (size_t)(-1))
-// 		return (1);
-// 	return(0);
-// }
-
-DirSettings::DirSettings() : _cgiBool(0)
+DirSettings::DirSettings()
 {
+	_location = "/";
+	_index.push_back("index.html");
+	_dirPermission = FALSE;
+	_maxBodySize = MAXWRITE;
 }
 
 DirSettings::DirSettings(DirSettings const &another)
 {
-	this->_location = another._location;
-	this->_index = another._index;
-	this->_type = another._type;
-	this->_methods = another._methods;
-	this->_errorPage = another._errorPage;
-	this->_dirPermission = another._dirPermission;
-	this->_redirect = another._redirect;
-	this->_maxBodySize = another._maxBodySize;
-	this->_cgiBool = another._cgiBool;
-	this->_cgiExtension = another._cgiExtension;
-	this->_cgiDir = another._cgiDir;
+	*this = another;
 }
 
 DirSettings::~DirSettings()
@@ -37,93 +26,13 @@ DirSettings &DirSettings::operator=(DirSettings const &another)
 {
 	this->_location = another._location;
 	this->_index = another._index;
-	this->_type = another._type;
 	this->_methods = another._methods;
 	this->_errorPage = another._errorPage;
 	this->_dirPermission = another._dirPermission;
 	this->_redirect = another._redirect;
 	this->_maxBodySize = another._maxBodySize;
-	this->_cgiBool = another._cgiBool;
-	this->_cgiExtension = another._cgiExtension;
-	this->_cgiDir = another._cgiDir;
+	this->_cgiSetting = another._cgiSetting;
 	return (*this);
-}
-
-DirSettings::DirSettings(std::string settings) : _cgiBool(0)
-{
-	std::string location;
-	std::string index;
-	std::string methods;
-	std::vector<std::string> errorPage;
-	std::string dirPermission;
-	std::string bodySize;
-	size_t start_pos;
-	std::vector<std::string> redirect;
-
-	this->_index = getValue(settings, "index", 0);
-	location = getValue(settings, "root", 0);
-	location = removeWhitespace(location);
-	if (location.length() > 1)
-	{
-		this->_location = location;
-		this->_type = DEFAULT;
-	}
-	if (location.length() < 1)
-	{
-		location = getValue(settings, "location", 0);
-		if (location.length() == 1 && location.c_str()[0] == '/')
-		{
-			this->_type = DEFAULT;
-		}
-		else if (location.length() > 1)
-		{
-			location = removeWhitespace(location);
-			setLocation(this->_location, location);
-			this->_type = OPTIONAL;
-			setCgiElements(settings);
-		}
-	}
-	if (this->_location.length() < 1)
-		throw(std::invalid_argument("location of directory not found."));
-	methods = getValue(settings, "allowed_methods ", 0);
-	this->_methods = charSplit(methods, ',');
-	for (unsigned int i = 0; i < this->_methods.size(); i++)
-	{
-		this->_methods[i].erase(std::remove(this->_methods[i].begin(), this->_methods[i].end(), ' '), this->_methods[i].end());
-	}
-	start_pos = 0;
-	while ((start_pos = settings.find("error_page ", start_pos)) != (size_t)(-1))
-	{
-
-		errorPage = charSplit(getValue(settings, "error_page ", start_pos), ' ');
-		if (errorPage.size() < 2)
-			break;
-		this->_errorPage.insert(this->_errorPage.end(), std::pair<int, std::string>(atoi(errorPage[0].c_str()), errorPage[1]));
-		start_pos = start_pos + 11;
-	}
-	dirPermission = getValue(settings, "directory_list ", 0);
-	if (dirPermission == "TRUE")
-		this->_dirPermission = true;
-	else
-		this->_dirPermission = false;
-	start_pos = 0;
-	bodySize = getValue(settings, "client_body_size ", 0);
-	if (bodySize.length() > 0)
-		this->_maxBodySize = atoi(bodySize.c_str());
-	else
-		this->_maxBodySize = std::numeric_limits<size_t>::max();
-
-	start_pos = 0;
-	while ((start_pos = settings.find("return ", start_pos)) != (size_t)(-1))
-	{
-
-		redirect = charSplit(getValue(settings, "return ", start_pos), ' ');
-		if (redirect.size() < 2)
-			break;
-		this->_redirect.insert(this->_redirect.end(), std::pair<int, std::string>(atoi(redirect[0].c_str()), redirect[1]));
-		start_pos = start_pos + 7;
-	}
-	std::cout << "!! _cgiExtension, _cgiDir is " << _cgiExtension << " " << _cgiDir << std::endl;
 }
 
 std::string DirSettings::getLocation() const
@@ -131,14 +40,9 @@ std::string DirSettings::getLocation() const
 	return (this->_location);
 }
 
-std::string DirSettings::getIndexPage() const
+std::vector<std::string>	DirSettings::getIndexPage() const
 {
 	return (this->_index);
-}
-
-int DirSettings::getDirType() const
-{
-	return (this->_type);
 }
 
 std::vector<std::string> DirSettings::getMethods() const
@@ -156,7 +60,7 @@ bool DirSettings::getDirPermission() const
 	return (this->_dirPermission);
 }
 
-std::map<int, std::string> DirSettings::getRedirect() const
+std::pair<int, std::string> DirSettings::getRedirect() const
 {
 	return (this->_redirect);
 }
@@ -166,151 +70,171 @@ size_t DirSettings::getMaxBodySize() const
 	return (this->_maxBodySize);
 }
 
-bool DirSettings::getCgiBool() const
+std::map<std::string, std::string> DirSettings::getCgiSetting() const
 {
-	return (this->_cgiBool);
+	return (this->_cgiSetting);
 }
 
-std::string DirSettings::getCgiExtension() const
+std::string 	cleanDirSettingData(std::string settings)
 {
-	return (this->_cgiExtension);
+	
+	std::string newstr = settings;
+	newstr = removeFromBothSide(newstr, " }\n");
+
+	return (newstr);
 }
 
-std::string DirSettings::getCgiDir() const
+bool		checkRestOfLine(std::string line)
 {
-	return (this->_cgiDir);
+	if (line == "}")
+		return (TRUE);
+	if (line.compare(0, strlen("\n"), "\n") == 0)
+		return (TRUE);
+	if (line.compare(0, strlen("listen "), "listen ") == 0)
+		return (TRUE);
+	if (line.compare(0, strlen("server_name "), "server_name ") == 0)
+		return (TRUE);
+	if (line.compare(0, strlen("root "), "root ") == 0)
+		return (TRUE);
+	if (line.compare(0, strlen("location "), "location ") == 0)
+		return (TRUE);
+	return (FALSE);
+}
+
+
+void	DirSettings::applyDirSettings(std::string *settings)
+{
+	std::string str = *settings;
+	std::string line;
+
+	try
+	{
+		while (str.size())
+		{
+			line = splitString(&str, "\n");
+			if (line == "\n" || line == "")
+				continue;
+			std::string index = returnValueByLine(line, "index ");
+			if (index.size())
+			{
+				std::vector<std::string> index_list;
+				index_list = charSplit(index, ',');
+				_index = index_list;
+				continue;
+			}
+			std::string methods = returnValueByLine(line, "allowed_methods ");
+			if (methods.size())
+			{
+				std::vector<std::string> method_list;
+				method_list = charSplit(methods, ',');
+				for (size_t i = 0; i < method_list.size(); i++)
+				{
+					if (method_list[i] != "GET" && method_list[i] != "POST" && method_list[i] != "DELETE")
+						throw Exception_StopServer("Invalid Method");
+				}
+				_methods = method_list;
+				continue;
+			}
+			std::string error = returnValueByLine(line, "error_page ");
+			if (error.size())
+			{
+				std::vector<std::string> error_vector;
+
+				error_vector = charSplit(error, ' ');
+				if (error_vector.size() != 2)
+					throw Exception_StopServer("Error definision is wrong");
+				int errnum = stoi(error_vector[0]);
+				if (errnum < 400 || errnum > 600)
+					throw Exception_StopServer("Error number is wrong");
+				if (error_vector[1][0] != '/')
+					throw Exception_StopServer("Error page setting is wrong");
+				_errorPage.insert(this->_errorPage.end(), std::pair<int, std::string>(errnum, error_vector[1]));
+				continue;
+			}
+			std::string redirect = returnValueByLine(line, "return ");
+			if (redirect.size())
+			{
+				std::vector<std::string> redirect_vector;
+
+				redirect_vector = charSplit(redirect, ' ');
+				if (redirect_vector.size() != 2)
+					throw Exception_StopServer("Error definision is wrong");
+				int num = stoi(redirect_vector[0]);
+				if (num < 300 || num > 400)
+					throw Exception_StopServer("Redirect number is wrong");
+				_redirect = std::pair<int, std::string>(num, redirect_vector[1]);
+				continue;
+			}
+			std::string showlist = returnValueByLine(line, "directory_list ");
+			if (showlist.size())
+			{
+				if (showlist == "TRUE")
+					_dirPermission = 1;
+				else if (showlist == "FALSE")
+					_dirPermission = 0;
+				else
+					throw Exception_StopServer("Showing list setting is wrong");
+				continue;
+			}
+			std::string bodysize = returnValueByLine(line, "client_body_size ");
+			if (bodysize.size())
+			{
+				int bodysize_i = stoi(bodysize);
+				if (bodysize_i)
+					_maxBodySize = bodysize_i;
+				else
+					throw Exception_StopServer("max body size setting is wrong");
+				continue;
+			}
+			std::string cgistr = returnValueByLine(line, "cgi ");
+			if (cgistr.size())
+			{
+				std::vector<std::string> cgivector;
+				cgivector = charSplit(cgistr, ' ');
+				if (cgivector.size() != 2)
+					throw Exception_StopServer("CGI definision is wrong");
+				if (cgivector[0][0] != '.')
+					throw Exception_StopServer("Extensionsetting is wrong");
+				_cgiSetting.insert(this->_cgiSetting.end(), std::pair<std::string, std::string>(cgivector[0], cgivector[1]));
+				continue;
+			}
+			if (checkRestOfLine(line) == FALSE)
+				throw Exception_StopServer("Invalid line in config file");
+		}
+	}
+	catch(const Exception_StopServer(& e))
+	{
+		throw Exception_StopServer(e);
+	}
 }
 
 void DirSettings::setLocation(std::string root, std::string location)
 {
-	if (root.size() == 0 && location.c_str()[0] != '/')
-		this->_location = "/" + location;
-	else if (root.size() == 0 && location.c_str()[0] == '/')
-		this->_location = location;
-	else if ((root.c_str()[root.length() - 1] == '/' && location.c_str()[0] != '/') ||
-			 (root.c_str()[root.length() - 1] != '/' && location.c_str()[0] == '/'))
-		this->_location = root + location;
-	else if (root.c_str()[root.length() - 1] == '/' && location.c_str()[0] == '/')
-		this->_location = root + location.substr(1, location.length() - 1);
+	if (location == "/")
+		this->_location = root;
 	else
-		this->_location = root + "/" + location;
+		this->_location = root  + location;
 }
 
-void DirSettings::setIndexPage(std::string indexPage)
+void DirSettings::setIndexPage(std::vector<std::string> indexPages)
 {
-	this->_index = indexPage;
+	this->_index = indexPages;
 }
 
-void DirSettings::setDirType(int dirType)
-{
-	this->_type = dirType;
-}
-
-void DirSettings::setMethods(std::vector<std::string> methods)
-{
-	this->_methods = methods;
-}
-
-void DirSettings::setErrorPage(std::map<int, std::string> errorPage)
-{
-	this->_errorPage = errorPage;
-}
-
-void DirSettings::setDirPermission(bool permission)
-{
-	this->_dirPermission = permission;
-}
-
-void DirSettings::setRedirect(std::map<int, std::string> redirect)
-{
-	this->_redirect = redirect;
-}
-
-void DirSettings::setMaxBodySize(size_t size)
-{
-	this->_maxBodySize = size;
-}
-
-void DirSettings::setCgiBool(bool cgi)
-{
-	this->_cgiBool = cgi;
-}
-
-void DirSettings::setCgiExtension(std::string text)
-{
-	this->_cgiExtension = text;
-}
-
-void DirSettings::setCgiDir(std::string dir)
-{
-	this->_cgiDir = dir;
-}
-
-void DirSettings::setCgiElements(std::string settings)
-{
-	std::string cgi = getValue(settings, "cgi ", 0);
-	std::cout << "cgi  is " << cgi << std::endl;
-	if (cgi.size() == 0)
-		return;
-	try
-	{
-		std::string slice = splitString(&cgi, " ");
-		splitString(&slice, ".");
-		_cgiExtension = slice; // extension without dot
-		_cgiDir = removeWhitespace(cgi);
-		_cgiBool = 1;
-		this->_type = CGI;
-		std::cout << "_cgiExtension, _cgiDir is " << _cgiExtension << " " << _cgiDir << std::endl;
-
-		if (_cgiExtension != "py" && _cgiExtension != "php")
-			throw(std::invalid_argument("This server handles only .py or .php"));
-	}
-	catch (const std::exception &e)
-	{
-		std::cerr << "CGI format is not correct" << '\n';
-		exit(1);
-	}
-}
-
-void addDirSettingData(DirSettings &Target, DirSettings &toAdd)
-{
-	if (toAdd.getLocation().length() > 0)
-		Target.setLocation(Target.getLocation(), toAdd.getLocation());
-	if (toAdd.getIndexPage().length() > 0)
-		Target.setIndexPage(toAdd.getIndexPage());
-	if (toAdd.getDirType() == OPTIONAL || toAdd.getDirType() == CGI)
-		Target.setDirType(toAdd.getDirType());
-	if (toAdd.getMethods().size() > 0)
-		Target.setMethods(toAdd.getMethods());
-	if (toAdd.getErrorPage().size() > 0)
-		Target.setErrorPage(toAdd.getErrorPage());
-	if (toAdd.getDirPermission() != Target.getDirPermission())
-		Target.setDirPermission(toAdd.getDirPermission());
-	if (toAdd.getRedirect().size() > 0)
-		Target.setRedirect(toAdd.getRedirect());
-	if (toAdd.getMaxBodySize() != std::numeric_limits<size_t>::max())
-		Target.setMaxBodySize(toAdd.getMaxBodySize());
-	Target.setCgiBool(toAdd.getCgiBool());
-	Target.setCgiExtension(toAdd.getCgiExtension());
-	Target.setCgiDir(toAdd.getCgiDir());
-}
 
 void DirSettings::printAllDirSettings()
 {
 	std::cout << "location is " << _location << std::endl;
-	std::cout << "type is " << _type << std::endl;
+	// std::cout << "type is " << _type << std::endl;
 	for (size_t i = 0; i < _methods.size(); i++)
 		std::cout << "type is " << _methods[i] << std::endl;
-	std::cout << "index is " << _index << std::endl;
-
+	for (size_t i = 0; i < _index.size(); i++)
+		std::cout << "index is " << _index[i] << std::endl;
 	for (auto it = _errorPage.begin(); it != _errorPage.end(); it++)
 		std::cout << "errorpage is " << it->first << " " << it->second << std::endl;
-	std::cout << "dir permission is " << _dirPermission << std::endl;
-	std::cout << "redirect setting is " << _redirect.size() << std::endl;
-	for (auto it = _redirect.begin(); it != _redirect.end(); it++)
-		std::cout << "redirect is " << it->first << " " << it->second << std::endl;
+	std::cout << "dir permission is " <<  ((_dirPermission == 1) ? "TRUE" : "FALSE") << std::endl;
+	std::cout << "redirect setting is " << _redirect.first << " " << _redirect.second << std::endl;
 	std::cout << "max body is " << _maxBodySize << std::endl;
-	std::cout << "_cgi is " << _cgiBool << std::endl;
-	std::cout << "_cgiExtension is " << _cgiExtension << std::endl;
-	std::cout << "_cgiDir is " << _cgiDir << std::endl;
+	for (auto it = _cgiSetting.begin(); it != _cgiSetting.end(); it++)
+		std::cout << "Cgi is " << it->first << " " << it->second << std::endl;
 }
