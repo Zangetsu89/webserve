@@ -10,9 +10,11 @@
 # include <unistd.h>
 # include <netdb.h>
 # include <fcntl.h>
+# include "macro.hpp"
 # include "Response.hpp"
 # include "Server.hpp"
 # include "Request.hpp"
+# include "CgiHandler.hpp"
 
 
 class Server;
@@ -23,34 +25,35 @@ class SocketConnect
 
 	private:
 		int					_numSocket;
-		struct sockaddr_in	_clientSockaddr;
-		socklen_t 			_clientSockaddrLen;
-		struct kevent		_clientKevent;
+		int					_kqueueNum;
+		struct sockaddr_in	_socketAddr;
+		socklen_t 			_socketAddrLen;
+		struct kevent		_socketKevent;
 		std::vector<Server>	*_servers;
-    	Request				_clientRequest;
-		Response			_clientResponse;
-		int					_errorNum;
-		int					_statusNum;
-		struct timeval		_timeout;
+		std::vector<SocketConnect *> *_socketsList;
+    	Request				_socketRequest;
+		Response			_socketResponse;
+		CgiHandler			_socketCgiHandler;
 
 	public:
 		SocketConnect();
-		SocketConnect(int socket, int kq, std::vector<Server> *servers);
+		SocketConnect(int socket, int kq, std::vector<Server> *servers, std::vector<SocketConnect *> *list);
 		~SocketConnect();
 		SocketConnect& operator=(const SocketConnect &source);
 		SocketConnect(const SocketConnect &source);
 	
     	int				getNumSocket() const;
-		Request			*getClientRequest();
-		Response		*getClientResponse();
-		int				getErrorNum() const;
-		int				getStatusNum() const;
-
-		void			setError(int err);
-		void			setStatus(int status);
+    	int				getKqueueNum() const;
+    	struct kevent	*getSocketKevent();
+		Request			*getSocketRequest();
+		Response		*getSocketResponse();
+		CgiHandler		*getsocketCgiHandler();
+		void			setKevent_READ();
+		void			setKevent_WRITE();
 		int				readRequest();
+		int 			readResponseFile();
 		void			setRequest(std::vector<Server> *list_server);
-		bool			doRedirect(std::vector<SocketConnect*> socketConnects, int where);
+		bool			doRedirect(std::vector<SocketConnect*> registerdSockets, int where);
 
 	// exception
 	public : class ERR_SocketConnect : public std::exception
@@ -60,7 +63,7 @@ class SocketConnect
 		public:
 			ERR_SocketConnect();
 			ERR_SocketConnect(const char *error_msg);
-			const char *what() const _NOEXCEPT;
+			const char *what() const noexcept;
 	};
 };
 

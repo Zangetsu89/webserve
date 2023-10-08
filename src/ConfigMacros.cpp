@@ -1,4 +1,28 @@
 #include "../include/ConfigMacros.hpp"
+#include "../include/util.hpp"
+
+
+std::string	checkConfigString(std::string config)
+{
+	std::string	temp_conf = config;
+	std::string	str;
+	std::string cleaned_conf;
+
+	while (temp_conf.size())
+	{
+		str = splitString(&temp_conf, "\n");
+		if (str == "")
+		{
+			continue;
+		}
+		if (str.back() != '{' && str.back() != '}' && str.back() != ';' )
+			return ("");
+		cleaned_conf += str;
+		cleaned_conf += "\n";
+	}
+	cleaned_conf = "\n" + cleaned_conf; // to find "\nserver" from the file beginning
+	return (cleaned_conf);
+}
 
 std::vector<std::string> getAllOf(std::string src, std::string title)
 {
@@ -54,14 +78,14 @@ std::vector<std::string> charSplit(std::string src, char c)
 			sub = dup.substr(0, found);
 		else
 			sub = dup;
-		strArray.push_back(sub);
+		strArray.push_back(removeWhitespace(sub));
 		dup.erase(0, sub.length());
 		dup.erase(0, dup.find_first_not_of(c, 0));
 	}
 	return (strArray);
 }
 
-std::vector<std::string> strSplit(std::string src, std::string str)
+std::vector<std::string> strSplit(std::string src, std::string delimiter)
 {
 	std::vector<std::string> strArray;
 	size_t pos = 0;
@@ -70,13 +94,41 @@ std::vector<std::string> strSplit(std::string src, std::string str)
 	while (pos != (size_t)(-1))
 	{
 		std::string sub;
-		pos2 = src.find(str, pos + str.length());
+		pos2 = src.find(delimiter, pos + delimiter.length());
 		if (pos2 != (size_t)(-1))
 			sub = src.substr(pos, pos2 - pos);
 		else
 			sub = src.substr(pos, src.length() - pos);
 		strArray.push_back(sub);
 		pos = pos2;
+	}
+	return (strArray);
+}
+
+std::vector<std::string> strSplit_Delete(std::string *src, std::string delimiter)
+{
+	std::vector<std::string> strArray;
+	size_t pos = 0;
+	size_t pos2 = 0;
+
+	pos = src->find(delimiter, 0);
+	while (pos != (size_t)(-1))
+	{
+		std::string sub;
+		pos2 = src->find(delimiter, pos + delimiter.length());
+		if (pos2 != (size_t)(-1))
+		{
+			sub = src->substr(pos, pos2 - pos);
+			src->erase(pos, pos2 - pos);
+			strArray.push_back(sub);
+		}
+		else
+		{
+			sub = src->substr(pos, src->length() - pos);
+			src->erase(pos, src->length() - pos);
+			strArray.push_back(sub);
+			break;
+		}
 	}
 	return (strArray);
 }
@@ -88,7 +140,7 @@ std::string getBracketContent(std::string name, std::string text, size_t start_p
 	unsigned int bracket_count = 1;
 
 	if (start_pos == (size_t)(-1))
-		throw(std::invalid_argument("Text doesn't contain the info searched"));
+		throw Exception_StopServer("Text doesn't contain the info searched");
 	start_pos = start_pos + name.length();
 	start_pos = text.find("{", start_pos);
 	pos = start_pos + 1;
@@ -105,6 +157,6 @@ std::string getBracketContent(std::string name, std::string text, size_t start_p
 		i++;
 	}
 	if (bracket_count != 0)
-		throw(std::invalid_argument("brackets not closed"));
+		throw Exception_StopServer("brackets not closed");
 	return (text.substr(pos, i - 1));
 }

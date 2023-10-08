@@ -22,7 +22,7 @@ class WebservCli
 
 			public:
 				WrongOsException(const char *error_msg);
-		    	const char *what() const _NOEXCEPT;
+		    	const char *what() const noexcept;
 		};
 };
 

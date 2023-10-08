@@ -10,11 +10,13 @@
 
 // for main
 # define TOTAL_KEV 128
-# define BUFFSIZE 128
+# define BUFFSIZE 12800
 
 // for Response
 # define ISFILE 1
 # define SHOWLIST 2
 # define NOTFOUND 3
+
+# define MAXWRITE 30000000
 
 #endif //MACRO_H

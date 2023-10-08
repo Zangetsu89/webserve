@@ -15,14 +15,14 @@ class RequestHeader;
 class Request
 {
 	private:
-		std::vector<char>	_dataR;
-		int					_sizeR;
-		RequestHeader		_requestHeader;
-		std::string			_requestContentType;
-		size_t				_requestBodyLength;
-		std::string			_requestBody;
-		bool				_requestShowList;
-		bool				_requestCGI;
+		std::vector<char>					_dataR;
+		int									_sizeR;
+		RequestHeader						_requestHeader;
+		std::string							_requestContentType;
+		size_t								_requestBodyLength;
+		std::string							_requestBody;
+		std::pair<std::string, std::string>	_requestCGI;
+		size_t								_requestBodySentCGI;
 
 		SocketConnect			*_requestSocket;
 		std::vector<Server>		*_servers;
@@ -39,14 +39,15 @@ class Request
 		RequestHeader	*getRequestHeader();
 		std::string		getRequestContentType() const;
 		int				getRequestBodyLength() const;
-		std::string		getRequestBody() const;
-		DirSettings		*getRequestDirSettings();
+		int				getRequestBodySentCGI() const;
+		std::string		*getRequestBody();
 		Server			*getRequestServer();
+		DirSettings		*getRequestDirSettings();
+		std::pair<std::string, std::string> getRequestCGI() const;
 		
 		void			printDataR();
 		void			printSizeR();
 		void			printRequestParsedData();
-		bool			getRequestShowList();
 
 		void			addDataR(char c);
 		void 			setRequest(std::vector<Server> *list_server, SocketConnect *socket);
@@ -54,13 +55,14 @@ class Request
 		int 			setRequestContentType();
 		bool			checkPort(std::vector<Server>::iterator it, int port);
 		int 			findServer();
-		int 			findDirSetting_checkCGI();
+		int 			findDirSettings();
 		int 			checkRedirect();
 		int 			checkProtocol();
 		int 			setRequestBodyLength();
 		int 			setRequestBody();
 		int 			checkMethod();
 		bool			checkCGI();
+		void			addRequestBodySentCGI(int size);
 
 
 	// exception
@@ -74,7 +76,7 @@ class Request
 			int _status_num;
 		    Exception_Request();
 		    Exception_Request(const char *exception_msg, int err, int status);
-		    const char *what() const _NOEXCEPT;
+		    const char *what() const noexcept;
 	};
 };
 
