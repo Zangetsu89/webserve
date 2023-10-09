@@ -1,5 +1,5 @@
 name: Webserv test 
-run-name: ${{ github.actor }} is learning GitHub Actions
+run-name: Basic test for running webserv
 
 on: [push]
 
