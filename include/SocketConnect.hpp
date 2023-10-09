@@ -53,7 +53,6 @@ class SocketConnect
 		int				readRequest();
 		int 			readResponseFile();
 		void			setRequest(std::vector<Server> *list_server);
-		bool			doRedirect(std::vector<SocketConnect*> registerdSockets, int where);
 
 	// exception
 	public : class ERR_SocketConnect : public std::exception

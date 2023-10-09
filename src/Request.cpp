@@ -124,11 +124,10 @@ void Request::setRequest(std::vector<Server> *list_server, SocketConnect *socket
 		setRequestContentType();
 		findServer();
 		findDirSettings();
+		checkMethod();
 		checkRedirect();
-		checkProtocol();
 		setRequestBodyLength();
 		setRequestBody();
-		checkMethod();
 	}
 	catch (Exception_Request &e)
 	{
@@ -143,22 +142,14 @@ void Request::setRequest(std::vector<Server> *list_server, SocketConnect *socket
 	// printRequestParsedData();
 }
 
-int Request::setRequestHeader() // The first line of request must be correct. if not, send error response
+void Request::setRequestHeader() // The first line of request must be correct. if not, send error response
 {
-	int res = _requestHeader.setMethodLocationProtocol(&_dataR);
-	if (res != 0)
-	{
-		throw Exception_Request("The first line of request is wrong", res, 0);
-	}
-	res = _requestHeader.setHeaderOthers(&_dataR);
-	if (res != 0)
-	{
-		throw Exception_Request("Header information is wrong", res, 0);
-	}
-	return (_requestHeader.setHostPort());
+	_requestSocket->getSocketResponse()->setError(_requestHeader.setMethodLocationProtocol(&_dataR));
+	_requestHeader.setHeaderOthers(&_dataR);
+	_requestSocket->getSocketResponse()->setError(_requestHeader.setHostPort());
 }
 
-int Request::setRequestContentType() // Content-Type may not exist, depends on the request.
+void	Request::setRequestContentType() // Content-Type may not exist, depends on the request.
 
 {
 	std::map<std::string, std::string>::iterator it;
@@ -166,7 +157,6 @@ int Request::setRequestContentType() // Content-Type may not exist, depends on t
 	it = _requestHeader.getHeaderOthers()->find("Content-Type");
 	if (it != _requestHeader.getHeaderOthers()->end())
 		_requestContentType = it->second;
-	return (0);
 }
 
 
@@ -182,7 +172,7 @@ bool Request::checkPort(std::vector<Server>::iterator it, int port)
 	return (0);
 }
 
-int Request::findServer() // the server must be found, otherwise, send error message (normally it never happens)
+void Request::findServer() // the server must be found, otherwise, send error message (normally it never happens)
 {
 	std::vector<Server>::iterator it;
 	for (it = _servers->begin(); it != _servers->end(); it++)
@@ -190,13 +180,13 @@ int Request::findServer() // the server must be found, otherwise, send error mes
 		if (_requestHeader.getRequestHost() == it->getServerName() && checkPort(it, stoi(_requestHeader.getRequestPort())))
 		{
 			_requestServer = &(*it);
-			return (0);
+			return ;
 		}
 	}
 	throw std::invalid_argument("Request not match to this server"); // must close this socket
 }
 
-int Request::findDirSettings()
+void	Request::findDirSettings()
 {
 	std::string requestLocation;
 	std::string rootPath = _requestServer->getRootPath();
@@ -224,33 +214,23 @@ int Request::findDirSettings()
 			if (path_dir == it->getLocation())
 			{
 				_requestDirSetting = &(*it);
-				return (0);
+				return ;
 			}
 		}
 	}
 	_requestDirSetting = _requestServer->getRootDirSettings();
-	return (0);
+	return ;
 }
 
-int Request::checkRedirect()
+void	Request::checkRedirect()
 {
 	if (!_requestDirSetting->getRedirect().second.empty())
 	{
 		throw Exception_Request("Redirect is set", 0, _requestDirSetting->getRedirect().first);
 	}
-	return (0);
 }
 
-int Request::checkProtocol()
-{
-	if (_requestHeader.getHTTPProtocol() != "HTTP/1.1")
-	{
-		throw Exception_Request("Protocol not allowed", 400, 0);
-	}
-	return (0);
-}
-
-int Request::setRequestBodyLength() // body length may not exist, depends on the request.
+void	Request::setRequestBodyLength() // body length may not exist, depends on the request.
 {
 	std::map<std::string, std::string>::iterator it;
 
@@ -262,10 +242,9 @@ int Request::setRequestBodyLength() // body length may not exist, depends on the
 		_requestBodyLength = 0;
 		throw Exception_Request("Content-Length is too much!", 413, 0);
 	}
-	return (0);
 }
 
-int Request::setRequestBody() // request body may not exist, depends on the request.
+void	Request::setRequestBody() // request body may not exist, depends on the request.
 {
 	std::string str_read = vectorToString(&_dataR);
 	std::string slicepart;
@@ -275,17 +254,16 @@ int Request::setRequestBody() // request body may not exist, depends on the requ
 
 	if (_requestBody.size() > _requestDirSetting->getMaxBodySize())
 		throw Exception_Request("Content-Length is too much", 413, 0);
-	return (0);
 }
 
 
-int Request::checkMethod()
+void	Request::checkMethod()
 {
 	std::vector<std::string> allowedmethod = _requestDirSetting->getMethods();
 	for (std::vector<std::string>::iterator it = allowedmethod.begin(); it != allowedmethod.end(); it++)
 	{
 		if (_requestHeader.getRequestMethod() == *it)
-			return (0);
+			return ;
 	}
 	throw Exception_Request("Method not allowed", 405, 0);
 }

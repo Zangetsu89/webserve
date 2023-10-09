@@ -95,7 +95,8 @@ SocketConnect   *Response::getResponseSocket()
 
 void Response::setError(int err)
 {
-	_responseErrorNum = err;
+	if (!_responseErrorNum)
+		_responseErrorNum = err;
 }
 
 void Response::setStatus(int status)
@@ -211,11 +212,11 @@ int Response::checkResponseStatus()
 {
 	std::string requestlocation = this->_request->getRequestHeader()->getRequestLocation();
 	std::string requestPath = _request->getRequestServer()->getRootPath() + requestlocation;
+	struct stat status;
 
 	if (requestPath.back() != '/')
 	{
-		// check if it is a file 
-		struct stat status;
+		// check if it is a file 	
 		if (stat(requestPath.c_str(), &status) == 0)
 		{
 			if ((status.st_mode & S_IFMT) == S_IFDIR)
@@ -242,8 +243,13 @@ int Response::checkResponseStatus()
 		_responseErrorNum = 404;
 		return (NOTFOUND);
 	}
-	else		// request is directory
+	else	// request is directory
 	{
+		if (stat(requestPath.c_str(), &status) != 0)
+		{
+			_responseErrorNum = 404;
+			return (NOTFOUND);
+		}
 		std::string requestDir = requestPath;
 		std::vector<std::string> indexlist = _request->getRequestDirSettings()->getIndexPage();
 		struct stat status;

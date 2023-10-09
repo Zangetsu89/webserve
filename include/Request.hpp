@@ -51,16 +51,15 @@ class Request
 
 		void			addDataR(char c);
 		void 			setRequest(std::vector<Server> *list_server, SocketConnect *socket);
-		int 			setRequestHeader();
-		int 			setRequestContentType();
+		void 			setRequestHeader();
+		void			setRequestContentType();
 		bool			checkPort(std::vector<Server>::iterator it, int port);
-		int 			findServer();
-		int 			findDirSettings();
-		int 			checkRedirect();
-		int 			checkProtocol();
-		int 			setRequestBodyLength();
-		int 			setRequestBody();
-		int 			checkMethod();
+		void 			findServer();
+		void 			findDirSettings();
+		void 			checkRedirect();
+		void			setRequestBodyLength();
+		void			setRequestBody();
+		void			checkMethod();
 		bool			checkCGI();
 		void			addRequestBodySentCGI(int size);
 

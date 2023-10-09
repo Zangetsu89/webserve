@@ -105,25 +105,20 @@ int RequestHeader::setMethodLocationProtocol(std::vector<char> *dataR)
 {
 	std::string str_read = vectorToString(dataR);
 	std::string slicepart;
+	int	err = 0;
 
 	slicepart = splitString(&str_read, " ");
-	if (str_read.empty())
-		throw Request::Exception_Request("The Request is wrong (Method wrong)", 400, 0);
 	_requestHeaderMethod = slicepart;
 	if (_requestHeaderMethod != "GET" && _requestHeaderMethod != "POST" && _requestHeaderMethod != "DELETE")
-		throw Request::Exception_Request("Bad request", 400, 0);
+		err = 400;
 	slicepart = splitString(&str_read, " ");
-	if (str_read.empty())
-		throw Request::Exception_Request("The Request is wrong (no space)", 400, 0);
 	_requestHeaderLocation = slicepart;
-	if (_requestHeaderLocation[0] != '/') // request location must start by "/""
-		throw Request::Exception_Request("The Request is wrong (no /)", 400, 0);
 	checkLocationParametor();
 	slicepart = splitString(&str_read, "\r\n");
 	_requestHeaderHTTP_Protocol = slicepart;
 	if (_requestHeaderHTTP_Protocol != "HTTP/1.1")
-		throw Request::Exception_Request("HTTP is wrong", 400, 0);
-	return (0);
+		err = 400;
+	return (err);
 }
 
 int RequestHeader::setHeaderOthers(std::vector<char> *dataR)

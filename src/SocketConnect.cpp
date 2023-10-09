@@ -127,33 +127,6 @@ void SocketConnect::setRequest(std::vector<Server> *list_server)
 	_socketRequest.setRequest(list_server, this);
 }
 
-bool SocketConnect::doRedirect(std::vector<SocketConnect *> registerdSockets, int where)
-{
-	if (getSocketRequest()->getRequestDirSettings()->getRedirect().second.empty())
-		return (0);
-	else
-	{
-		int redirect_status = getSocketRequest()->getRequestDirSettings()->getRedirect().first;
-		std::string redirect_url = getSocketRequest()->getRequestDirSettings()->getRedirect().second;
-		std::string redirect_status_str = std::to_string(redirect_status);
-		std::string redirect_message = set_Status(redirect_status);
-		std::cout << "Redirect is set " << redirect_url << std::endl;
-
-		const char *redirect_res_1 = "HTTP/1.1 ";
-		const char *redirect_res_2 = redirect_status_str.c_str();
-		const char *redirect_res_3 = redirect_message .c_str();
-		const char *redirect_res_4 = "\r\nLocation: ";
-		const char *redirect_res_5 = redirect_url.c_str();
-
-		registerdSockets.erase(registerdSockets.begin() + where);
-		write(getNumSocket(), redirect_res_1, strlen(redirect_res_1));
-		write(getNumSocket(), redirect_res_2, strlen(redirect_res_2));
-		write(getNumSocket(), redirect_res_3, strlen(redirect_res_3));
-		write(getNumSocket(), redirect_res_4, strlen(redirect_res_4));
-		write(getNumSocket(), redirect_res_5, strlen(redirect_res_5));
-	}
-	return (1);
-}
 // exception
 SocketConnect::ERR_SocketConnect::ERR_SocketConnect() : _error_msg("SocketConnect setting failed") {}
 SocketConnect::ERR_SocketConnect::ERR_SocketConnect(const char *error_msg) : _error_msg(error_msg) {}

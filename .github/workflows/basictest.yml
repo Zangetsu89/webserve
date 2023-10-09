@@ -1,0 +1,50 @@
+name: Webserv test 
+run-name: ${{ github.actor }} is learning GitHub Actions
+
+on: [push]
+
+jobs:
+  # build_webserv:
+
+  #   runs-on: macos-latest
+
+  #   steps:
+  #   - uses: actions/checkout@v3
+  #   - name: make
+  #     run: make
+  #   - name: make again
+  #     run: make
+  #   - name: make fclean
+  #     run: make fclean
+  #   - name: make make
+  #     run: make
+
+  run_webserv:
+
+    runs-on: macos-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    - name: make + no config
+      continue-on-error: true
+      run: make
+    - name: run webserv without config
+      continue-on-error: true
+      run: ./webserv
+    - name: run webserv with one port to 2 servers
+      continue-on-error: true
+      run: ./webserv config_file/invalid_double_port.conf
+    - name: run webserv with nodata config
+      continue-on-error: true
+      run: ./webserv config_file/invalid_nodata.conf
+    - name: run webserv with wrong file name
+      continue-on-error: true
+      run: ./webserv config_file/invalid
+    - name: run webserv with wrong port
+      continue-on-error: true
+      run: ./webserv config_file/invalid_wrongport.conf
+    - name: run webserv + curl 
+      timeout-minutes: 1
+      continue-on-error: true
+      run: './webserv config_file/normal.conf > log & curl localhost -X GET -H "Content-Type: plain/text" --data "BODY IS HERE" > curllog && killall webserv && cat curllog'
+    
